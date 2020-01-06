@@ -1,0 +1,4 @@
+runtime: nodejs10
+service: search
+# automatic_scaling:
+#   min_idle_instances: 1
