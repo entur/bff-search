@@ -10,6 +10,8 @@ app.use(bodyParser.json())
 const search = require('./search')
 
 function generateNextCursor(params, results) {
+    if (!results || !results.length) return
+
     const cursorData = {
         v: 1,
         params: {
@@ -42,26 +44,38 @@ function getParams({ cursor, ...bodyParams }) {
         }
 }
 
-app.post('/nontransit', async (req, res, next) => {
+app.post('/transit', async (req, res, next) => {
     try {
         const params = getParams(req.body)
-        const nonTransitTripPatterns = await search.nontransit(params)
+        const { tripPatterns, hasFlexibleTripPattern } = await search.transit(params)
 
-        res.json({ nonTransitTripPatterns })
+        res.json({
+            tripPatterns,
+            hasFlexibleTripPattern,
+            nextCursor: generateNextCursor(params, tripPatterns)
+        })
     } catch (error) {
         next(error)
     }
 });
 
-app.post('/', async (req, res, next) => {
+app.post('/non-transit', async (req, res, next) => {
     try {
         const params = getParams(req.body)
-        const tripPatterns = await search.transit(params)
+        const tripPatterns = await search.nonTransit(params)
 
-        res.json({
-            tripPatterns,
-            nextCursor: generateNextCursor(params, tripPatterns)
-        })
+        res.json({ tripPatterns })
+    } catch (error) {
+        next(error)
+    }
+});
+
+app.post('/bike-rental', async (req, res, next) => {
+    try {
+        const params = getParams(req.body)
+        const tripPattern = await search.bikeRental(params)
+
+        res.json({ tripPattern })
     } catch (error) {
         next(error)
     }
