@@ -1,60 +1,88 @@
-const EnturService = require("@entur/sdk").default;
+import EnturService from '@entur/sdk'
+
+import {
+    parseTripPattern, isTransitAlternative, isFlexibleTripsInCombination, isFlexibleAlternative, isBikeRentalAlternative
+} from './utils'
+import {
+    LEG_MODE, NON_TRANSIT_DISTANCE_LIMITS
+} from './constants'
 
 const sdk = new EnturService({
-    clientName: "entur-search",
+    clientName: 'entur-search',
     hosts: {
-        journeyplanner: "https://api.dev.entur.io/sales/v1/offers/search",
-    },
-});
+        journeyplanner: 'https://api.dev.entur.io/sales/v1/offers/search'
+    }
+})
 
-const NON_TRANSIT_DISTANCE_LIMITS = {
-    UPPER: {
-        foot: 100000,
-        bicycle: 100000,
-        car: 120000,
-    },
-    LOWER: {
-        foot: 1,
-        bicycle: 1,
-        car: 1,
-    },
-};
+export async function searchTransit(params) {
+    const { from, to, ...searchParams } = params
 
-function shouldSearchWithTaxi(tripPatterns, nonTransitTripPatterns) {
-    if (!tripPatterns.length) { return true; }
-    const { walk, car } = nonTransitTripPatterns;
-    if (walk && walk.duration < THRESHOLD.TAXI_WALK) { return false; }
-    if (car && car.duration < THRESHOLD.TAXI_CAR) { return false; }
-    const timeUntilResult = timeBetweenSearchDateAndResult(originalSearchTime, tripPatterns[0], timepickerMode);
-    return timeUntilResult >= THRESHOLD.TAXI_HOURS;
+    const response = await sdk.getTripPatterns(from, to, searchParams)
+    const tripPatterns = response
+        .map(parseTripPattern)
+        .filter(isTransitAlternative)
+        .filter(isFlexibleTripsInCombination)
+
+    return {
+        tripPatterns,
+        hasFlexibleTripPattern: tripPatterns.some(isFlexibleAlternative),
+    }
 }
 
-async function getNonTransitTripPatterns(from, to, searchParams) {
-    const nonTransitTripPatterns = await Promise.all(["foot", "bicycle", "car"].map(async mode => {
+export const searchNonTransit = async function nontransit(params) {
+    const { from, to, ...searchParams } = params
+    const modes = [LEG_MODE.FOOT, LEG_MODE.BICYCLE, LEG_MODE.CAR]
+
+    const [foot, bicycle, car] = await Promise.all(modes.map(async mode => {
         const result = await sdk.getTripPatterns(from, to, {
             ...searchParams,
+            numTripPatterns: 1,
             modes: [mode],
-        });
+            maxPreTransitWalkDistance: 2000,
+        })
 
-        if (!result || !result.length) { return; }
+        if (!result || !result.length) return
 
-        const pattern = result[0];
+        const tripPattern = result[0]
+        const upperLimit = NON_TRANSIT_DISTANCE_LIMITS.UPPER[mode]
+        const lowerLimit = NON_TRANSIT_DISTANCE_LIMITS.LOWER[mode]
 
-        const upperLimit = NON_TRANSIT_DISTANCE_LIMITS.UPPER[mode];
-        const lowerLimit = NON_TRANSIT_DISTANCE_LIMITS.LOWER[mode];
-        if (pattern.distance > upperLimit || pattern.distance < lowerLimit) { return; }
+        if (tripPattern.distance > upperLimit || tripPattern.distance < lowerLimit) return
 
-        return pattern;
-    }));
+        return parseTripPattern(tripPattern)
+    }))
 
-    return nonTransitTripPatterns.filter(Boolean);
+    return { foot, bicycle, car }
 }
 
-module.exports = async function search(params, options) {
-    const { from, to, ...searchParams } = params;
-    const [transit, nonTransit] = await Promise.all([
-        sdk.getTripPatterns(from, to, searchParams),
-        options.ignoreNonTransit ? [] : getNonTransitTripPatterns(from, to, searchParams),
-    ]);
-    return [...transit, ...nonTransit];
-};
+export async function searchBikeRental(params) {
+    const { from, to, ...searchParams } = params
+
+    const result = await sdk.getTripPatterns(from, to, {
+        ...searchParams,
+        numTripPatterns: 5,
+        modes: [LEG_MODE.BICYCLE, LEG_MODE.FOOT],
+        maxPreTransitWalkDistance: 2000,
+        allowBikeRental: true,
+    })
+    const tripPattern = result.filter(isBikeRentalAlternative)[0]
+    const upperLimit = NON_TRANSIT_DISTANCE_LIMITS.UPPER.bicycle
+    const lowerLimit = NON_TRANSIT_DISTANCE_LIMITS.LOWER.bicycle
+
+    if (tripPattern.distance > upperLimit || tripPattern.distance < lowerLimit) return
+
+    return parseTripPattern(tripPattern)
+}
+
+function shouldSearchWithTaxi(tripPatterns, nonTransitTripPatterns) {
+    if (!tripPatterns.length) return true
+
+    const { walk, car } = nonTransitTripPatterns
+
+    if (walk && walk.duration < THRESHOLD.TAXI_WALK) return false
+    if (car && car.duration < THRESHOLD.TAXI_CAR) return false
+
+    const timeUntilResult = timeBetweenSearchDateAndResult(originalSearchTime, tripPatterns[0], timepickerMode)
+
+    return timeUntilResult >= THRESHOLD.TAXI_HOURS
+}

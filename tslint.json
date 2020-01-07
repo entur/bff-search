@@ -2,13 +2,15 @@
     "defaultSeverity": "error",
     "extends": ["tslint:recommended"],
     "jsRules": {
-        "ordered-imports": [false],
-        "object-literal-sort-keys": [false]
+        "object-literal-sort-keys": [false],
+        "ordered-imports": [false]
     },
     "rules": {
-        "no-console": [false],
+        "curly": false,
+        "object-literal-sort-keys": [false],
         "ordered-imports": [false],
-        "object-literal-sort-keys": [false]
+        "quotemark": [false],
+        "semicolon": false
     },
     "rulesDirectory": []
 }

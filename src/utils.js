@@ -1,19 +1,18 @@
-const constants = require('./constants')
-const { LEG_MODE } = constants
+import { LEG_MODE } from './constants'
 
-exports.isTransitAlternative = function isTransitAlternative({ legs }) {
+export function isTransitAlternative({ legs }) {
     return (legs || []).some(isTransitLeg)
 }
 
-exports.isBikeRentalAlternative = function isBikeRentalAlternative({ legs }) {
+export function isBikeRentalAlternative({ legs }) {
     return (legs || []).some(isBikeRentalLeg)
 }
 
-exports.isFlexibleAlternative =  function isFlexibleAlternative({ legs }) {
+export function isFlexibleAlternative({ legs }) {
     return (legs || []).some(isFlexibleLeg)
 }
 
-exports.isFlexibleTripsInCombination =  function isFlexibleTripsInCombination({ legs }) {
+export function isFlexibleTripsInCombination({ legs }) {
     if (!legs.some(isFlexibleLeg)) return true
 
     const transitLegs = legs.filter(isTransit)
@@ -21,7 +20,7 @@ exports.isFlexibleTripsInCombination =  function isFlexibleTripsInCombination({ 
     return transitLegs.length === 1 && isFlexibleLeg(transitLegs[0])
 }
 
-exports.parseTripPattern = function parseTripPattern(rawTripPattern) {
+export function parseTripPattern(rawTripPattern) {
     return {
         ...rawTripPattern,
         legs: rawTripPattern.legs.map(parseLeg),

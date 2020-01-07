@@ -1,11 +1,11 @@
 
-exports.LEG_MODE = LEG_MODE = {
+export const LEG_MODE = LEG_MODE = {
   FOOT: 'foot',
   BICYCLE: 'bicycle',
   CAR: 'car',
 }
 
-exports.NON_TRANSIT_DISTANCE_LIMITS = NON_TRANSIT_DISTANCE_LIMITS = {
+export const NON_TRANSIT_DISTANCE_LIMITS = NON_TRANSIT_DISTANCE_LIMITS = {
   UPPER: {
       foot: 100000,
       bicycle: 100000,
