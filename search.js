@@ -29,32 +29,37 @@ function shouldSearchWithTaxi(tripPatterns, nonTransitTripPatterns) {
     return timeUntilResult >= THRESHOLD.TAXI_HOURS
 }
 
-async function getNonTransitTripPatterns(from, to, searchParams) {
-    const nonTransitTripPatterns = await Promise.all(['foot', 'bicycle', 'car'].map(async mode => {
+exports.transit = async function transit(params) {
+    console.log('TRANSIT params :', JSON.stringify(params, undefined, 3));
+
+    const { from, to, ...searchParams } = params
+
+    return sdk.getTripPatterns(from, to, searchParams)
+}
+
+exports.nontransit = async function nontransit(params) {
+    console.log('NON-TRANSIT params :', JSON.stringify(params, undefined, 3));
+
+    const { from, to, ...searchParams } = params
+    const modes = ['foot', 'bicycle', 'car']
+    const [foot, bicycle, car] = await Promise.all(modes.map(async mode => {
         const result = await sdk.getTripPatterns(from, to, {
             ...searchParams,
-            modes: [mode]
+            numTripPatterns: 1,
+            modes: [mode],
+            transportSubmodes: [],
+            maxPreTransitWalkDistance: 2000,
         })
 
         if (!result || !result.length) return
 
         const pattern = result[0]
-
         const upperLimit = NON_TRANSIT_DISTANCE_LIMITS.UPPER[mode]
         const lowerLimit = NON_TRANSIT_DISTANCE_LIMITS.LOWER[mode]
-        if (pattern.distance > upperLimit || pattern.distance < lowerLimit) return
 
+        if (pattern.distance > upperLimit || pattern.distance < lowerLimit) return
         return pattern
     }))
 
-    return nonTransitTripPatterns.filter(Boolean)
-}
-
-module.exports = async function search(params, options) {
-    const { from, to, ...searchParams } = params
-    const [transit, nonTransit] = await Promise.all([
-        sdk.getTripPatterns(from, to, searchParams),
-        options.ignoreNonTransit ? [] : getNonTransitTripPatterns(from, to, searchParams),
-    ])
-    return [...transit, ...nonTransit]
+    return { foot, bicycle, car }
 }

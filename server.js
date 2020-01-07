@@ -33,23 +33,30 @@ function parseCursor(cursor) {
     }
 }
 
+function getParams({ cursor, ...bodyParams }) {
+    if (cursor) return parseCursor(cursor).params
+
+    return {
+            ...bodyParams,
+            searchDate: new Date(bodyParams.searchDate),
+        }
+}
+
+app.post('/nontransit', async (req, res, next) => {
+    try {
+        const params = getParams(req.body)
+        const nonTransitTripPatterns = await search.nontransit(params)
+
+        res.json({ nonTransitTripPatterns })
+    } catch (error) {
+        next(error)
+    }
+});
+
 app.post('/', async (req, res, next) => {
     try {
-        const { cursor, ...bodyParams } = req.body
-
-        let params
-
-        if (cursor) {
-            const parsedCursor = parseCursor(cursor);
-            params = parsedCursor.params
-        } else {
-            params = bodyParams
-            params.searchDate = new Date(params.searchDate)
-        }
-
-        const tripPatterns = await search(params, {
-            ignoreNonTransit: false
-        })
+        const params = getParams(req.body)
+        const tripPatterns = await search.transit(params)
 
         res.json({
             tripPatterns,
