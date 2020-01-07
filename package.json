@@ -8,9 +8,9 @@
   "scripts": {
     "lint": "tslint -c tslint.json -p tsconfig.json --fix",
     "build": "tsc",
-    "prestart": "yarn build",
+    "prestart": "npm run build",
     "start": "node .",
-    "predev": "yarn build",
+    "predev": "npm run build",
     "dev": "nodemon .",
     "deploy": "gcloud app deploy --project=entur-dev"
   },

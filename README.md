@@ -5,13 +5,13 @@ A backend for our frontend that does travel search.
 ## Install
 
 ```
-yarn install
+npm install
 ```
 
 ## Develop
 
 ```
-yarn run dev
+npm run dev
 ```
 
 The default port is 9000. You can override it with the `PORT` environment variable.
@@ -20,5 +20,5 @@ The default port is 9000. You can override it with the `PORT` environment variab
 ## Deploy
 
 ```
-yarn run deploy
+npm run deploy
 ```
