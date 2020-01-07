@@ -1,4 +1,24 @@
-# Search-BFF for Entur
+# Entur Search
 
-This Search-BFF (Backend-for-Frontends) handel searches for JourneyPlanner 2.0. 
-All Entur clients will use this BFF to get travel result from JourneyPlanner.
+A backend for our frontend that does travel search.
+
+## Install
+
+```
+yarn install
+```
+
+## Develop
+
+```
+yarn run dev
+```
+
+The default port is 9000. You can override it with the `PORT` environment variable.
+
+
+## Deploy
+
+```
+yarn run deploy
+```
