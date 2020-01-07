@@ -1,12 +1,17 @@
 {
-  "name": "entur-search",
+  "name": "@entur/entur-search",
   "version": "1.0.0",
   "description": "",
   "main": "dist/server.js",
   "author": "",
-  "license": "ISC",
+  "license": "UNLICENSED",
+  "private": true,
+  "engines": {
+    "node": ">=10"
+  },
   "scripts": {
     "lint": "tslint -c tslint.json -p tsconfig.json --fix",
+    "prebuild": "npm run lint",
     "build": "tsc",
     "prestart": "npm run build",
     "start": "node .",
@@ -29,5 +34,9 @@
     "nodemon": "^2.0.2",
     "tslint": "^5.20.1",
     "typescript": "^3.7.4"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/username/repository.git"
   }
 }
