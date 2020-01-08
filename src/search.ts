@@ -39,10 +39,11 @@ export async function searchNonTransit(params: SearchParams) {
     const [foot, bicycle, car] = await Promise.all(modes.map(async mode => {
         const result = await sdk.getTripPatterns(from, to, {
             ...searchParams,
-            // TODO: Må fikses i SDK-en ???
-            // @ts-ignore
-            numTripPatterns: 1,
+            limit: 1,
             modes: [mode],
+
+            // TODO: typen finnes ikke i SDK-en. Er dette brukt?
+            // @ts-ignore
             maxPreTransitWalkDistance: 2000,
         })
 
@@ -65,11 +66,15 @@ export async function searchBikeRental(params: SearchParams): Promise<TripPatter
 
     const result = await sdk.getTripPatterns(from, to, {
         ...searchParams,
-        // TODO: Må fikses i SDK-en ???
-        // @ts-ignore
-        numTripPatterns: 5,
+        limit: 5,
         modes: [LegMode.BICYCLE, LegMode.FOOT],
+
+        // TODO: typen finnes ikke i SDK-en. Er dette brukt?
+        // @ts-ignore
         maxPreTransitWalkDistance: 2000,
+
+        // TODO: typen finnes ikke i SDK-en. Er dette brukt?
+        // @ts-ignore
         allowBikeRental: true,
     })
     const tripPattern = result.filter(isBikeRentalAlternative)[0]

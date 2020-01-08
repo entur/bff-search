@@ -10,6 +10,7 @@
         "await-promise": true,
         "curly": false,
         "eofline": true,
+        "indent": [true, "spaces", 4],
         "interface-name": false,
         "no-async-without-await": true,
         "no-conditional-assignment": true,
