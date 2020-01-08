@@ -6,9 +6,9 @@ import { addMinutes, subMinutes } from 'date-fns'
 
 import { TripPattern } from '@entur/sdk'
 
-import { SearchParams } from '../../types'
+import { CursorData, SearchParams } from '../../types'
 
-export function parseCursor(cursor: string) {
+export function parseCursor(cursor: string): CursorData {
     const parsed = JSON.parse(decompressFromEncodedURIComponent(cursor));
 
     return {
@@ -20,7 +20,7 @@ export function parseCursor(cursor: string) {
     };
 }
 
-export function generateCursor(params: SearchParams, tripPatterns?: TripPattern[]) {
+export function generateCursor(params: SearchParams, tripPatterns?: TripPattern[]): string {
     if (!tripPatterns?.length) return
 
     const searchDate = getNextSearchDate(tripPatterns, params.arriveBy)
