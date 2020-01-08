@@ -1,14 +1,13 @@
-import EnturService, {
-    LegMode, TripPattern,
- } from '@entur/sdk'
+import EnturService, { LegMode, TripPattern } from '@entur/sdk'
 
-import { SearchParams } from '../index'
+import { SearchParams } from '../types'
+
+import { NON_TRANSIT_DISTANCE_LIMITS } from './constants'
 
 import {
-    parseTripPattern, isTransitAlternative, isFlexibleTripsInCombination,
-    isFlexibleAlternative, isBikeRentalAlternative,
+    isBikeRentalAlternative, isFlexibleAlternative, isFlexibleTripsInCombination,
+    isTransitAlternative, parseTripPattern,
 } from './utils'
-import { NON_TRANSIT_DISTANCE_LIMITS } from './constants'
 
 const sdk = new EnturService({
     clientName: 'entur-search',
