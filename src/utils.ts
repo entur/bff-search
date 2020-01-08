@@ -33,14 +33,14 @@ export function parseTripPattern(rawTripPattern: any): TripPattern {
 
 function parseLeg(leg: any): Leg {
     const { fromPlace, fromEstimatedCall } = leg
-    const fromQuay = fromPlace.quay
+    const fromQuayName = fromPlace?.quay?.name || fromEstimatedCall?.quay?.name
 
-    if (!isFlexibleLeg(leg) && (fromQuay?.name || fromEstimatedCall?.quay?.name)) {
+    if (!isFlexibleLeg(leg) && fromQuayName) {
         return {
             ...leg,
             fromPlace: {
                 ...fromPlace,
-                name: isTransitLeg(leg) ? fromQuay?.name || fromEstimatedCall?.quay?.name : fromPlace.name,
+                name: isTransitLeg(leg) ? fromQuayName : fromPlace.name,
             },
         }
     }
