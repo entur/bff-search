@@ -2,13 +2,30 @@
     "defaultSeverity": "error",
     "extends": ["tslint:recommended"],
     "jsRules": {
-        "ordered-imports": [false],
-        "object-literal-sort-keys": [false]
+        "object-literal-sort-keys": [false],
+        "ordered-imports": [false]
     },
     "rules": {
-        "no-console": [false],
+        "arrow-parens": false,
+        "await-promise": true,
+        "curly": false,
+        "eofline": true,
+        "indent": [true, "spaces", 4],
+        "interface-name": false,
+        "no-async-without-await": true,
+        "no-conditional-assignment": true,
+        "no-consecutive-blank-lines": true,
+        "no-for-in": true,
+        "no-require-imports": true,
+        "no-var-keyword": true,
+        "object-literal-sort-keys": [false],
         "ordered-imports": [false],
-        "object-literal-sort-keys": [false]
+        "prefer-const": true,
+        "prefer-object-spread": true,
+        "quotemark": [false],
+        "semicolon": false,
+        "trailing-comma": [true, {"multiline": "always", "singleline": "never"}]
+
     },
     "rulesDirectory": []
 }
