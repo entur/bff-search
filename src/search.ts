@@ -2,7 +2,7 @@ import EnturService, { LegMode, TripPattern } from '@entur/sdk'
 
 import { SearchParams } from '../types'
 
-import { NON_TRANSIT_DISTANCE_LIMITS } from './utils/constants'
+import { NON_TRANSIT_DISTANCE_LIMIT } from './utils/constants'
 
 import {
     isBikeRentalAlternative, isFlexibleAlternative, isFlexibleTripsInCombination,
@@ -49,8 +49,8 @@ export async function searchNonTransit(params: SearchParams) {
         if (!result || !result.length) return
 
         const tripPattern = result[0]
-        const upperLimit = NON_TRANSIT_DISTANCE_LIMITS.UPPER[mode]
-        const lowerLimit = NON_TRANSIT_DISTANCE_LIMITS.LOWER[mode]
+        const upperLimit = NON_TRANSIT_DISTANCE_LIMIT.UPPER[mode]
+        const lowerLimit = NON_TRANSIT_DISTANCE_LIMIT.LOWER[mode]
 
         if (tripPattern.distance > upperLimit || tripPattern.distance < lowerLimit) return
 
@@ -77,26 +77,10 @@ export async function searchBikeRental(params: SearchParams): Promise<TripPatter
         allowBikeRental: true,
     })
     const tripPattern = result.filter(isBikeRentalAlternative)[0]
-    const upperLimit = NON_TRANSIT_DISTANCE_LIMITS.UPPER.bicycle
-    const lowerLimit = NON_TRANSIT_DISTANCE_LIMITS.LOWER.bicycle
+    const upperLimit = NON_TRANSIT_DISTANCE_LIMIT.UPPER.bicycle
+    const lowerLimit = NON_TRANSIT_DISTANCE_LIMIT.LOWER.bicycle
 
     if (tripPattern.distance > upperLimit || tripPattern.distance < lowerLimit) return
 
     return parseTripPattern(tripPattern)
 }
-
-// TODO: WIP. En del av logikken som må flyttes fra klienten.
-/*
-function shouldSearchWithTaxi(tripPatterns: [TripPattern], nonTransitTripPatterns: NonTransitTripPatterns): boolean {
-    if (!tripPatterns.length) return true
-
-    const { car, foot } = nonTransitTripPatterns
-
-    if (foot && foot.duration < THRESHOLD.TAXI_WALK) return false
-    if (car && car.duration < THRESHOLD.TAXI_CAR) return false
-
-    const timeUntilResult = timeBetweenSearchDateAndResult(originalSearchTime, tripPatterns[0], timepickerMode)
-
-    return timeUntilResult >= THRESHOLD.TAXI_HOURS
-}
-*/

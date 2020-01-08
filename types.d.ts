@@ -8,9 +8,10 @@ export type CursorData = {
 }
 
 export type SearchParams = {
-  cursor?: string,
   from: Location,
   to: Location,
+  cursor?: string,
+  initialSearchDate?: string,
 } & GetTripPatternsParams
 
 export interface NonTransitTripPatterns {

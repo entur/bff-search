@@ -1,5 +1,5 @@
 
-export const NON_TRANSIT_DISTANCE_LIMITS = {
+export const NON_TRANSIT_DISTANCE_LIMIT = {
     UPPER: {
         bicycle: 100000,
         car: 120000,

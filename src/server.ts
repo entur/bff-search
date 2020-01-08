@@ -15,6 +15,8 @@ app.use(bodyParser.json());
 app.post('/transit', async (req, res, next) => {
     try {
         const params = getParams(req.body)
+        console.log('TRANSIT PARAMS :', JSON.stringify(params, undefined, 3));
+
         const { tripPatterns, hasFlexibleTripPattern } = await searchTransit(params)
 
         res.json({
@@ -30,6 +32,8 @@ app.post('/transit', async (req, res, next) => {
 app.post('/non-transit', async (req, res, next) => {
     try {
         const params = getParams(req.body)
+        console.log('NON-TRANSIT PARAMS :', JSON.stringify(params, undefined, 3));
+
         const tripPatterns = await searchNonTransit(params)
 
         res.json({ tripPatterns })
