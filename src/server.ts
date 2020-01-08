@@ -1,11 +1,11 @@
-import bodyParser from "body-parser";
-import cors from "cors";
-import express from "express";
-import lz from "lz-string";
+import bodyParser from "body-parser"
+import cors from "cors"
+import express from "express"
 
-import {
-    searchTransit, searchNonTransit, searchBikeRental,
-} from "./search";
+import { SearchParams } from '../types'
+
+import { searchTransit, searchNonTransit, searchBikeRental } from "./search"
+import { parseCursor, generateCursor } from "./utils/cursor"
 
 const app = express();
 
@@ -20,7 +20,7 @@ app.post('/transit', async (req, res, next) => {
         res.json({
             tripPatterns,
             hasFlexibleTripPattern,
-            nextCursor: generateNextCursor(params, tripPatterns),
+            nextCursor: generateCursor(params, tripPatterns),
         })
     } catch (error) {
         next(error)
@@ -49,33 +49,7 @@ app.post('/bike-rental', async (req, res, next) => {
     }
 });
 
-function generateNextCursor(params: any, results: any) {
-    if (!results || !results.length) return
-
-    const cursorData = {
-        v: 1,
-        params: {
-            ...params,
-            searchDate: results[results.length - 1].startTime,
-        },
-    };
-
-    return lz.compressToEncodedURIComponent(JSON.stringify(cursorData));
-}
-
-function parseCursor(cursor: string) {
-    const parsed = JSON.parse(lz.decompressFromEncodedURIComponent(cursor));
-
-    return {
-        ...parsed,
-        params: {
-            ...parsed.params,
-            searchDate: new Date(parsed.params.searchDate),
-        },
-    };
-}
-
-function getParams({ cursor, ...bodyParams }: any) {
+function getParams({ cursor, ...bodyParams }: SearchParams): SearchParams {
     if (cursor) return parseCursor(cursor).params
 
     return {

@@ -3,6 +3,7 @@ import {
 } from '@entur/sdk'
 
 export type SearchParams = {
+  cursor?: string,
   from: Location,
   to: Location,
 } & GetTripPatternsParams
