@@ -1,20 +1,23 @@
-import EnturService from '@entur/sdk'
+import EnturService, {
+    LegMode, TripPattern,
+ } from '@entur/sdk'
+
+import { SearchParams } from '../index'
 
 import {
-    parseTripPattern, isTransitAlternative, isFlexibleTripsInCombination, isFlexibleAlternative, isBikeRentalAlternative
+    parseTripPattern, isTransitAlternative, isFlexibleTripsInCombination,
+    isFlexibleAlternative, isBikeRentalAlternative,
 } from './utils'
-import {
-    LEG_MODE, NON_TRANSIT_DISTANCE_LIMITS
-} from './constants'
+import { NON_TRANSIT_DISTANCE_LIMITS } from './constants'
 
 const sdk = new EnturService({
     clientName: 'entur-search',
     hosts: {
-        journeyplanner: 'https://api.dev.entur.io/sales/v1/offers/search'
-    }
+        journeyPlanner: 'https://api.dev.entur.io/sales/v1/offers/search',
+    },
 })
 
-export async function searchTransit(params) {
+export async function searchTransit(params: SearchParams) {
     const { from, to, ...searchParams } = params
 
     const response = await sdk.getTripPatterns(from, to, searchParams)
@@ -29,13 +32,15 @@ export async function searchTransit(params) {
     }
 }
 
-export const searchNonTransit = async function nontransit(params) {
+export async function searchNonTransit(params: SearchParams) {
     const { from, to, ...searchParams } = params
-    const modes = [LEG_MODE.FOOT, LEG_MODE.BICYCLE, LEG_MODE.CAR]
+    const modes = [LegMode.FOOT, LegMode.BICYCLE, LegMode.CAR]
 
     const [foot, bicycle, car] = await Promise.all(modes.map(async mode => {
         const result = await sdk.getTripPatterns(from, to, {
             ...searchParams,
+            // TODO: Må fikses i SDK-en ???
+            // @ts-ignore
             numTripPatterns: 1,
             modes: [mode],
             maxPreTransitWalkDistance: 2000,
@@ -55,13 +60,15 @@ export const searchNonTransit = async function nontransit(params) {
     return { foot, bicycle, car }
 }
 
-export async function searchBikeRental(params) {
+export async function searchBikeRental(params: SearchParams): Promise<TripPattern> {
     const { from, to, ...searchParams } = params
 
     const result = await sdk.getTripPatterns(from, to, {
         ...searchParams,
+        // TODO: Må fikses i SDK-en ???
+        // @ts-ignore
         numTripPatterns: 5,
-        modes: [LEG_MODE.BICYCLE, LEG_MODE.FOOT],
+        modes: [LegMode.BICYCLE, LegMode.FOOT],
         maxPreTransitWalkDistance: 2000,
         allowBikeRental: true,
     })
@@ -74,15 +81,18 @@ export async function searchBikeRental(params) {
     return parseTripPattern(tripPattern)
 }
 
-function shouldSearchWithTaxi(tripPatterns, nonTransitTripPatterns) {
+// TODO: WIP. En del av logikken som må flyttes fra klienten.
+/*
+function shouldSearchWithTaxi(tripPatterns: [TripPattern], nonTransitTripPatterns: NonTransitTripPatterns): boolean {
     if (!tripPatterns.length) return true
 
-    const { walk, car } = nonTransitTripPatterns
+    const { car, foot } = nonTransitTripPatterns
 
-    if (walk && walk.duration < THRESHOLD.TAXI_WALK) return false
+    if (foot && foot.duration < THRESHOLD.TAXI_WALK) return false
     if (car && car.duration < THRESHOLD.TAXI_CAR) return false
 
     const timeUntilResult = timeBetweenSearchDateAndResult(originalSearchTime, tripPatterns[0], timepickerMode)
 
     return timeUntilResult >= THRESHOLD.TAXI_HOURS
 }
+*/

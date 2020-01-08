@@ -6,11 +6,25 @@
         "ordered-imports": [false]
     },
     "rules": {
+        "arrow-parens": false,
+        "await-promise": true,
         "curly": false,
+        "eofline": true,
+        "interface-name": false,
+        "no-async-without-await": true,
+        "no-conditional-assignment": true,
+        "no-consecutive-blank-lines": true,
+        "no-for-in": true,
+        "no-require-imports": true,
+        "no-var-keyword": true,
         "object-literal-sort-keys": [false],
         "ordered-imports": [false],
+        "prefer-const": true,
+        "prefer-object-spread": true,
         "quotemark": [false],
-        "semicolon": false
+        "semicolon": false,
+        "trailing-comma": [true, {"multiline": "always", "singleline": "never"}]
+
     },
     "rulesDirectory": []
 }

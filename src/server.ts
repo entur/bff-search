@@ -87,5 +87,6 @@ function getParams({ cursor, ...bodyParams }: any) {
 const PORT = process.env.PORT || 9000;
 
 app.listen(PORT, () => {
+    // tslint:disable-next-line:no-console
     console.log(`Server listening on port ${PORT}...`);
 });
