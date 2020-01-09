@@ -34,10 +34,6 @@ export function generateCursor(params: SearchParams, tripPatterns?: TripPattern[
         ? getNextSearchDateFromResults(arriveBy, tripPatterns)
         : getNextSearchDateFromParams(arriveBy, previousDate, initialDate)
 
-    console.log('INIT searchDate :', initialDate);
-    console.log('PREV searchDate :', previousDate);
-    console.log('NEXT searchDate :', nextDate);
-
     const cursorData = {
         v: 1,
         params: {
