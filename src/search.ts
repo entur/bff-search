@@ -1,13 +1,11 @@
 import EnturService, { LegMode, TripPattern } from '@entur/sdk'
 import {
-    addHours, differenceInHours, getDay, setHours, setMinutes,
+    addHours, differenceInHours, setHours, setMinutes, isSameDay,
 } from 'date-fns'
 
 import { SearchParams, TransitTripPatterns, NonTransitTripPatterns } from '../types'
 
-import {
-    NON_TRANSIT_DISTANCE_LIMIT, MAX_SEARCH_TRANSIT_RETRIES,
-} from './utils/constants'
+import { NON_TRANSIT_DISTANCE_LIMITS } from './utils/constants'
 import {
     isBikeRentalAlternative, isFlexibleAlternative, isFlexibleTripsInCombination,
     isTransitAlternative, parseTripPattern,
@@ -21,7 +19,8 @@ const sdk = new EnturService({
 })
 
 export async function searchTransit(params: SearchParams, numRetries: number = 0): Promise<TransitTripPatterns> {
-    const { from, to, ...searchParams } = params
+    const { from, to, initialSearchDate, ...searchParams } = params
+    const { searchDate } = searchParams
 
     const response = await sdk.getTripPatterns(from, to, searchParams)
     const tripPatterns = response
@@ -29,8 +28,10 @@ export async function searchTransit(params: SearchParams, numRetries: number = 0
         .filter(isTransitAlternative)
         .filter(isFlexibleTripsInCombination)
 
-    if (!tripPatterns.length && numRetries < MAX_SEARCH_TRANSIT_RETRIES) {
+    if (!tripPatterns.length && isSameDay(searchDate, initialSearchDate)) {
         const nextSearchParams = getNextSearchParams(params)
+
+        console.log('numRetries :', numRetries);
 
         return searchTransit(nextSearchParams, numRetries + 1)
     }
@@ -59,8 +60,8 @@ export async function searchNonTransit(params: SearchParams): Promise<NonTransit
         if (!result || !result.length) return
 
         const tripPattern = result[0]
-        const upperLimit = NON_TRANSIT_DISTANCE_LIMIT.UPPER[mode]
-        const lowerLimit = NON_TRANSIT_DISTANCE_LIMIT.LOWER[mode]
+        const upperLimit = NON_TRANSIT_DISTANCE_LIMITS.UPPER[mode]
+        const lowerLimit = NON_TRANSIT_DISTANCE_LIMITS.LOWER[mode]
 
         if (tripPattern.distance > upperLimit || tripPattern.distance < lowerLimit) return
 
@@ -87,8 +88,8 @@ export async function searchBikeRental(params: SearchParams): Promise<TripPatter
         allowBikeRental: true,
     })
     const tripPattern = result.filter(isBikeRentalAlternative)[0]
-    const upperLimit = NON_TRANSIT_DISTANCE_LIMIT.UPPER.bicycle
-    const lowerLimit = NON_TRANSIT_DISTANCE_LIMIT.LOWER.bicycle
+    const upperLimit = NON_TRANSIT_DISTANCE_LIMITS.UPPER.bicycle
+    const lowerLimit = NON_TRANSIT_DISTANCE_LIMITS.LOWER.bicycle
 
     if (tripPattern.distance > upperLimit || tripPattern.distance < lowerLimit) return
 
@@ -111,7 +112,7 @@ function getNextSearchDate(arriveBy: boolean, initialDate: Date, searchDate: Dat
 
     const nextSearchDate = addHours(searchDate, searchDateOffset)
 
-    if (getDay(nextSearchDate) === getDay(initialDate)) return nextSearchDate
+    if (isSameDay(nextSearchDate, initialDate)) return nextSearchDate
 
     return arriveBy
         ? setMinutes(setHours(nextSearchDate, 23), 59)

@@ -1,11 +1,11 @@
 import {
     compressToEncodedURIComponent, decompressFromEncodedURIComponent,
 } from "lz-string"
-import { maxBy, minBy } from 'lodash'
 import { addMinutes, subMinutes } from 'date-fns'
 
 import { TripPattern } from '@entur/sdk'
 
+import { maxBy, minBy } from './array'
 import { isTransitAlternative } from './tripPattern'
 
 import { CursorData, SearchParams } from '../../types'
@@ -29,8 +29,8 @@ export function generateCursor(params: SearchParams, tripPatterns?: TripPattern[
     if (!hasTransitPatterns) return
 
     const nextDate = arriveBy
-        ? subMinutes(new Date(minBy(tripPatterns, 'endTime').endTime), 1)
-        : addMinutes(new Date(maxBy(tripPatterns, 'startTime').startTime), 1)
+        ? subMinutes(new Date(minBy(tripPatterns, getEndTime).endTime), 1)
+        : addMinutes(new Date(maxBy(tripPatterns, getStartTime).startTime), 1)
 
     const cursorData = {
         v: 1,
@@ -39,3 +39,6 @@ export function generateCursor(params: SearchParams, tripPatterns?: TripPattern[
 
     return compressToEncodedURIComponent(JSON.stringify(cursorData));
 }
+
+const getStartTime = (tripPattern: TripPattern): string => tripPattern.startTime
+const getEndTime = (tripPattern: TripPattern): string => tripPattern.endTime

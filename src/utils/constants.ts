@@ -1,4 +1,4 @@
-export const NON_TRANSIT_DISTANCE_LIMIT = {
+export const NON_TRANSIT_DISTANCE_LIMITS = {
     UPPER: {
         bicycle: 100000,
         car: 120000,
@@ -10,5 +10,3 @@ export const NON_TRANSIT_DISTANCE_LIMIT = {
         car: 1,
     },
 }
-
-export const MAX_SEARCH_TRANSIT_RETRIES = 5
