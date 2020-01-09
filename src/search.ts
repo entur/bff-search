@@ -18,7 +18,7 @@ const sdk = new EnturService({
     },
 })
 
-export async function searchTransit(params: SearchParams, numRetries: number = 0): Promise<TransitTripPatterns> {
+export async function searchTransit(params: SearchParams): Promise<TransitTripPatterns> {
     const { from, to, initialSearchDate, ...searchParams } = params
     const { searchDate } = searchParams
 
@@ -31,9 +31,7 @@ export async function searchTransit(params: SearchParams, numRetries: number = 0
     if (!tripPatterns.length && isSameDay(searchDate, initialSearchDate)) {
         const nextSearchParams = getNextSearchParams(params)
 
-        console.log('numRetries :', numRetries);
-
-        return searchTransit(nextSearchParams, numRetries + 1)
+        return searchTransit(nextSearchParams)
     }
 
     return {
