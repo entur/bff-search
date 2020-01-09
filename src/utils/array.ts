@@ -1,13 +1,11 @@
-
 export function maxBy<T, S>(list: T[], getValue: (x: T) => S): T {
-  return list.reduce(
-    (max, next) => getValue(next) > getValue(max) ? next : max,
-    list[0],
-    )
+  return bestBy(list, (x, y) => getValue(x) > getValue(y))
 }
+
 export function minBy<T, S>(list: T[], getValue: (x: T) => S): T {
-  return list.reduce(
-    (min, next) => getValue(next) < getValue(min) ? next : min,
-    list[0],
-    )
+  return bestBy(list, (x, y) => getValue(x) < getValue(y))
+}
+
+function bestBy<T>(list: T[], isBetter: (x: T, y: T) => boolean): T {
+  return list.reduce((best, next) => isBetter(next, best) ? next : best)
 }

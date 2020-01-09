@@ -5,7 +5,7 @@ import {
 
 import { SearchParams, TransitTripPatterns, NonTransitTripPatterns } from '../types'
 
-import { NON_TRANSIT_DISTANCE_LIMITS } from './utils/constants'
+import { NON_TRANSIT_DISTANCE_LIMITS } from './constants'
 import {
     isBikeRentalAlternative, isFlexibleAlternative, isFlexibleTripsInCombination,
     isTransitAlternative, parseTripPattern,

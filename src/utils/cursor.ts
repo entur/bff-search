@@ -41,4 +41,5 @@ export function generateCursor(params: SearchParams, tripPatterns?: TripPattern[
 }
 
 const getStartTime = (tripPattern: TripPattern): string => tripPattern.startTime
+
 const getEndTime = (tripPattern: TripPattern): string => tripPattern.endTime
