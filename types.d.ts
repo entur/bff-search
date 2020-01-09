@@ -11,8 +11,13 @@ export type SearchParams = {
   from: Location,
   to: Location,
   cursor?: string,
-  initialSearchDate?: string,
+  initialSearchDate?: Date,
 } & GetTripPatternsParams
+
+export interface TransitTripPatterns {
+  tripPatterns: TripPattern[],
+  hasFlexibleTripPattern: boolean,
+}
 
 export interface NonTransitTripPatterns {
   bicycle: TripPattern | null,

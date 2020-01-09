@@ -1,9 +1,13 @@
 import EnturService, { LegMode, TripPattern } from '@entur/sdk'
+import {
+    addHours, differenceInHours, getDay, setHours, setMinutes,
+} from 'date-fns'
 
-import { SearchParams } from '../types'
+import { SearchParams, TransitTripPatterns, NonTransitTripPatterns } from '../types'
 
-import { NON_TRANSIT_DISTANCE_LIMIT } from './utils/constants'
-
+import {
+    NON_TRANSIT_DISTANCE_LIMIT, MAX_SEARCH_TRANSIT_RETRIES,
+} from './utils/constants'
 import {
     isBikeRentalAlternative, isFlexibleAlternative, isFlexibleTripsInCombination,
     isTransitAlternative, parseTripPattern,
@@ -16,7 +20,7 @@ const sdk = new EnturService({
     },
 })
 
-export async function searchTransit(params: SearchParams) {
+export async function searchTransit(params: SearchParams, numRetries: number = 0): Promise<TransitTripPatterns> {
     const { from, to, ...searchParams } = params
 
     const response = await sdk.getTripPatterns(from, to, searchParams)
@@ -25,13 +29,19 @@ export async function searchTransit(params: SearchParams) {
         .filter(isTransitAlternative)
         .filter(isFlexibleTripsInCombination)
 
+    if (!tripPatterns.length && numRetries < MAX_SEARCH_TRANSIT_RETRIES) {
+        const nextSearchParams = getNextSearchParams(params)
+
+        return searchTransit(nextSearchParams, numRetries + 1)
+    }
+
     return {
         tripPatterns,
         hasFlexibleTripPattern: tripPatterns.some(isFlexibleAlternative),
     }
 }
 
-export async function searchNonTransit(params: SearchParams) {
+export async function searchNonTransit(params: SearchParams): Promise<NonTransitTripPatterns> {
     const { from, to, ...searchParams } = params
     const modes = [LegMode.FOOT, LegMode.BICYCLE, LegMode.CAR]
 
@@ -83,4 +93,27 @@ export async function searchBikeRental(params: SearchParams): Promise<TripPatter
     if (tripPattern.distance > upperLimit || tripPattern.distance < lowerLimit) return
 
     return parseTripPattern(tripPattern)
+}
+
+function getNextSearchParams(params: SearchParams): SearchParams {
+    const { arriveBy, initialSearchDate, searchDate } = params
+    const nextDate = getNextSearchDate(arriveBy, initialSearchDate, searchDate)
+
+    return { ...params, searchDate: nextDate }
+}
+
+function getNextSearchDate(arriveBy: boolean, initialDate: Date, searchDate: Date): Date {
+    const hoursSinceInitialSearch = Math.abs(differenceInHours(initialDate , searchDate))
+    const sign = arriveBy ? -1 : 1
+    const searchDateOffset = hoursSinceInitialSearch === 0
+        ? sign * 2
+        : sign * hoursSinceInitialSearch * 3
+
+    const nextSearchDate = addHours(searchDate, searchDateOffset)
+
+    if (getDay(nextSearchDate) === getDay(initialDate)) return nextSearchDate
+
+    return arriveBy
+        ? setMinutes(setHours(nextSearchDate, 23), 59)
+        : setMinutes(setHours(nextSearchDate, 0), 1)
 }

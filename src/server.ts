@@ -1,6 +1,7 @@
-import bodyParser from "body-parser"
-import cors from "cors"
-import express from "express"
+import bodyParser from 'body-parser'
+import cors from 'cors'
+import express from 'express'
+import { parseJSON } from 'date-fns'
 
 import { SearchParams } from '../types'
 
@@ -52,9 +53,14 @@ app.post('/bike-rental', async (req, res, next) => {
 function getParams({ cursor, ...bodyParams }: SearchParams): SearchParams {
     if (cursor) return parseCursor(cursor).params
 
+    const searchDate = bodyParams.searchDate
+        ? parseJSON(bodyParams.searchDate)
+        : new Date()
+
     return {
             ...bodyParams,
-            searchDate: new Date(bodyParams.searchDate),
+            searchDate,
+            initialSearchDate: searchDate,
         }
 }
 

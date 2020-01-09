@@ -2,9 +2,7 @@ import {
     compressToEncodedURIComponent, decompressFromEncodedURIComponent,
 } from "lz-string"
 import { maxBy, minBy } from 'lodash'
-import {
-    addHours, addMinutes, differenceInHours, getDay, parseJSON, setHours, setMinutes, subMinutes,
-} from 'date-fns'
+import { addMinutes, subMinutes } from 'date-fns'
 
 import { TripPattern } from '@entur/sdk'
 
@@ -24,46 +22,20 @@ export function parseCursor(cursor: string): CursorData {
     };
 }
 
-export function generateCursor(params: SearchParams, tripPatterns?: TripPattern[]): string {
-    const { arriveBy, initialSearchDate, searchDate } = params
+export function generateCursor(params: SearchParams, tripPatterns?: TripPattern[]): string | void {
+    const { arriveBy } = params
     const hasTransitPatterns = (tripPatterns || []).some(isTransitAlternative)
 
-    const previousDate = searchDate ? parseJSON(searchDate) : new Date()
-    const initialDate = initialSearchDate ? parseJSON(initialSearchDate) : previousDate
-    const nextDate = hasTransitPatterns
-        ? getNextSearchDateFromResults(arriveBy, tripPatterns)
-        : getNextSearchDateFromParams(arriveBy, previousDate, initialDate)
+    if (!hasTransitPatterns) return
+
+    const nextDate = arriveBy
+        ? subMinutes(new Date(minBy(tripPatterns, 'endTime').endTime), 1)
+        : addMinutes(new Date(maxBy(tripPatterns, 'startTime').startTime), 1)
 
     const cursorData = {
         v: 1,
-        params: {
-            ...params,
-            initialSearchDate: initialDate,
-            searchDate: nextDate,
-        },
+        params: { ...params, searchDate: nextDate },
     };
 
     return compressToEncodedURIComponent(JSON.stringify(cursorData));
-}
-
-function getNextSearchDateFromResults(arriveBy: boolean, tripPatterns: TripPattern[]): Date {
-    return arriveBy
-    ? subMinutes(new Date(minBy(tripPatterns, 'endTime').endTime), 1)
-    : addMinutes(new Date(maxBy(tripPatterns, 'startTime').startTime), 1)
-}
-
-function getNextSearchDateFromParams(arriveBy: boolean, previousDate: Date, initialDate: Date): Date {
-    const hoursSinceInitialSearch = Math.abs(differenceInHours(initialDate , previousDate))
-    const sign = arriveBy ? -1 : 1
-    const searchDateOffset = hoursSinceInitialSearch === 0
-        ? sign * 2
-        : sign * hoursSinceInitialSearch * 3
-
-    const nextSearchDate = addHours(previousDate, searchDateOffset)
-
-    if (getDay(nextSearchDate) === getDay(initialDate)) return nextSearchDate
-
-    return arriveBy
-        ? setMinutes(setHours(nextSearchDate, 23), 59)
-        : setMinutes(setHours(nextSearchDate, 0), 1)
 }

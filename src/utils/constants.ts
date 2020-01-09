@@ -11,3 +11,5 @@ export const NON_TRANSIT_DISTANCE_LIMIT = {
         car: 1,
     },
 }
+
+export const MAX_SEARCH_TRANSIT_RETRIES = 5
