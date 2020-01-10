@@ -8,10 +8,10 @@ import { SearchParams } from '../types'
 import { searchTransit, searchNonTransit, searchBikeRental } from "./search"
 import { parseCursor, generateCursor } from "./utils/cursor"
 
-const app = express();
+const app = express()
 
-app.use(cors());
-app.use(bodyParser.json());
+app.use(cors())
+app.use(bodyParser.json())
 
 app.post('/transit', async (req, res, next) => {
     try {
@@ -26,7 +26,7 @@ app.post('/transit', async (req, res, next) => {
     } catch (error) {
         next(error)
     }
-});
+})
 
 app.post('/non-transit', async (req, res, next) => {
     try {
@@ -37,7 +37,7 @@ app.post('/non-transit', async (req, res, next) => {
     } catch (error) {
         next(error)
     }
-});
+})
 
 app.post('/bike-rental', async (req, res, next) => {
     try {
@@ -48,7 +48,7 @@ app.post('/bike-rental', async (req, res, next) => {
     } catch (error) {
         next(error)
     }
-});
+})
 
 function getParams({ cursor, ...bodyParams }: SearchParams): SearchParams {
     if (cursor) return parseCursor(cursor).params
@@ -58,15 +58,15 @@ function getParams({ cursor, ...bodyParams }: SearchParams): SearchParams {
         : new Date()
 
     return {
-            ...bodyParams,
-            searchDate,
-            initialSearchDate: searchDate,
-        }
+        ...bodyParams,
+        searchDate,
+        initialSearchDate: searchDate,
+    }
 }
 
-const PORT = process.env.PORT || 9000;
+const PORT = process.env.PORT || 9000
 
 app.listen(PORT, () => {
     // tslint:disable-next-line:no-console
-    console.log(`Server listening on port ${PORT}...`);
-});
+    console.log(`Server listening on port ${PORT}...`)
+})

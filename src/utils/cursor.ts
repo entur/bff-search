@@ -11,7 +11,7 @@ import { isTransitAlternative } from './tripPattern'
 import { CursorData, SearchParams } from '../../types'
 
 export function parseCursor(cursor: string): CursorData {
-    const parsed = JSON.parse(decompressFromEncodedURIComponent(cursor));
+    const parsed = JSON.parse(decompressFromEncodedURIComponent(cursor))
 
     return {
         ...parsed,
@@ -19,7 +19,7 @@ export function parseCursor(cursor: string): CursorData {
             ...parsed.params,
             searchDate: new Date(parsed.params.searchDate),
         },
-    };
+    }
 }
 
 export function generateCursor(params: SearchParams, tripPatterns?: TripPattern[]): string | void {
@@ -35,9 +35,9 @@ export function generateCursor(params: SearchParams, tripPatterns?: TripPattern[
     const cursorData = {
         v: 1,
         params: { ...params, searchDate: nextDate },
-    };
+    }
 
-    return compressToEncodedURIComponent(JSON.stringify(cursorData));
+    return compressToEncodedURIComponent(JSON.stringify(cursorData))
 }
 
 const getStartTime = (tripPattern: TripPattern): string => tripPattern.startTime
