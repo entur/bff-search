@@ -5,7 +5,9 @@ import { parseJSON } from 'date-fns'
 
 import { SearchParams } from '../types'
 
-import { searchTransit, searchNonTransit, searchBikeRental } from "./search"
+import {
+    search, searchTransit, searchNonTransit, searchBikeRental,
+} from "./search"
 import { parseCursor, generateCursor } from "./utils/cursor"
 
 const app = express()
@@ -45,6 +47,23 @@ app.post('/bike-rental', async (req, res, next) => {
         const tripPattern = await searchBikeRental(params)
 
         res.json({ tripPattern })
+    } catch (error) {
+        next(error)
+    }
+})
+
+app.post('/', async (req, res, next) => {
+    try {
+        const params = getParams(req.body)
+        const { transitTripPatterns, nonTransitTripPatterns } = await search(params)
+
+        console.log('transitTripPatterns :', JSON.stringify(transitTripPatterns, undefined, 3))
+
+        res.json({
+            transitTripPatterns,
+            nonTransitTripPatterns,
+            nextCursor: generateCursor(params, transitTripPatterns.tripPatterns),
+        })
     } catch (error) {
         next(error)
     }

@@ -14,6 +14,11 @@ export type SearchParams = {
   initialSearchDate?: Date,
 } & GetTripPatternsParams
 
+export type SearchResults = {
+  transitTripPatterns: TransitTripPatterns,
+  nonTransitTripPatterns: NonTransitTripPatterns,
+}
+
 export interface TransitTripPatterns {
   tripPatterns: TripPattern[],
   hasFlexibleTripPattern: boolean,
