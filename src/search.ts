@@ -1,13 +1,15 @@
 import EnturService, { LegMode, TripPattern } from '@entur/sdk'
+import {
+    addHours, differenceInHours, setHours, setMinutes, isSameDay,
+} from 'date-fns'
 
-import { SearchParams } from '../types'
+import { SearchParams, TransitTripPatterns, NonTransitTripPatterns } from '../types'
 
 import { NON_TRANSIT_DISTANCE_LIMITS } from './constants'
-
 import {
     isBikeRentalAlternative, isFlexibleAlternative, isFlexibleTripsInCombination,
     isTransitAlternative, parseTripPattern,
-} from './utils'
+} from './utils/tripPattern'
 
 const sdk = new EnturService({
     clientName: 'entur-search',
@@ -16,8 +18,9 @@ const sdk = new EnturService({
     },
 })
 
-export async function searchTransit(params: SearchParams) {
-    const { from, to, ...searchParams } = params
+export async function searchTransit(params: SearchParams): Promise<TransitTripPatterns> {
+    const { from, to, initialSearchDate, ...searchParams } = params
+    const { searchDate } = searchParams
 
     const response = await sdk.getTripPatterns(from, to, searchParams)
     const tripPatterns = response
@@ -25,13 +28,19 @@ export async function searchTransit(params: SearchParams) {
         .filter(isTransitAlternative)
         .filter(isFlexibleTripsInCombination)
 
+    if (!tripPatterns.length && isSameDay(searchDate, initialSearchDate)) {
+        const nextSearchParams = getNextSearchParams(params)
+
+        return searchTransit(nextSearchParams)
+    }
+
     return {
         tripPatterns,
         hasFlexibleTripPattern: tripPatterns.some(isFlexibleAlternative),
     }
 }
 
-export async function searchNonTransit(params: SearchParams) {
+export async function searchNonTransit(params: SearchParams): Promise<NonTransitTripPatterns> {
     const { from, to, ...searchParams } = params
     const modes = [LegMode.FOOT, LegMode.BICYCLE, LegMode.CAR]
 
@@ -85,18 +94,25 @@ export async function searchBikeRental(params: SearchParams): Promise<TripPatter
     return parseTripPattern(tripPattern)
 }
 
-// TODO: WIP. En del av logikken som må flyttes fra klienten.
-/*
-function shouldSearchWithTaxi(tripPatterns: [TripPattern], nonTransitTripPatterns: NonTransitTripPatterns): boolean {
-    if (!tripPatterns.length) return true
+function getNextSearchParams(params: SearchParams): SearchParams {
+    const { arriveBy, initialSearchDate, searchDate } = params
+    const nextDate = getNextSearchDate(arriveBy, initialSearchDate, searchDate)
 
-    const { car, foot } = nonTransitTripPatterns
-
-    if (foot && foot.duration < THRESHOLD.TAXI_WALK) return false
-    if (car && car.duration < THRESHOLD.TAXI_CAR) return false
-
-    const timeUntilResult = timeBetweenSearchDateAndResult(originalSearchTime, tripPatterns[0], timepickerMode)
-
-    return timeUntilResult >= THRESHOLD.TAXI_HOURS
+    return { ...params, searchDate: nextDate }
 }
-*/
+
+function getNextSearchDate(arriveBy: boolean, initialDate: Date, searchDate: Date): Date {
+    const hoursSinceInitialSearch = Math.abs(differenceInHours(initialDate , searchDate))
+    const sign = arriveBy ? -1 : 1
+    const searchDateOffset = hoursSinceInitialSearch === 0
+        ? sign * 2
+        : sign * hoursSinceInitialSearch * 3
+
+    const nextSearchDate = addHours(searchDate, searchDateOffset)
+
+    if (isSameDay(nextSearchDate, initialDate)) return nextSearchDate
+
+    return arriveBy
+        ? setMinutes(setHours(nextSearchDate, 23), 59)
+        : setMinutes(setHours(nextSearchDate, 0), 1)
+}

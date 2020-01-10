@@ -1,4 +1,3 @@
-
 export const NON_TRANSIT_DISTANCE_LIMITS = {
     UPPER: {
         bicycle: 100000,
