@@ -23,6 +23,7 @@
     "@entur/sdk": "^1.0.0-next.35",
     "body-parser": "^1.19.0",
     "cors": "^2.8.5",
+    "date-fns": "^2.8.1",
     "express": "^4.17.1",
     "lz-string": "^1.4.4"
   },
@@ -33,6 +34,7 @@
     "@types/node": "^13.1.4",
     "nodemon": "^2.0.2",
     "tslint": "^5.20.1",
+    "tslint-eslint-rules": "^5.4.0",
     "typescript": "^3.7.4"
   }
 }

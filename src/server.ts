@@ -1,68 +1,72 @@
-import bodyParser from "body-parser";
-import cors from "cors";
-import express from "express";
-import lz from "lz-string";
+import bodyParser from 'body-parser'
+import cors from 'cors'
+import express from 'express'
+import { parseJSON } from 'date-fns'
 
-import search from "./search";
+import { SearchParams } from '../types'
 
-const app = express();
+import { searchTransit, searchNonTransit, searchBikeRental } from "./search"
+import { parseCursor, generateCursor } from "./utils/cursor"
 
-app.use(cors());
-app.use(bodyParser.json());
+const app = express()
 
-function generateNextCursor(params: any, results: any) {
-    const cursorData = {
-        v: 1,
-        params: {
-            ...params,
-            searchDate: results[results.length - 1].startTime,
-        },
-    };
+app.use(cors())
+app.use(bodyParser.json())
 
-    return lz.compressToEncodedURIComponent(JSON.stringify(cursorData));
-}
-
-function parseCursor(cursor: string) {
-    const parsed = JSON.parse(lz.decompressFromEncodedURIComponent(cursor));
-
-    return {
-        ...parsed,
-        params: {
-            ...parsed.params,
-            searchDate: new Date(parsed.params.searchDate),
-        },
-    };
-}
-
-app.post("/", async (req, res, next) => {
+app.post('/transit', async (req, res, next) => {
     try {
-        const { cursor, ...bodyParams } = req.body;
-
-        let params;
-
-        if (cursor) {
-            const parsedCursor = parseCursor(cursor);
-            params = parsedCursor.params;
-        } else {
-            params = bodyParams;
-            params.searchDate = new Date(params.searchDate);
-        }
-
-        const tripPatterns = await search(params, {
-            ignoreNonTransit: false,
-        });
+        const params = getParams(req.body)
+        const { tripPatterns, hasFlexibleTripPattern } = await searchTransit(params)
 
         res.json({
             tripPatterns,
-            nextCursor: generateNextCursor(params, tripPatterns),
-        });
+            hasFlexibleTripPattern,
+            nextCursor: generateCursor(params, tripPatterns),
+        })
     } catch (error) {
-        next(error);
+        next(error)
     }
-});
+})
 
-const PORT = process.env.PORT || 9000;
+app.post('/non-transit', async (req, res, next) => {
+    try {
+        const params = getParams(req.body)
+        const tripPatterns = await searchNonTransit(params)
+
+        res.json({ tripPatterns })
+    } catch (error) {
+        next(error)
+    }
+})
+
+app.post('/bike-rental', async (req, res, next) => {
+    try {
+        const params = getParams(req.body)
+        const tripPattern = await searchBikeRental(params)
+
+        res.json({ tripPattern })
+    } catch (error) {
+        next(error)
+    }
+})
+
+function getParams({ cursor, ...bodyParams }: SearchParams): SearchParams {
+    if (cursor) return parseCursor(cursor).params
+
+    const searchDate = bodyParams.searchDate
+        ? parseJSON(bodyParams.searchDate)
+        : new Date()
+
+    return {
+        ...bodyParams,
+        searchDate,
+        initialSearchDate: searchDate,
+    }
+}
+
+const PORT = process.env.PORT || 9000
 
 app.listen(PORT, () => {
-    console.log(`Server listening on port ${PORT}...`);
-});
+    // tslint:disable-next-line:no-console
+    console.log(`Server listening on port ${PORT}...`)
+})
