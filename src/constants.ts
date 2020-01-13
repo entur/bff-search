@@ -11,8 +11,9 @@ export const NON_TRANSIT_DISTANCE_LIMITS = {
     },
 }
 
-export const THRESHOLD = {
-    TAXI_HOURS: 4,
-    TAXI_WALK: 20 * 60,
-    TAXI_CAR: 15 * 60,
+export const TAXI_LIMITS = {
+    DURATION_MAX_HOURS: 4,
+    DURATION_MIN_SECONDS: 5 * 60,
+    CAR_ALTERNATIVE_MIN_SECONDS: 15 * 60,
+    FOOT_ALTERNATIVE_MIN_SECONDS: 20 * 60,
 }

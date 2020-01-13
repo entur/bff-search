@@ -25,7 +25,7 @@ export interface TransitTripPatterns {
 }
 
 export interface NonTransitTripPatterns {
-  bicycle: TripPattern | null,
-  car: TripPattern | null,
-  foot: TripPattern | null,
+  bicycle?: TripPattern,
+  car?: TripPattern,
+  foot?: TripPattern,
 }

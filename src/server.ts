@@ -6,7 +6,7 @@ import { parseJSON } from 'date-fns'
 import { SearchParams } from '../types'
 
 import {
-    search, searchTransit, searchNonTransit, searchBikeRental,
+    searchTransitAndTaxi, searchTransit, searchNonTransit, searchBikeRental,
 } from "./search"
 import { parseCursor, generateCursor } from "./utils/cursor"
 
@@ -15,10 +15,13 @@ const app = express()
 app.use(cors())
 app.use(bodyParser.json())
 
-app.post('/transit', async (req, res, next) => {
+app.post('/transit', async ({ body }, res, next) => {
     try {
-        const params = getParams(req.body)
-        const { tripPatterns, hasFlexibleTripPattern } = await searchTransit(params)
+        const cursor = body?.cursor
+        const params = getParams(body)
+        const { tripPatterns, hasFlexibleTripPattern } = cursor?.length
+            ? await searchTransit(parseCursor(cursor).params)
+            : await searchTransitAndTaxi(params)
 
         res.json({
             tripPatterns,
@@ -30,9 +33,9 @@ app.post('/transit', async (req, res, next) => {
     }
 })
 
-app.post('/non-transit', async (req, res, next) => {
+app.post('/non-transit', async ({ body }, res, next) => {
     try {
-        const params = getParams(req.body)
+        const params = getParams(body)
         const tripPatterns = await searchNonTransit(params)
 
         res.json({ tripPatterns })
@@ -41,9 +44,9 @@ app.post('/non-transit', async (req, res, next) => {
     }
 })
 
-app.post('/bike-rental', async (req, res, next) => {
+app.post('/bike-rental', async ({ body }, res, next) => {
     try {
-        const params = getParams(req.body)
+        const params = getParams(body)
         const tripPattern = await searchBikeRental(params)
 
         res.json({ tripPattern })
@@ -52,26 +55,7 @@ app.post('/bike-rental', async (req, res, next) => {
     }
 })
 
-app.post('/', async (req, res, next) => {
-    try {
-        const params = getParams(req.body)
-        const { transitTripPatterns, nonTransitTripPatterns } = await search(params)
-
-        console.log('transitTripPatterns :', JSON.stringify(transitTripPatterns, undefined, 3))
-
-        res.json({
-            transitTripPatterns,
-            nonTransitTripPatterns,
-            nextCursor: generateCursor(params, transitTripPatterns.tripPatterns),
-        })
-    } catch (error) {
-        next(error)
-    }
-})
-
 function getParams({ cursor, ...bodyParams }: SearchParams): SearchParams {
-    if (cursor) return parseCursor(cursor).params
-
     const searchDate = bodyParams.searchDate
         ? parseJSON(bodyParams.searchDate)
         : new Date()

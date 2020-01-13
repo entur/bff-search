@@ -1,18 +1,16 @@
-import EnturService, { LegMode, TripPattern } from '@entur/sdk'
+import EnturService, { LegMode, TripPattern, QueryMode } from '@entur/sdk'
 import {
     addHours, differenceInHours, setHours, setMinutes, isSameDay,
 } from 'date-fns'
 
 import {
-    SearchParams, SearchResults, TransitTripPatterns, NonTransitTripPatterns,
+    SearchParams, TransitTripPatterns, NonTransitTripPatterns,
 } from '../types'
 
+import { TAXI_LIMITS } from './constants'
 import {
-    NON_TRANSIT_DISTANCE_LIMITS, THRESHOLD,
-} from './constants'
-import {
-    hoursbetweenDateAndTripPattern, isBikeRentalAlternative, isFlexibleAlternative, isFlexibleTripsInCombination,
-    isTransitAlternative, isAcceptableTaxiAlternative, isTaxiAlternativeBetterThanCarAlternative, parseTripPattern,
+    hoursbetweenDateAndTripPattern, isBikeRentalAlternative, isFlexibleAlternative,
+    isValidTransitAlternative, isValidTaxiAlternative, isValidNonTransitDistance, parseTripPattern,
 } from './utils/tripPattern'
 
 const sdk = new EnturService({
@@ -22,35 +20,23 @@ const sdk = new EnturService({
     },
 })
 
-export async function search(params: SearchParams): Promise<SearchResults> {
-    const [transitOnlyTripPatterns, nonTransitTripPatterns] = await Promise.all([
+export async function searchTransitAndTaxi(params: SearchParams): Promise<TransitTripPatterns> {
+    const [transitTripPatterns, nonTransitTripPatterns] = await Promise.all([
         searchTransit(params), searchNonTransit(params),
     ])
-
-    const firstTransitPattern = transitOnlyTripPatterns.tripPatterns[0]
+    const firstTransitPattern = transitTripPatterns.tripPatterns[0]
     const carPattern = nonTransitTripPatterns.car
-
-    console.log('firstTransitPattern :', JSON.stringify(firstTransitPattern, undefined, 3))
-
     const tripPatternsWithTaxi = shouldSearchWithTaxi(params, firstTransitPattern, nonTransitTripPatterns)
-        ? await searchTaxiFrontBack(params)
+        ? await searchTaxiFrontBack(params, carPattern)
         : []
 
-    console.log('tripPatternsWithTaxi :', JSON.stringify(tripPatternsWithTaxi, undefined, 3))
-
-    const filteredTaxiPatterns = tripPatternsWithTaxi.filter(isTaxiAlternativeBetterThanCarAlternative(carPattern))
-
-    console.log('filteredTaxiPatterns :', JSON.stringify(filteredTaxiPatterns, undefined, 3))
-
-    const transitTripPatterns = {
-        ...transitOnlyTripPatterns,
+    return {
+        ...transitTripPatterns,
         tripPatterns: [
-            ...transitOnlyTripPatterns.tripPatterns,
+            ...transitTripPatterns.tripPatterns,
             ...tripPatternsWithTaxi,
         ],
     }
-
-    return { transitTripPatterns, nonTransitTripPatterns }
 }
 
 export async function searchTransit(params: SearchParams): Promise<TransitTripPatterns> {
@@ -63,8 +49,7 @@ export async function searchTransit(params: SearchParams): Promise<TransitTripPa
     })
     const tripPatterns = response
         .map(parseTripPattern)
-        .filter(isTransitAlternative)
-        .filter(isFlexibleTripsInCombination)
+        .filter(isValidTransitAlternative)
 
     if (!tripPatterns.length && isSameDay(searchDate, initialSearchDate)) {
         const nextSearchParams = getNextSearchParams(params)
@@ -87,69 +72,61 @@ export async function searchNonTransit(params: SearchParams): Promise<NonTransit
             ...searchParams,
             limit: 1,
             modes: [mode],
-
-            // TODO: typen finnes ikke i SDK-en. Er dette brukt?
-            // @ts-ignore
             maxPreTransitWalkDistance: 2000,
         })
 
-        if (!result || !result.length) return
+        if (!result?.length) return
 
         const tripPattern = result[0]
-        const upperLimit = NON_TRANSIT_DISTANCE_LIMITS.UPPER[mode]
-        const lowerLimit = NON_TRANSIT_DISTANCE_LIMITS.LOWER[mode]
 
-        if (tripPattern.distance > upperLimit || tripPattern.distance < lowerLimit) return
-
-        return parseTripPattern(tripPattern)
+        return isValidNonTransitDistance(tripPattern, mode)
+            ? parseTripPattern(tripPattern)
+            : undefined
     }))
 
     return { foot, bicycle, car }
 }
 
-export async function searchTaxiFrontBack(params: SearchParams): Promise<TripPattern[]> {
-    const { from, to, ...searchParams } = params
-    const modes = ['car_pickup', 'car_dropoff']
+export async function searchTaxiFrontBack(params: SearchParams, carPattern?: TripPattern): Promise<TripPattern[]> {
+    const { from, to, initialSearchDate, ...searchParams } = params
+    const modes: QueryMode[] = ['car_pickup', 'car_dropoff']
 
     const [pickup, dropoff] = await Promise.all(modes.map(async mode => {
         const response = await sdk.getTripPatterns(from, to, {
             ...searchParams,
             limit: 1,
             maxPreTransitWalkDistance: 2000,
-
-            // TODO: Må fikses i SDK-en. Bør ikke bruke LegMode
-            // @ts-ignore
             modes: [...searchParams.modes, mode],
         })
 
-        if (!response || !response.length) return
+        if (!response?.length) return []
 
         return response
-            .filter(isAcceptableTaxiAlternative(params.initialSearchDate))
             .map(parseTripPattern)
-            .filter(isFlexibleTripsInCombination)
+            .filter(isValidTaxiAlternative(initialSearchDate, carPattern))
     }))
 
     return [...pickup, ...dropoff]
 }
 
-export async function searchBikeRental(params: SearchParams): Promise<TripPattern> {
+export async function searchBikeRental(params: SearchParams): Promise<TripPattern | void> {
     const { from, to, ...searchParams } = params
 
-    const result = await sdk.getTripPatterns(from, to, {
+    const response = await sdk.getTripPatterns(from, to, {
         ...searchParams,
         limit: 5,
         modes: [LegMode.BICYCLE, LegMode.FOOT],
         maxPreTransitWalkDistance: 2000,
         allowBikeRental: true,
     })
-    const tripPattern = result.filter(isBikeRentalAlternative)[0]
-    const upperLimit = NON_TRANSIT_DISTANCE_LIMITS.UPPER.bicycle
-    const lowerLimit = NON_TRANSIT_DISTANCE_LIMITS.LOWER.bicycle
 
-    if (tripPattern.distance > upperLimit || tripPattern.distance < lowerLimit) return
+    if (!response?.length) return undefined
 
-    return parseTripPattern(tripPattern)
+    const tripPattern = response.filter(isBikeRentalAlternative)[0]
+
+    return isValidNonTransitDistance(tripPattern, 'bicycle')
+        ? parseTripPattern(tripPattern)
+        : undefined
 }
 
 function getNextSearchParams(params: SearchParams): SearchParams {
@@ -165,7 +142,6 @@ function getNextSearchDate(arriveBy: boolean, initialDate: Date, searchDate: Dat
     const searchDateOffset = hoursSinceInitialSearch === 0
         ? sign * 2
         : sign * hoursSinceInitialSearch * 3
-
     const nextSearchDate = addHours(searchDate, searchDateOffset)
 
     if (isSameDay(nextSearchDate, initialDate)) return nextSearchDate
@@ -177,11 +153,11 @@ function getNextSearchDate(arriveBy: boolean, initialDate: Date, searchDate: Dat
 
 function shouldSearchWithTaxi(params: SearchParams, tripPattern: TripPattern | void, { foot, car }: NonTransitTripPatterns) {
     if (!tripPattern) return true
-    if (foot && foot.duration < THRESHOLD.TAXI_WALK) return false
-    if (car && car.duration < THRESHOLD.TAXI_CAR) return false
+    if (foot && foot.duration < TAXI_LIMITS.FOOT_ALTERNATIVE_MIN_SECONDS) return false
+    if (car && car.duration < TAXI_LIMITS.CAR_ALTERNATIVE_MIN_SECONDS) return false
 
     const { initialSearchDate, arriveBy } = params
     const hoursBetween = hoursbetweenDateAndTripPattern(initialSearchDate, tripPattern, arriveBy)
 
-    return hoursBetween >= THRESHOLD.TAXI_HOURS
+    return hoursBetween >= TAXI_LIMITS.DURATION_MAX_HOURS
 }

@@ -1,10 +1,10 @@
 import {
-    isBicycle, isCar, isFoot, LegMode,
-    Leg, TripPattern,
+    isBicycle, isCar, isFoot,
+    Leg, LegMode, TripPattern,
 } from '@entur/sdk'
 import { differenceInHours, parseJSON } from 'date-fns'
 
-import { THRESHOLD } from '../constants'
+import { NON_TRANSIT_DISTANCE_LIMITS, TAXI_LIMITS } from '../constants'
 
 export function isTransitAlternative({ legs }: TripPattern ): boolean {
     return (legs || []).some(isTransitLeg)
@@ -18,31 +18,20 @@ export function isFlexibleAlternative({ legs }: TripPattern ): boolean {
     return (legs || []).some(isFlexibleLeg)
 }
 
-export function isFlexibleTripsInCombination({ legs }: TripPattern ): boolean {
-    if (!legs.some(isFlexibleLeg)) return true
-
-    const transitLegs = legs.filter(isTransitLeg)
-
-    return transitLegs.length === 1 && isFlexibleLeg(transitLegs[0])
+export function isValidTransitAlternative(pattern: TripPattern): boolean {
+    return isTransitAlternative(pattern) && isFlexibleTripsInCombination(pattern)
 }
 
-export function isAcceptableTaxiAlternative(searchDate: Date): (taxiPattern: TripPattern) => boolean {
-    return (taxiPattern: TripPattern) => {
-        return isTaxiFrontBackAlternative(taxiPattern)
-            && hoursbetweenDateAndTripPattern(searchDate, taxiPattern) < THRESHOLD.TAXI_HOURS
-    }
+export function isValidTaxiAlternative(searchDate: Date, carPattern?: TripPattern): (taxiPattern: TripPattern) => boolean {
+    return (taxiPattern: TripPattern) => isTaxiAlternative(taxiPattern)
+                                      && isFlexibleTripsInCombination(taxiPattern)
+                                      && isTaxiAlternativeBetterThanCarAlternative(taxiPattern, carPattern)
+                                      && hoursbetweenDateAndTripPattern(searchDate, taxiPattern) < TAXI_LIMITS.DURATION_MAX_HOURS
 }
 
-export function isTaxiAlternativeBetterThanCarAlternative(carPattern?: TripPattern): (taxiPattern: TripPattern) => boolean {
-    return ({ legs }) => {
-        const taxiLeg = legs.find(({ mode }) => mode === LegMode.CAR)
-
-        if (!taxiLeg || typeof taxiLeg.duration !== 'number') return true
-
-        const taxiDuration = taxiLeg.duration || 0
-
-        return taxiDuration > 5 * 60 && (!carPattern.duration || taxiDuration < carPattern.duration)
-    }
+export function isValidNonTransitDistance(pattern: TripPattern, mode: 'foot' | 'bicycle' | 'car'): boolean {
+    return pattern.distance <= NON_TRANSIT_DISTANCE_LIMITS.UPPER[mode]
+        && pattern.distance >= NON_TRANSIT_DISTANCE_LIMITS.LOWER[mode]
 }
 
 export function parseTripPattern(rawTripPattern: any): TripPattern {
@@ -75,8 +64,27 @@ function parseLeg(leg: any): Leg {
     return leg
 }
 
-function isTaxiFrontBackAlternative(tripPattern: TripPattern): boolean {
+function isTaxiAlternativeBetterThanCarAlternative({ legs }: TripPattern, carPattern?: TripPattern): boolean {
+    const taxiLeg = legs.find(({ mode }) => mode === LegMode.CAR)
+
+    if (!taxiLeg || typeof taxiLeg.duration !== 'number') return true
+
+    const taxiDuration = taxiLeg.duration || 0
+
+    return taxiDuration > TAXI_LIMITS.DURATION_MIN_SECONDS
+        && (!carPattern?.duration || taxiDuration < carPattern.duration)
+}
+
+function isTaxiAlternative(tripPattern: TripPattern): boolean {
     return isCarAlternative(tripPattern) && !isCarOnlyAlternative(tripPattern)
+}
+
+function isFlexibleTripsInCombination({ legs }: TripPattern ): boolean {
+    if (!legs.some(isFlexibleLeg)) return true
+
+    const transitLegs = legs.filter(isTransitLeg)
+
+    return transitLegs.length === 1 && isFlexibleLeg(transitLegs[0])
 }
 
 function isCarAlternative({ legs }: TripPattern): boolean {
