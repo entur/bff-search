@@ -151,7 +151,7 @@ function getNextSearchDate(arriveBy: boolean, initialDate: Date, searchDate: Dat
         : setMinutes(setHours(nextSearchDate, 0), 1)
 }
 
-function shouldSearchWithTaxi(params: SearchParams, tripPattern: TripPattern | void, { foot, car }: NonTransitTripPatterns) {
+function shouldSearchWithTaxi(params: SearchParams, tripPattern: TripPattern | void, { foot, car }: NonTransitTripPatterns): boolean {
     if (!tripPattern) return true
     if (foot && foot.duration < TAXI_LIMITS.FOOT_ALTERNATIVE_MIN_SECONDS) return false
     if (car && car.duration < TAXI_LIMITS.CAR_ALTERNATIVE_MIN_SECONDS) return false

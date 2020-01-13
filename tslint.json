@@ -32,6 +32,7 @@
         "ter-indent": [ true, 4, { "SwitchCase": 1 }],
         "ter-max-len": [true, 160],
         "trailing-comma": [true, {"multiline": "always", "singleline": "never"}],
+        "typedef": [true, "call-signature", "parameter", "member-variable-declaration"],
         "whitespace": [true, "check-branch", "check-operator", "check-typecast", "check-postbrace"]
     },
     "rulesDirectory": [
