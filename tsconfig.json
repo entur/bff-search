@@ -13,7 +13,6 @@
     "paths": {
       "*": ["node_modules/*"]
     },
-    "allowJs": true,
     "sourceMap": true,
     "target": "es6",
   },

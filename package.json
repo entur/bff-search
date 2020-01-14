@@ -20,7 +20,7 @@
     "deploy": "gcloud app deploy --project=entur-dev"
   },
   "dependencies": {
-    "@entur/sdk": "^1.0.0-next.41",
+    "@entur/sdk": "^1.0.0-next.42",
     "body-parser": "^1.19.0",
     "cors": "^2.8.5",
     "date-fns": "^2.8.1",
@@ -31,7 +31,7 @@
     "@types/cors": "^2.8.6",
     "@types/express": "^4.17.2",
     "@types/lz-string": "^1.3.33",
-    "@types/node": "^13.1.4",
+    "@types/node": "^13.1.6",
     "nodemon": "^2.0.2",
     "tslint": "^5.20.1",
     "tslint-eslint-rules": "^5.4.0",
