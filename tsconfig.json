@@ -10,8 +10,7 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "outDir": "dist",
-    "skipLibCheck": true,
-    "strictNullChecks": true,
+    "strict": true,
     "paths": {
       "*": ["node_modules/*"]
     },
