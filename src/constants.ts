@@ -10,3 +10,10 @@ export const NON_TRANSIT_DISTANCE_LIMITS = {
         car: 1,
     },
 }
+
+export const TAXI_LIMITS = {
+    DURATION_MAX_HOURS: 4,
+    DURATION_MIN_SECONDS: 5 * 60,
+    CAR_ALTERNATIVE_MIN_SECONDS: 15 * 60,
+    FOOT_ALTERNATIVE_MIN_SECONDS: 20 * 60,
+}

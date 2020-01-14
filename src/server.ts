@@ -5,7 +5,9 @@ import { parseJSON } from 'date-fns'
 
 import { SearchParams } from '../types'
 
-import { searchTransit, searchNonTransit, searchBikeRental } from "./search"
+import {
+    searchWithTaxi, search, searchNonTransit, searchBikeRental,
+} from "./search"
 import { parseCursor, generateCursor } from "./utils/cursor"
 
 const app = express()
@@ -13,14 +15,18 @@ const app = express()
 app.use(cors())
 app.use(bodyParser.json())
 
-app.post('/transit', async (req, res, next) => {
+app.post('/', async ({ body }, res, next) => {
     try {
-        const params = getParams(req.body)
-        const { tripPatterns, hasFlexibleTripPattern } = await searchTransit(params)
+        const cursor = body?.cursor
+        const params = getParams(body)
+        const { tripPatterns, hasFlexibleTripPattern, isSameDaySearch } = cursor?.length || params.skipTaxi
+            ? await search(parseCursor(cursor).params)
+            : await searchWithTaxi(params)
 
         res.json({
             tripPatterns,
             hasFlexibleTripPattern,
+            isSameDaySearch,
             nextCursor: generateCursor(params, tripPatterns),
         })
     } catch (error) {
@@ -28,9 +34,9 @@ app.post('/transit', async (req, res, next) => {
     }
 })
 
-app.post('/non-transit', async (req, res, next) => {
+app.post('/non-transit', async ({ body }, res, next) => {
     try {
-        const params = getParams(req.body)
+        const params = getParams(body)
         const tripPatterns = await searchNonTransit(params)
 
         res.json({ tripPatterns })
@@ -39,9 +45,9 @@ app.post('/non-transit', async (req, res, next) => {
     }
 })
 
-app.post('/bike-rental', async (req, res, next) => {
+app.post('/bike-rental', async ({ body }, res, next) => {
     try {
-        const params = getParams(req.body)
+        const params = getParams(body)
         const tripPattern = await searchBikeRental(params)
 
         res.json({ tripPattern })
@@ -51,8 +57,6 @@ app.post('/bike-rental', async (req, res, next) => {
 })
 
 function getParams({ cursor, ...bodyParams }: SearchParams): SearchParams {
-    if (cursor) return parseCursor(cursor).params
-
     const searchDate = bodyParams.searchDate
         ? parseJSON(bodyParams.searchDate)
         : new Date()
