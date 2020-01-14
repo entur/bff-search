@@ -17,7 +17,8 @@
     "start": "node .",
     "predev": "npm run build",
     "dev": "nodemon .",
-    "deploy": "gcloud app deploy --project=entur-dev"
+    "deploy": "npm run build && gcloud app deploy --project=entur-dev",
+    "deploy:staging": "npm run build && gcloud app deploy --project=entur-staging"
   },
   "dependencies": {
     "@entur/sdk": "^1.0.0-next.42",
