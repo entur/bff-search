@@ -6,7 +6,7 @@ import { parseJSON } from 'date-fns'
 import { SearchParams } from '../types'
 
 import {
-    searchTransitAndTaxi, searchTransit, searchNonTransit, searchBikeRental,
+    searchWithTaxi, search, searchNonTransit, searchBikeRental,
 } from "./search"
 import { parseCursor, generateCursor } from "./utils/cursor"
 
@@ -15,17 +15,18 @@ const app = express()
 app.use(cors())
 app.use(bodyParser.json())
 
-app.post('/transit', async ({ body }, res, next) => {
+app.post('/', async ({ body }, res, next) => {
     try {
         const cursor = body?.cursor
         const params = getParams(body)
-        const { tripPatterns, hasFlexibleTripPattern } = cursor?.length
-            ? await searchTransit(parseCursor(cursor).params)
-            : await searchTransitAndTaxi(params)
+        const { tripPatterns, hasFlexibleTripPattern, isSameDaySearch } = cursor?.length || params.skipTaxi
+            ? await search(parseCursor(cursor).params)
+            : await searchWithTaxi(params)
 
         res.json({
             tripPatterns,
             hasFlexibleTripPattern,
+            isSameDaySearch,
             nextCursor: generateCursor(params, tripPatterns),
         })
     } catch (error) {

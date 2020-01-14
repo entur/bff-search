@@ -6,7 +6,7 @@ import { addMinutes, subMinutes } from 'date-fns'
 import { TripPattern } from '@entur/sdk'
 
 import { maxBy, minBy } from './array'
-import { isTransitAlternative } from './tripPattern'
+import { isTransitAlternative, isFlexibleAlternative } from './tripPattern'
 
 import { CursorData, SearchParams } from '../../types'
 
@@ -25,6 +25,7 @@ export function parseCursor(cursor: string): CursorData {
 export function generateCursor(params: SearchParams, tripPatterns?: TripPattern[]): string | void {
     const { arriveBy } = params
     const hasTransitPatterns = (tripPatterns || []).some(isTransitAlternative)
+    const hasFlexiblePatterns = (tripPatterns || []).some(isFlexibleAlternative)
 
     if (!hasTransitPatterns) return
 
@@ -34,7 +35,7 @@ export function generateCursor(params: SearchParams, tripPatterns?: TripPattern[
 
     const cursorData = {
         v: 1,
-        params: { ...params, searchDate: nextDate },
+        params: { ...params, searchDate: nextDate, useFlex: hasFlexiblePatterns },
     }
 
     return compressToEncodedURIComponent(JSON.stringify(cursorData))
