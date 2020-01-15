@@ -47,7 +47,7 @@ export async function searchTransit(params: SearchParams): Promise<TransitTripPa
         ...searchParams,
         useFlex: true,
         maxPreTransitWalkDistance: 2000,
-    })
+    }, [])
     const tripPatterns = response
         .map(parseTripPattern)
         .filter(isValidTransitAlternative)
@@ -75,13 +75,11 @@ export async function searchNonTransit(params: SearchParams): Promise<NonTransit
             limit: 1,
             modes: [mode],
             maxPreTransitWalkDistance: 2000,
-        })
-
-        if (!result?.length) return
+        }, [])
 
         const tripPattern = result[0]
 
-        return isValidNonTransitDistance(tripPattern, mode)
+        return tripPattern && isValidNonTransitDistance(tripPattern, mode)
             ? parseTripPattern(tripPattern)
             : undefined
     }))
@@ -96,13 +94,11 @@ export async function searchBikeRental(params: SearchParams): Promise<TripPatter
         modes: [LegMode.BICYCLE, LegMode.FOOT],
         maxPreTransitWalkDistance: 2000,
         allowBikeRental: true,
-    })
+    }, [])
 
-    if (!response?.length) return undefined
+    const tripPattern = (response || []).filter(isBikeRentalAlternative)[0]
 
-    const tripPattern = response.filter(isBikeRentalAlternative)[0]
-
-    return isValidNonTransitDistance(tripPattern, 'bicycle')
+    return tripPattern && isValidNonTransitDistance(tripPattern, 'bicycle')
         ? parseTripPattern(tripPattern)
         : undefined
 }
@@ -111,7 +107,7 @@ export async function searchAny(params: SearchParams): Promise<TripPattern[]> {
     const response = await sdk.getTripPatterns({
         ...params,
         maxPreTransitWalkDistance: 2000,
-    })
+    }, [])
     return response?.length ? response.map(parseTripPattern) : []
 }
 
@@ -125,7 +121,7 @@ async function searchTaxiFrontBack(params: SearchParams, carPattern?: TripPatter
             limit: 1,
             maxPreTransitWalkDistance: 2000,
             modes: [...searchParams.modes, mode],
-        })
+        }, [])
 
         if (!response?.length) return []
 

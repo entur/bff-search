@@ -1,10 +1,12 @@
 import {
-    isBicycle, isCar, isFoot,
-    Leg, LegMode, TripPattern,
+    isCar,
+    LegMode, TripPattern,
 } from '@entur/sdk'
 import { differenceInHours, parseJSON } from 'date-fns'
 
 import { NON_TRANSIT_DISTANCE_LIMITS, TAXI_LIMITS } from '../constants'
+
+import { parseLeg, isFlexibleLeg, isTransitLeg, isBikeRentalLeg } from './leg'
 
 export function isTransitAlternative({ legs }: TripPattern ): boolean {
     return (legs || []).some(isTransitLeg)
@@ -48,22 +50,6 @@ export function hoursBetweenDateAndTripPattern(date: Date, tripPattern: TripPatt
     return Math.abs(differenceInHours(tripPatternDate, date))
 }
 
-function parseLeg(leg: any): Leg {
-    const { fromPlace, fromEstimatedCall } = leg
-    const fromQuayName = fromPlace?.quay?.name || fromEstimatedCall?.quay?.name
-
-    if (!isFlexibleLeg(leg) && fromQuayName) {
-        return {
-            ...leg,
-            fromPlace: {
-                ...fromPlace,
-                name: isTransitLeg(leg) ? fromQuayName : fromPlace.name,
-            },
-        }
-    }
-    return leg
-}
-
 function isTaxiAlternativeBetterThanCarAlternative({ legs }: TripPattern, carPattern?: TripPattern): boolean {
     const taxiLeg = legs.find(({ mode }) => mode === LegMode.CAR)
 
@@ -93,16 +79,4 @@ function isCarAlternative({ legs }: TripPattern): boolean {
 
 function isCarOnlyAlternative({ legs }: TripPattern): boolean {
     return Boolean(legs?.length) && legs.every(({ mode }) => isCar(mode))
-}
-
-function isFlexibleLeg({ line }: Leg): boolean {
-    return line?.flexibleLineType === 'flexibleAreasOnly'
-}
-
-function isTransitLeg({ mode }: Leg): boolean {
-    return !isFoot(mode) && !isBicycle(mode) && !isCar(mode)
-}
-
-function isBikeRentalLeg(leg: any): boolean {
-    return Boolean(leg.fromPlace?.bikeRentalStation && leg.toPlace?.bikeRentalStation)
 }
