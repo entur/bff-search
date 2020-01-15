@@ -131,7 +131,7 @@ export async function searchBikeRental(params: SearchParams): Promise<TripPatter
 
 function getNextSearchParams(params: SearchParams): SearchParams {
     const { arriveBy, initialSearchDate, searchDate } = params
-    const nextDate = getNextSearchDate(arriveBy, initialSearchDate, searchDate)
+    const nextDate = getNextSearchDate(Boolean(arriveBy), initialSearchDate, searchDate)
 
     return { ...params, searchDate: nextDate }
 }

@@ -3,12 +3,14 @@ import cors from 'cors'
 import express from 'express'
 import { parseJSON } from 'date-fns'
 
-import { SearchParams } from '../types'
+import { RawSearchParams, SearchParams } from '../types'
 
 import {
     searchWithTaxi, search, searchNonTransit, searchBikeRental,
-} from "./search"
-import { parseCursor, generateCursor } from "./utils/cursor"
+} from './search'
+import { parseCursor, generateCursor } from './utils/cursor'
+
+import { DEFAULT_QUERY_MODES } from './constants'
 
 const app = express()
 
@@ -64,7 +66,7 @@ app.use((error: Error, _1: express.Request, res: express.Response, _2: express.N
     res.status(500).json({ error: error.message, stack: error.stack })
 })
 
-function getParams({ cursor, ...bodyParams }: SearchParams): SearchParams {
+function getParams({ cursor, ...bodyParams }: RawSearchParams): SearchParams {
     const searchDate = bodyParams.searchDate
         ? parseJSON(bodyParams.searchDate)
         : new Date()
@@ -73,6 +75,7 @@ function getParams({ cursor, ...bodyParams }: SearchParams): SearchParams {
         ...bodyParams,
         searchDate,
         initialSearchDate: searchDate,
+        modes: bodyParams.modes || DEFAULT_QUERY_MODES,
     }
 }
 

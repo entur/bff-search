@@ -27,7 +27,7 @@ export function generateCursor(params: SearchParams, tripPatterns?: TripPattern[
     const hasTransitPatterns = (tripPatterns || []).some(isTransitAlternative)
     const hasFlexiblePatterns = (tripPatterns || []).some(isFlexibleAlternative)
 
-    if (!hasTransitPatterns) return
+    if (!tripPatterns || !hasTransitPatterns) return
 
     const nextDate = arriveBy
         ? subMinutes(new Date(minBy(tripPatterns, getEndTime).endTime), 1)

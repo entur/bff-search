@@ -1,3 +1,20 @@
+import { QueryMode } from '@entur/sdk'
+
+export const DEFAULT_QUERY_MODES: QueryMode[] = [
+    'air',
+    'bus',
+    'coach',
+    'cableway',
+    'foot',
+    'funicular',
+    'lift',
+    'metro',
+    'rail',
+    'tram',
+    'transit',
+    'water',
+]
+
 export const NON_TRANSIT_DISTANCE_LIMITS = {
     UPPER: {
         bicycle: 100000,

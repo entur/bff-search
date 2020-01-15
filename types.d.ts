@@ -1,5 +1,5 @@
 import {
-  GetTripPatternsParams, TripPattern, Location,
+  GetTripPatternsParams, TripPattern, Location, QueryMode,
 } from '@entur/sdk'
 
 export type CursorData = {
@@ -7,13 +7,16 @@ export type CursorData = {
   params: SearchParams,
 }
 
-export type SearchParams = {
-  from: Location,
-  to: Location,
-  cursor?: string,
-  initialSearchDate?: Date,
-  skipTaxi?: boolean,
-} & GetTripPatternsParams
+export type RawSearchParams = GetTripPatternsParams & {
+    cursor?: string,
+}
+
+export type SearchParams = RawSearchParams & {
+    searchDate: Date,
+    initialSearchDate: Date,
+    modes: QueryMode[],
+    skipTaxi?: boolean,
+}
 
 export type SearchResults = {
   transitTripPatterns: TransitTripPatterns,
