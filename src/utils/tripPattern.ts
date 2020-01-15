@@ -92,7 +92,7 @@ function isCarAlternative({ legs }: TripPattern): boolean {
 }
 
 function isCarOnlyAlternative({ legs }: TripPattern): boolean {
-    return legs?.length && legs.every(({ mode }) => isCar(mode))
+    return Boolean(legs?.length) && legs.every(({ mode }) => isCar(mode))
 }
 
 function isFlexibleLeg({ line }: Leg): boolean {
