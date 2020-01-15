@@ -16,7 +16,7 @@ import {
 const sdk = new EnturService({
     clientName: 'entur-search',
     hosts: {
-        journeyPlanner: 'https://api.dev.entur.io/sales/v1/offers/search',
+        journeyPlanner: process.env.JOURNEY_PLANNER_HOST,
     },
 })
 
