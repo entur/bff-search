@@ -30,7 +30,7 @@ async function getFiles(dir: string): Promise<string[]> {
     const files = await Promise.all(dirents.map((dirent) => {
         const res = resolve(dir, dirent.name)
         if (dirent.isDirectory()) {
-            return getFiles(res) // getFiles(res)
+            return getFiles(res)
         }
         return [res]
     }))
