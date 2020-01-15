@@ -25,7 +25,7 @@
     "populate-env-vars": "ts-node ./populateEnvVars.ts"
   },
   "dependencies": {
-    "@entur/sdk": "^1.0.0-next.42",
+    "@entur/sdk": "^1.0.0-next.43",
     "body-parser": "^1.19.0",
     "cors": "^2.8.5",
     "date-fns": "^2.8.1",

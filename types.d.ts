@@ -15,7 +15,6 @@ export type SearchParams = RawSearchParams & {
     searchDate: Date,
     initialSearchDate: Date,
     modes: QueryMode[],
-    skipTaxi?: boolean,
 }
 
 export type SearchResults = {
