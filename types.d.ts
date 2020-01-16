@@ -1,5 +1,5 @@
 import {
-    GetTripPatternsParams, TripPattern, Location, QueryMode, TransportSubmodeParam,
+    GetTripPatternsParams, TripPattern, Location, QueryMode, TransportSubmodeParam, InputBanned, InputWhiteListed,
 } from '@entur/sdk'
 
 export type CursorData = {
@@ -37,8 +37,8 @@ export interface NonTransitTripPatterns {
 export interface FilteredModesAndSubModes {
     filteredModes: QueryMode[],
     subModesFilter: TransportSubmodeParam[],
-    banned?: { authorities: string },
-    whiteListed?: { authorities: string },
+    banned?: InputBanned,
+    whiteListed?: InputWhiteListed,
 }
 
 export type SearchFilterType =

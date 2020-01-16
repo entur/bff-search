@@ -10,6 +10,10 @@ import { ALL_BUS_SUBMODES, ALL_RAIL_SUBMODES, DEFAULT_QUERY_MODES } from '../con
 
 import { difference, intersection, uniq } from './array'
 
+const flybuss = 'flybuss'
+const flytog = 'flytog'
+const flytogWhitelist = { authorities: ['FLT:Authority:FLT'] }
+
 export function filterModesAndSubModes(modes?: SearchFilterType[]): FilteredModesAndSubModes {
     if (!modes) return { filteredModes: DEFAULT_QUERY_MODES, subModesFilter: [] }
 
@@ -50,7 +54,6 @@ export function filterModesAndSubModes(modes?: SearchFilterType[]): FilteredMode
 }
 
 function filterModesForRailReplacementBus(modes: SearchFilterType[]): FilteredModesAndSubModes {
-    const flytog = 'flytog'
     const replacementBus = TransportSubmode.RAIL_REPLACEMENT_BUS
     const modesIncludeRailOrFlytog = intersection(modes, [LegMode.RAIL, flytog]).length
 
@@ -80,7 +83,6 @@ function filterModesForRailReplacementBus(modes: SearchFilterType[]): FilteredMo
 }
 
 function filterModesForAirportLinkRail(modes: SearchFilterType[]): FilteredModesAndSubModes {
-    const flytog = 'flytog'
     const airportRail = TransportSubmode.AIRPORT_LINK_RAIL
     const onlyFootAndFlytog = !difference(modes, [LegMode.FOOT, flytog]).length
 
@@ -91,7 +93,7 @@ function filterModesForAirportLinkRail(modes: SearchFilterType[]): FilteredModes
                 transportMode: LegMode.RAIL,
                 transportSubmodes: [airportRail],
             }],
-            whiteListed: onlyFootAndFlytog ? { authorities: 'FLT:Authority:FLT' } : undefined,
+            whiteListed: onlyFootAndFlytog ? flytogWhitelist : undefined,
         }
     }
 
@@ -104,7 +106,7 @@ function filterModesForAirportLinkRail(modes: SearchFilterType[]): FilteredModes
                 transportMode: LegMode.RAIL,
                 transportSubmodes: allOtherRailSubModes,
             }],
-            banned: { authorities: 'FLT:Authority:FLT' },
+            banned: flytogWhitelist,
         }
     }
 
@@ -112,8 +114,6 @@ function filterModesForAirportLinkRail(modes: SearchFilterType[]): FilteredModes
 }
 
 function filterModesForAirportLinkBus(modes: SearchFilterType[], prevBusSubModes: TransportSubmode[]): FilteredModesAndSubModes {
-    const flybuss = 'flybuss'
-
     if (modes.includes(flybuss) && !modes.includes(LegMode.BUS)) {
         return {
             filteredModes: [LegMode.BUS],

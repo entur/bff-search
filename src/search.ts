@@ -104,9 +104,7 @@ export async function searchBikeRental(params: SearchParams): Promise<TripPatter
 }
 
 async function searchTaxiFrontBack(params: SearchParams, carPattern?: TripPattern): Promise<TripPattern[]> {
-    const {
-        initialSearchDate, modes: initialModes = [], ...searchParams,
-    } = params
+    const { initialSearchDate, modes: initialModes = [], ...searchParams } = params
     const modes: QueryMode[] = ['car_pickup', 'car_dropoff']
 
     const [pickup, dropoff] = await Promise.all(modes.map(async mode => {
