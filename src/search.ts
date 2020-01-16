@@ -20,18 +20,18 @@ const sdk = new EnturService({
     },
 })
 
-export async function searchWithTaxi(params: SearchParams): Promise<TransitTripPatterns> {
-    const [results, nonTransitResults] = await Promise.all([
-        search(params), searchNonTransit(params),
+export async function searchTransitWithTaxi(params: SearchParams): Promise<TransitTripPatterns> {
+    const [transitResults, nonTransitResults] = await Promise.all([
+        searchTransit(params), searchNonTransit(params),
     ])
-    const tripPatterns = results.tripPatterns
+    const tripPatterns = transitResults.tripPatterns
     const carPattern = nonTransitResults.car
     const tripPatternsWithTaxi = shouldSearchWithTaxi(params, tripPatterns[0], nonTransitResults)
         ? await searchTaxiFrontBack(params, carPattern)
         : []
 
     return {
-        ...results,
+        ...transitResults,
         tripPatterns: [
             ...tripPatterns,
             ...tripPatternsWithTaxi,
@@ -39,7 +39,7 @@ export async function searchWithTaxi(params: SearchParams): Promise<TransitTripP
     }
 }
 
-export async function search(params: SearchParams): Promise<TransitTripPatterns> {
+export async function searchTransit(params: SearchParams): Promise<TransitTripPatterns> {
     const { initialSearchDate, ...searchParams } = params
     const { searchDate } = searchParams
 
@@ -47,7 +47,7 @@ export async function search(params: SearchParams): Promise<TransitTripPatterns>
         ...searchParams,
         useFlex: true,
         maxPreTransitWalkDistance: 2000,
-    })
+    }, [])
     const tripPatterns = response
         .map(parseTripPattern)
         .filter(isValidTransitAlternative)
@@ -56,7 +56,7 @@ export async function search(params: SearchParams): Promise<TransitTripPatterns>
     if (!tripPatterns.length && isSameDaySearch) {
         const nextSearchParams = getNextSearchParams(params)
 
-        return search(nextSearchParams)
+        return searchTransit(nextSearchParams)
     }
 
     return {
@@ -75,40 +75,16 @@ export async function searchNonTransit(params: SearchParams): Promise<NonTransit
             limit: 1,
             modes: [mode],
             maxPreTransitWalkDistance: 2000,
-        })
-
-        if (!result?.length) return
+        }, [])
 
         const tripPattern = result[0]
 
-        return isValidNonTransitDistance(tripPattern, mode)
+        return tripPattern && isValidNonTransitDistance(tripPattern, mode)
             ? parseTripPattern(tripPattern)
             : undefined
     }))
 
     return { foot, bicycle, car }
-}
-
-export async function searchTaxiFrontBack(params: SearchParams, carPattern?: TripPattern): Promise<TripPattern[]> {
-    const { initialSearchDate, ...searchParams } = params
-    const modes: QueryMode[] = ['car_pickup', 'car_dropoff']
-
-    const [pickup, dropoff] = await Promise.all(modes.map(async mode => {
-        const response = await sdk.getTripPatterns({
-            ...searchParams,
-            limit: 1,
-            maxPreTransitWalkDistance: 2000,
-            modes: [...searchParams.modes, mode],
-        })
-
-        if (!response?.length) return []
-
-        return response
-            .map(parseTripPattern)
-            .filter(isValidTaxiAlternative(initialSearchDate, carPattern))
-    }))
-
-    return [...pickup, ...dropoff]
 }
 
 export async function searchBikeRental(params: SearchParams): Promise<TripPattern | void> {
@@ -118,15 +94,35 @@ export async function searchBikeRental(params: SearchParams): Promise<TripPatter
         modes: [LegMode.BICYCLE, LegMode.FOOT],
         maxPreTransitWalkDistance: 2000,
         allowBikeRental: true,
-    })
+    }, [])
 
-    if (!response?.length) return undefined
+    const tripPattern = (response || []).filter(isBikeRentalAlternative)[0]
 
-    const tripPattern = response.filter(isBikeRentalAlternative)[0]
-
-    return isValidNonTransitDistance(tripPattern, 'bicycle')
+    return tripPattern && isValidNonTransitDistance(tripPattern, 'bicycle')
         ? parseTripPattern(tripPattern)
         : undefined
+}
+
+async function searchTaxiFrontBack(params: SearchParams, carPattern?: TripPattern): Promise<TripPattern[]> {
+    const { initialSearchDate, modes: initialModes = [], ...searchParams } = params
+    const modes: QueryMode[] = ['car_pickup', 'car_dropoff']
+
+    const [pickup, dropoff] = await Promise.all(modes.map(async mode => {
+        const response = await sdk.getTripPatterns({
+            ...searchParams,
+            limit: 1,
+            maxPreTransitWalkDistance: 2000,
+            modes: [...initialModes, mode],
+        }, [])
+
+        if (!response?.length) return []
+
+        return response
+            .map(parseTripPattern)
+            .filter(isValidTaxiAlternative(initialSearchDate, carPattern))
+    }))
+
+    return [...pickup, ...dropoff]
 }
 
 function getNextSearchParams(params: SearchParams): SearchParams {

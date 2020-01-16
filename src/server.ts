@@ -6,24 +6,24 @@ import { parseJSON } from 'date-fns'
 import { RawSearchParams, SearchParams } from '../types'
 
 import {
-    searchWithTaxi, search, searchNonTransit, searchBikeRental,
-} from './search'
-import { parseCursor, generateCursor } from './utils/cursor'
+    searchTransitWithTaxi, searchTransit, searchNonTransit, searchBikeRental,
+} from "./search"
+import { parseCursor, generateCursor } from "./utils/cursor"
+import { filterModesAndSubModes } from "./utils/modes"
 
-import { DEFAULT_QUERY_MODES } from './constants'
-
+const PORT = process.env.PORT || 9000
 const app = express()
 
 app.use(cors())
 app.use(bodyParser.json())
 
-app.post('/', async ({ body }, res, next) => {
+app.post('/transit', async ({ body }, res, next) => {
     try {
         const cursor = body?.cursor
         const params = getParams(body)
-        const { tripPatterns, hasFlexibleTripPattern, isSameDaySearch } = cursor?.length || params.skipTaxi
-            ? await search(parseCursor(cursor).params)
-            : await searchWithTaxi(params)
+        const { tripPatterns, hasFlexibleTripPattern, isSameDaySearch } = cursor?.length
+            ? await searchTransit(parseCursor(cursor).params)
+            : await searchTransitWithTaxi(params)
 
         res.json({
             tripPatterns,
@@ -66,22 +66,26 @@ app.use((error: Error, _1: express.Request, res: express.Response, _2: express.N
     res.status(500).json({ error: error.message, stack: error.stack })
 })
 
+app.listen(PORT, () => {
+    // tslint:disable-next-line:no-console
+    console.log(`Server listening on port ${PORT}...`)
+})
+
 function getParams({ cursor, ...bodyParams }: RawSearchParams): SearchParams {
     const searchDate = bodyParams.searchDate
         ? parseJSON(bodyParams.searchDate)
         : new Date()
+    const {
+        filteredModes, subModesFilter, banned, whiteListed,
+     } = filterModesAndSubModes(bodyParams.searchFilter)
 
     return {
         ...bodyParams,
         searchDate,
         initialSearchDate: searchDate,
-        modes: bodyParams.modes || DEFAULT_QUERY_MODES,
+        modes: filteredModes,
+        transportSubmodes: subModesFilter,
+        banned,
+        whiteListed,
     }
 }
-
-const PORT = process.env.PORT || 9000
-
-app.listen(PORT, () => {
-    // tslint:disable-next-line:no-console
-    console.log(`Server listening on port ${PORT}...`)
-})

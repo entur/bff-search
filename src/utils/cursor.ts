@@ -1,7 +1,7 @@
 import {
     compressToEncodedURIComponent, decompressFromEncodedURIComponent,
 } from "lz-string"
-import { addMinutes, subMinutes } from 'date-fns'
+import { addMinutes, subMinutes, parseJSON } from 'date-fns'
 
 import { TripPattern } from '@entur/sdk'
 
@@ -12,12 +12,14 @@ import { CursorData, SearchParams } from '../../types'
 
 export function parseCursor(cursor: string): CursorData {
     const parsed = JSON.parse(decompressFromEncodedURIComponent(cursor))
+    const { params } = parsed
 
     return {
         ...parsed,
         params: {
-            ...parsed.params,
-            searchDate: new Date(parsed.params.searchDate),
+            ...params,
+            initialSearchDate: parseJSON(params.initialSearchDate),
+            searchDate: parseJSON(params.searchDate),
         },
     }
 }
