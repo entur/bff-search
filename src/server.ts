@@ -17,7 +17,7 @@ const app = express()
 app.use(cors())
 app.use(bodyParser.json())
 
-app.post('/transit', async ({ body }, res, next) => {
+app.post('/v1/transit', async ({ body }, res, next) => {
     try {
         const cursor = body?.cursor
         const params = getParams(body)
@@ -36,7 +36,7 @@ app.post('/transit', async ({ body }, res, next) => {
     }
 })
 
-app.post('/non-transit', async ({ body }, res, next) => {
+app.post('/v1/non-transit', async ({ body }, res, next) => {
     try {
         const params = getParams(body)
         const tripPatterns = await searchNonTransit(params)
@@ -47,7 +47,7 @@ app.post('/non-transit', async ({ body }, res, next) => {
     }
 })
 
-app.post('/bike-rental', async ({ body }, res, next) => {
+app.post('/v1/bike-rental', async ({ body }, res, next) => {
     try {
         const params = getParams(body)
         const tripPattern = await searchBikeRental(params)
