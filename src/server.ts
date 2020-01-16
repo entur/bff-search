@@ -6,11 +6,10 @@ import { parseJSON } from 'date-fns'
 import { RawSearchParams, SearchParams } from '../types'
 
 import {
-    searchTransitWithTaxi, searchTransit, searchNonTransit, searchBikeRental, searchAny,
+    searchTransitWithTaxi, searchTransit, searchNonTransit, searchBikeRental,
 } from "./search"
 import { parseCursor, generateCursor } from "./utils/cursor"
-
-import { DEFAULT_QUERY_MODES } from './constants'
+import { filterModesAndSubModes } from "./utils/modes"
 
 const PORT = process.env.PORT || 9000
 const app = express()
@@ -59,17 +58,6 @@ app.post('/bike-rental', async ({ body }, res, next) => {
     }
 })
 
-app.post('/any', async ({ body }, res, next) => {
-    try {
-        const params = getParams(body)
-        const tripPatterns = await searchAny(params)
-
-        res.json({ tripPatterns })
-    } catch (error) {
-        next(error)
-    }
-})
-
 app.all('*', (_, res) => {
     res.status(404).json({ error: '404 Not Found'})
 })
@@ -87,11 +75,17 @@ function getParams({ cursor, ...bodyParams }: RawSearchParams): SearchParams {
     const searchDate = bodyParams.searchDate
         ? parseJSON(bodyParams.searchDate)
         : new Date()
+    const {
+        filteredModes, subModesFilter, banned, whiteListed,
+     } = filterModesAndSubModes(bodyParams.searchFilter)
 
     return {
         ...bodyParams,
         searchDate,
         initialSearchDate: searchDate,
-        modes: bodyParams.modes || DEFAULT_QUERY_MODES,
+        modes: filteredModes,
+        transportSubmodes: subModesFilter,
+        banned,
+        whiteListed,
     }
 }

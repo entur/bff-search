@@ -1,4 +1,4 @@
-import { QueryMode } from '@entur/sdk'
+import { QueryMode, TransportSubmode } from '@entur/sdk'
 
 export const DEFAULT_QUERY_MODES: QueryMode[] = [
     'air',
@@ -13,6 +13,20 @@ export const DEFAULT_QUERY_MODES: QueryMode[] = [
     'tram',
     'transit',
     'water',
+]
+
+export const ALL_BUS_SUBMODES: TransportSubmode[] = [
+    'airportLinkBus',
+    'railReplacementBus',
+    // @ts-ignore : Following types are missing in SDK
+    'expressBus', 'localBus', 'nightBus', 'regionalBus', 'schoolBus', 'shuttleBus', 'sightseeingBus', 'nationalCoach',
+]
+
+export const ALL_RAIL_SUBMODES: TransportSubmode[] = [
+    'airportLinkRail',
+    'touristRailway',
+    // @ts-ignore : Following types are missing in SDK
+    'international', 'interregionalRail', 'local', 'longDistance', 'nightRail', 'regionalRail',
 ]
 
 export const NON_TRANSIT_DISTANCE_LIMITS = {

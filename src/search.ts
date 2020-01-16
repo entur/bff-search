@@ -103,16 +103,10 @@ export async function searchBikeRental(params: SearchParams): Promise<TripPatter
         : undefined
 }
 
-export async function searchAny(params: SearchParams): Promise<TripPattern[]> {
-    const response = await sdk.getTripPatterns({
-        ...params,
-        maxPreTransitWalkDistance: 2000,
-    }, [])
-    return response?.length ? response.map(parseTripPattern) : []
-}
-
 async function searchTaxiFrontBack(params: SearchParams, carPattern?: TripPattern): Promise<TripPattern[]> {
-    const { initialSearchDate, ...searchParams } = params
+    const {
+        initialSearchDate, modes: initialModes = [], ...searchParams,
+    } = params
     const modes: QueryMode[] = ['car_pickup', 'car_dropoff']
 
     const [pickup, dropoff] = await Promise.all(modes.map(async mode => {
@@ -120,7 +114,7 @@ async function searchTaxiFrontBack(params: SearchParams, carPattern?: TripPatter
             ...searchParams,
             limit: 1,
             maxPreTransitWalkDistance: 2000,
-            modes: [...searchParams.modes, mode],
+            modes: [...initialModes, mode],
         }, [])
 
         if (!response?.length) return []
