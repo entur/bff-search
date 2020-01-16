@@ -27,7 +27,7 @@ export function isTransitLeg({ mode }: Leg): boolean {
     return !isFoot(mode) && !isBicycle(mode) && !isCar(mode)
 }
 
-export function isBikeRentalLeg(leg: any): boolean {
+export function isBikeRentalLeg(leg: Leg): boolean {
     return Boolean(leg.fromPlace?.bikeRentalStation && leg.toPlace?.bikeRentalStation)
 }
 
