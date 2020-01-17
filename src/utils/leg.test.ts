@@ -1,12 +1,8 @@
 import {
-    Leg, LegMode, Quay, Place,
+    Leg, LegMode, Place,
 } from '@entur/sdk'
 
 import { parseLeg, isFlexibleLeg, isTransitLeg, isBikeRentalLeg } from './leg'
-
-function mockQuay(name: string): Quay {
-    return { name } as Quay
-}
 
 describe('parseLeg', () => {
     it('should map coach legs to bus legs', () => {
