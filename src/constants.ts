@@ -18,15 +18,25 @@ export const DEFAULT_QUERY_MODES: QueryMode[] = [
 export const ALL_BUS_SUBMODES: TransportSubmode[] = [
     'airportLinkBus',
     'railReplacementBus',
-    // @ts-ignore : Following types are missing in SDK
-    'expressBus', 'localBus', 'nightBus', 'regionalBus', 'schoolBus', 'shuttleBus', 'sightseeingBus', 'nationalCoach',
+    'expressBus',
+    'localBus',
+    'nightBus',
+    'regionalBus',
+    'schoolBus',
+    'shuttleBus',
+    'sightseeingBus',
+    'nationalCoach',
 ]
 
 export const ALL_RAIL_SUBMODES: TransportSubmode[] = [
     'airportLinkRail',
     'touristRailway',
-    // @ts-ignore : Following types are missing in SDK
-    'international', 'interregionalRail', 'local', 'longDistance', 'nightRail', 'regionalRail',
+    'international',
+    'interregionalRail',
+    'local',
+    'longDistance',
+    'nightRail',
+    'regionalRail',
 ]
 
 export const NON_TRANSIT_DISTANCE_LIMITS = {
