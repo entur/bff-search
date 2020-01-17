@@ -15,20 +15,17 @@ module.exports = {
     },
     plugins: [
         '@typescript-eslint',
+        'fp',
+        'no-for-each',
     ],
     settings: {
-        'import/parsers': {
-          '@typescript-eslint/parser': ['.ts', '.tsx'],
-        },
-        'import/resolver': {
-          'typescript': {},
-        },
+        'import/parsers': { '@typescript-eslint/parser': ['.ts', '.tsx'] },
+        'import/resolver': { typescript: {} },
       },
     extends: [
         'eslint:recommended',
         'plugin:@typescript-eslint/eslint-recommended',
         'plugin:@typescript-eslint/recommended',
-        'airbnb-base',
     ],
     rules: {
         "@typescript-eslint/adjacent-overload-signatures": "error",
@@ -38,39 +35,17 @@ module.exports = {
         "@typescript-eslint/class-name-casing": "error",
         "@typescript-eslint/consistent-type-assertions": "error",
         "@typescript-eslint/consistent-type-definitions": "error",
-        "@typescript-eslint/explicit-function-return-type": ["warn", { 'allowExpressions': true }],
-        "@typescript-eslint/explicit-member-accessibility": [
-            "error",
-            {
-                "accessibility": "explicit"
-            }
-        ],
-        "@typescript-eslint/indent": [
-            "error",
-            4,
-            {
-                "FunctionDeclaration": {
-                    "parameters": "first"
-                },
-                "FunctionExpression": {
-                    "parameters": "first"
-                }
-            }
-        ],
+        "@typescript-eslint/explicit-function-return-type": ["warn", { allowExpressions: true }],
+        "@typescript-eslint/explicit-member-accessibility": [ "error", { accessibility: "explicit" } ],
+        "@typescript-eslint/indent": ["error", 4, {
+            "FunctionDeclaration": { parameters: "first" },
+            "FunctionExpression": { parameters: "first" }
+        }],
         "@typescript-eslint/interface-name-prefix": "off",
-        "@typescript-eslint/member-delimiter-style": [
-            "error",
-            {
-                "multiline": {
-                    "delimiter": "none",
-                    "requireLast": true
-                },
-                "singleline": {
-                    "delimiter": "semi",
-                    "requireLast": false
-                }
-            }
-        ],
+        "@typescript-eslint/member-delimiter-style": ["error", {
+            multiline: { delimiter: "none", requireLast: true },
+            singleline: { delimiter: "semi", requireLast: false }
+        }],
         "@typescript-eslint/member-ordering": "error",
         "@typescript-eslint/no-empty-function": "error",
         "@typescript-eslint/no-empty-interface": "error",
@@ -86,109 +61,75 @@ module.exports = {
         "@typescript-eslint/prefer-namespace-keyword": "error",
         "@typescript-eslint/quotes": "off",
         "@typescript-eslint/require-await": "error",
-        "@typescript-eslint/semi": [
-            "error",
-            "never"
-        ],
         "@typescript-eslint/triple-slash-reference": "error",
         "@typescript-eslint/type-annotation-spacing": "error",
         "@typescript-eslint/unified-signatures": "error",
+        'array-bracket-spacing': 0,
+        'array-callback-return': 'error',
+        'arrow-body-style': 0,
+        'arrow-parens': 0,
         "arrow-body-style": "error",
-        "arrow-parens": [
-            "off",
-            "as-needed"
-        ],
+        'brace-style': 0,
         "camelcase": "error",
-        "comma-dangle": [
-            "error",
-            "always-multiline"
-        ],
+        "comma-dangle": ["error", "always-multiline"],
         "complexity": "off",
-        "constructor-super": "error",
-        "curly": "off",
         "default-case": "off",
-        "dot-notation": "error",
         "eol-last": "error",
-        "eqeqeq": [
-            "error",
-            "smart"
-        ],
+        "eqeqeq": ["error", "smart"],
+        'fp/no-loops': 'error',
+        'fp/no-mutating-methods': 'error',
         "guard-for-in": "error",
-        "id-blacklist": [
-            "error",
-            "any",
-            "Number",
-            "number",
-            "String",
-            "string",
-            "Boolean",
-            "boolean",
-        ],
-        "id-match": "error",
-        "import/order": "off",
-        "max-classes-per-file": [
-            "error",
-            1
-        ],
-        "max-len": [
-            "error",
+        "id-blacklist": [ "error", "any", "Number", "number", "String", "string", "Boolean", "boolean"],
+        'import/prefer-default-export': 'off',
+        'indent': ['error', 4, { SwitchCase: 1 }],
+        'max-len': ["error", 160],
+        'no-case-declarations': 'error',
+        'no-cond-assign': "error",
+        'no-console': "warn",
+        'no-empty': "error",
+        'no-extra-parens': ['error', 'all', { nestedBinaryExpressions: false, enforceForArrowConditionals: false }],
+        'no-for-each/no-for-each': 'warn',
+        'no-lonely-if': 'error',
+        'no-multiple-empty-lines': ['error', { max: 1, maxBOF: 0, maxEOF: 0 }],
+        'no-restricted-syntax': [
+            'warn',
             {
-                "code": 160
-            }
-        ],
-        "new-parens": "error",
-        "no-bitwise": "error",
-        "no-caller": "error",
-        "no-cond-assign": "error",
-        "no-console": "error",
-        "no-debugger": "error",
-        "no-empty": "error",
-        "no-eval": "error",
-        "no-fallthrough": "off",
-        "no-invalid-this": "off",
-        "no-multiple-empty-lines": "error",
-        "no-new-wrappers": "error",
-        "no-restricted-syntax": [
-            "error",
-            "ForInStatement"
-        ],
-        "no-shadow": [
-            "error",
+                selector: 'ForInStatement',
+                message: 'for..in loops iterate over the entire prototype chain, which is virtually never what you want. Use Object.{keys,values,entries}, and iterate over the resulting array.',
+            },
             {
-                "hoist": "all"
-            }
+                selector: 'CallExpression[callee.name=I18n] > Literal',
+                message: 'Use the T object instead of a string in I18n calls',
+            },
         ],
-        "no-throw-literal": "error",
-        "no-trailing-spaces": "error",
-        "no-undef-init": "error",
-        "no-underscore-dangle": "error",
-        "no-unsafe-finally": "error",
-        "no-unused-expressions": "error",
-        "no-unused-labels": "error",
-        "no-var": "error",
-        "object-shorthand": "error",
-        "one-var": [
-            "error",
-            "never"
-        ],
-        'prefer-arrow-callback': [ "error", { "allowNamedFunctions": true } ],
-        "prefer-const": "error",
-        "prefer-object-spread": "error",
-        "quote-props": [
-            "error",
-            "consistent-as-needed"
-        ],
-        "radix": "error",
-        "space-before-function-paren": [
-            "error",
-            {
-                "anonymous": "never",
-                "asyncArrow": "always",
-                "named": "never"
-            }
-        ],
-        "spaced-comment": "error",
-        "use-isnan": "error",
-        "valid-typeof": "off",
+        'no-shadow': ["error", { hoist: "all" }],
+        'no-trailing-spaces': "error",
+        'no-underscore-dangle': 'off',
+        'no-unneeded-ternary': 'error',
+        'no-unused-expressions': "error",
+        'no-unused-vars': 'error',
+        'no-use-before-define': 'off',
+        'no-var': "error",
+        'no-warning-comments': ['warn', { terms: ['TODO'], location: 'anywhere' }],
+        'object-curly-spacing': ['error', 'always'],
+        'object-shorthand': ['error', 'always'],
+        'one-var': ["error", "never"],
+        'prefer-arrow-callback': [ "error", { allowNamedFunctions: true } ],
+        'prefer-const': 'warn',
+        'prefer-destructuring': 'off',
+        'prefer-object-spread': 'error',
+        'prefer-template': 'error',
+        'quote-props': ['error', 'as-needed', { numbers: true }],
+        semi: ['error', 'never'],
+        'space-infix-ops': 'error',
+        'space-before-function-paren': ["error", {
+            anonymous: "never",
+            asyncArrow: "always",
+            named: "never"
+        }],
+        'spaced-comment': "error",
+        'template-curly-spacing': ['error', 'never'],
+        'use-isnan': "error",
+        'valid-typeof': "off",
     }
 }

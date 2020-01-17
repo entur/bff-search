@@ -165,7 +165,7 @@ function isBusSubModesFilter({ transportMode }: TransportSubmodeParam): boolean 
 }
 
 function isQueryTransportMode(mode: QueryMode | string): boolean {
-    return (mode === 'air'
+    return mode === 'air'
         || mode === 'bicycle'
         || mode === 'bus'
         || mode === 'cableway'
@@ -182,5 +182,5 @@ function isQueryTransportMode(mode: QueryMode | string): boolean {
         || mode === 'car_park'
         || mode === 'car_dropoff'
         || mode === 'car_pickup'
-    )
+
 }

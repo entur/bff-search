@@ -59,7 +59,7 @@ app.post('/v1/bike-rental', async ({ body }, res, next) => {
 })
 
 app.all('*', (_, res) => {
-    res.status(404).json({ error: '404 Not Found'})
+    res.status(404).json({ error: '404 Not Found' })
 })
 
 app.use((error: Error, _1: express.Request, res: express.Response) => {
