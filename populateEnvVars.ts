@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 import { resolve } from 'path'
 import { promises as fsPromises } from 'fs'
 
@@ -45,9 +47,10 @@ type ReplacePattern = [string | RegExp, string]
 async function findAndReplaceInFile(filePath: string, replacePatterns: ReplacePattern[]): Promise<void> {
     try {
         const content = await readFile(filePath, 'utf-8')
-        const newContent = replacePatterns.reduce((acc, [searchValue, replaceValue]) => {
-            return acc.replace(searchValue, replaceValue)
-        }, content)
+        const newContent = replacePatterns.reduce(
+            (acc, [searchValue, replaceValue]) => acc.replace(searchValue, replaceValue),
+            content
+        )
         await writeFile(filePath, newContent)
     } catch (error) {
         console.log(`Failed to update ${filePath}`)

@@ -152,11 +152,12 @@ function convertSearchFiltersToMode(searchFilters: SearchFilterType[]): QueryMod
     const initialModes: QueryMode[] = searchFilters.includes('bus')
         ? ['foot', 'coach']
         : ['foot']
-    const searchFilterReducer = (transportModes: QueryMode[], mode: string) => isQueryTransportMode(mode)
-        ? [...transportModes, mode as QueryMode]
-        : transportModes
 
-    return uniq(searchFilters.reduce(searchFilterReducer, initialModes))
+    return uniq(searchFilters.reduce(queryTransportModesReducer, initialModes))
+}
+
+function queryTransportModesReducer(transportModes: QueryMode[], mode: string): QueryMode[] {
+    return isQueryTransportMode(mode) ? [...transportModes, mode as QueryMode] : transportModes
 }
 
 function isBusSubModesFilter({ transportMode }: TransportSubmodeParam): boolean {
