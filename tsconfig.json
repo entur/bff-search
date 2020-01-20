@@ -1,22 +1,28 @@
 {
-  "compileOnSave": true,
-  "compilerOptions": {
-    "allowJs": true,
-    "baseUrl": ".",
-    "esModuleInterop": true,
-    "module": "commonjs",
-    "moduleResolution": "node",
-    "noImplicitAny": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "outDir": "dist",
-    "strict": true,
-    "paths": {
-      "*": ["node_modules/*"]
+    "compileOnSave": true,
+    "compilerOptions": {
+        "allowJs": true,
+        "baseUrl": ".",
+        "esModuleInterop": true,
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "noImplicitAny": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "outDir": "dist",
+        "strict": true,
+        "paths": {
+        "*": ["node_modules/*"]
+        },
+        "sourceMap": true,
+        "target": "es6",
     },
-    "sourceMap": true,
-    "target": "es6",
-  },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules/*"]
+    "include": [
+        "src/**/*.ts",
+        "populateEnvVars.ts",
+        "jest.config.js",
+    ],
+    "exclude": [
+        "node_modules/*",
+    ],
 }

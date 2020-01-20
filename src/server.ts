@@ -59,28 +59,29 @@ app.post('/v1/bike-rental', async ({ body }, res, next) => {
 })
 
 app.all('*', (_, res) => {
-    res.status(404).json({ error: '404 Not Found'})
+    res.status(404).json({ error: '404 Not Found' })
 })
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 app.use((error: Error, _1: express.Request, res: express.Response, _2: express.NextFunction) => {
     res.status(500).json({ error: error.message, stack: error.stack })
 })
 
 app.listen(PORT, () => {
-    // tslint:disable-next-line:no-console
+    // eslint-disable-next-line no-console
     console.log(`Server listening on port ${PORT}...`)
 })
 
-function getParams({ cursor, ...bodyParams }: RawSearchParams): SearchParams {
-    const searchDate = bodyParams.searchDate
-        ? parseJSON(bodyParams.searchDate)
+function getParams(params: RawSearchParams): SearchParams {
+    const searchDate = params.searchDate
+        ? parseJSON(params.searchDate)
         : new Date()
     const {
         filteredModes, subModesFilter, banned, whiteListed,
-     } = filterModesAndSubModes(bodyParams.searchFilter)
+    } = filterModesAndSubModes(params.searchFilter)
 
     return {
-        ...bodyParams,
+        ...params,
         searchDate,
         initialSearchDate: searchDate,
         modes: filteredModes,

@@ -1,44 +1,44 @@
 import {
-    GetTripPatternsParams, TripPattern, Location, QueryMode, TransportSubmodeParam, InputBanned, InputWhiteListed,
+    GetTripPatternsParams, TripPattern, QueryMode, TransportSubmodeParam, InputBanned, InputWhiteListed,
 } from '@entur/sdk'
 
-export type CursorData = {
-    v: number,
-    params: SearchParams,
-}
-
 export type RawSearchParams = GetTripPatternsParams & {
-    cursor?: string,
-    searchFilter?: SearchFilterType[],
+    cursor?: string
+    searchFilter?: SearchFilterType[]
 }
 
 export type SearchParams = RawSearchParams & {
-    searchDate: Date,
-    initialSearchDate: Date,
+    searchDate: Date
+    initialSearchDate: Date
 }
 
-export type SearchResults = {
-    transitTripPatterns: TransitTripPatterns,
-    nonTransitTripPatterns: NonTransitTripPatterns,
+export interface CursorData {
+    v: number
+    params: SearchParams
+}
+
+export interface SearchResults {
+    transitTripPatterns: TransitTripPatterns
+    nonTransitTripPatterns: NonTransitTripPatterns
 }
 
 export interface TransitTripPatterns {
-    tripPatterns: TripPattern[],
-    hasFlexibleTripPattern: boolean,
-    isSameDaySearch: boolean,
+    tripPatterns: TripPattern[]
+    hasFlexibleTripPattern: boolean
+    isSameDaySearch: boolean
 }
 
 export interface NonTransitTripPatterns {
-    bicycle?: TripPattern,
-    car?: TripPattern,
-    foot?: TripPattern,
+    bicycle?: TripPattern
+    car?: TripPattern
+    foot?: TripPattern
 }
 
 export interface FilteredModesAndSubModes {
-    filteredModes: QueryMode[],
-    subModesFilter: TransportSubmodeParam[],
-    banned?: InputBanned,
-    whiteListed?: InputWhiteListed,
+    filteredModes: QueryMode[]
+    subModesFilter: TransportSubmodeParam[]
+    banned?: InputBanned
+    whiteListed?: InputWhiteListed
 }
 
 export type SearchFilterType =
