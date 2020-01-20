@@ -87,7 +87,7 @@ export async function searchNonTransit(params: SearchParams): Promise<NonTransit
     return { foot, bicycle, car }
 }
 
-export async function searchBikeRental(params: SearchParams): Promise<TripPattern | void> {
+export async function searchBikeRental(params: SearchParams): Promise<TripPattern | undefined> {
     const response = await sdk.getTripPatterns({
         ...params,
         limit: 5,
@@ -147,7 +147,9 @@ function getNextSearchDate(arriveBy: boolean, initialDate: Date, searchDate: Dat
         : setMinutes(setHours(nextSearchDate, 0), 1)
 }
 
-function shouldSearchWithTaxi(params: SearchParams, tripPattern: TripPattern | void, { foot, car }: NonTransitTripPatterns): boolean {
+function shouldSearchWithTaxi(
+    params: SearchParams, tripPattern: TripPattern | undefined, { foot, car }: NonTransitTripPatterns
+): boolean {
     if (!tripPattern) return true
     if (foot && foot.duration < TAXI_LIMITS.FOOT_ALTERNATIVE_MIN_SECONDS) return false
     if (car && car.duration < TAXI_LIMITS.CAR_ALTERNATIVE_MIN_SECONDS) return false

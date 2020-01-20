@@ -10,7 +10,9 @@ import { isTransitAlternative, isFlexibleAlternative } from './tripPattern'
 
 import { CursorData, SearchParams } from '../../types'
 
-export function parseCursor(cursor: string): CursorData {
+export function parseCursor(cursor?: string): CursorData | undefined {
+    if(!cursor?.length) return undefined
+
     const parsed = JSON.parse(decompressFromEncodedURIComponent(cursor))
     const { params } = parsed
 
@@ -24,7 +26,7 @@ export function parseCursor(cursor: string): CursorData {
     }
 }
 
-export function generateCursor(params: SearchParams, tripPatterns?: TripPattern[]): string | void {
+export function generateCursor(params: SearchParams, tripPatterns?: TripPattern[]): string | undefined {
     const { arriveBy } = params
     const hasTransitPatterns = (tripPatterns || []).some(isTransitAlternative)
     const hasFlexiblePatterns = (tripPatterns || []).some(isFlexibleAlternative)
