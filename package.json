@@ -19,10 +19,7 @@
     "build:dev": "tsc && npm run populate-env-vars dev",
     "build:staging": "tsc && npm run populate-env-vars staging",
     "build:prod": "tsc && npm run populate-env-vars prod",
-    "deploy": "npm run deploy:dev",
-    "deploy:dev": "npm run lint && npm run build:dev && gcloud app deploy --project=entur-dev",
-    "deploy:staging": "npm run lint && npm run build:staging && gcloud app deploy --project=entur-staging",
-    "deploy:prod": "npm run lint && npm run build:prod && gcloud app deploy --project=entur-prod",
+    "deploy": "./scripts/deploy.sh",
     "populate-env-vars": "ts-node ./populateEnvVars.ts"
   },
   "dependencies": {

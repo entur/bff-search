@@ -24,7 +24,7 @@ The default port is 9000. You can override it with the `PORT` environment variab
 
 ```
 npm run deploy // dev is the default
-npm run deploy:dev
-npm run deploy:staging
-npm run deploy:prod
+npm run deploy dev
+npm run deploy staging
+npm run deploy prod
 ```
