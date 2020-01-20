@@ -62,7 +62,8 @@ app.all('*', (_, res) => {
     res.status(404).json({ error: '404 Not Found' })
 })
 
-app.use((error: Error, _1: express.Request, res: express.Response) => {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+app.use((error: Error, _1: express.Request, res: express.Response, _2: express.NextFunction) => {
     res.status(500).json({ error: error.message, stack: error.stack })
 })
 

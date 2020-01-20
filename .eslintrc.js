@@ -107,7 +107,6 @@ module.exports = {
         'no-underscore-dangle': 'off',
         'no-unneeded-ternary': 'error',
         'no-unused-expressions': "error",
-        'no-unused-vars': 'error',
         'no-use-before-define': 'off',
         'no-var': "error",
         'no-warning-comments': ['warn', { terms: ['TODO'], location: 'anywhere' }],
