@@ -1,3 +1,7 @@
+if (process.env.NODE_ENV === 'production') {
+    import('@google-cloud/trace-agent').then(trace => trace.start())
+}
+
 import bodyParser from 'body-parser'
 import cors from 'cors'
 import express from 'express'
