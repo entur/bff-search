@@ -10,8 +10,6 @@ module.exports = {
     parserOptions: {
         ecmaVersion: 6,
         sourceType: 'module',
-        project: './tsconfig.json',
-        tsconfigRootDir: __dirname,
     },
     plugins: [
         '@typescript-eslint',
@@ -30,7 +28,6 @@ module.exports = {
     rules: {
         "@typescript-eslint/adjacent-overload-signatures": "error",
         "@typescript-eslint/array-type": "error",
-        "@typescript-eslint/await-thenable": "error",
         "@typescript-eslint/ban-types": "error",
         "@typescript-eslint/class-name-casing": "error",
         "@typescript-eslint/consistent-type-assertions": "error",
@@ -60,7 +57,6 @@ module.exports = {
         "@typescript-eslint/prefer-function-type": "error",
         "@typescript-eslint/prefer-namespace-keyword": "error",
         "@typescript-eslint/quotes": "off",
-        "@typescript-eslint/require-await": "error",
         "@typescript-eslint/triple-slash-reference": "error",
         "@typescript-eslint/type-annotation-spacing": "error",
         "@typescript-eslint/unified-signatures": "error",
