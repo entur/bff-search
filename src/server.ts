@@ -23,10 +23,10 @@ app.use(bodyParser.json())
 
 app.post('/v1/transit', async ({ body }, res, next) => {
     try {
-        const cursor = body?.cursor
-        const params = getParams(body)
-        const { tripPatterns, hasFlexibleTripPattern, isSameDaySearch } = cursor?.length
-            ? await searchTransit(parseCursor(cursor).params)
+        const cursorData = parseCursor(body?.cursor)
+        const params = cursorData?.params || getParams(body)
+        const { tripPatterns, hasFlexibleTripPattern, isSameDaySearch } = cursorData
+            ? await searchTransit(params)
             : await searchTransitWithTaxi(params)
 
         res.json({
