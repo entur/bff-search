@@ -1,10 +1,10 @@
-import EnturService, { LegMode, TripPattern, QueryMode } from '@entur/sdk'
+import EnturService, { getTripPatternsQuery, LegMode, TripPattern, QueryMode } from '@entur/sdk'
 import {
     addHours, differenceInHours, setHours, setMinutes, isSameDay,
 } from 'date-fns'
 
 import {
-    SearchParams, TransitTripPatterns, NonTransitTripPatterns,
+    SearchParams, TransitTripPatterns, NonTransitTripPatterns, GraphqlQuery,
 } from '../types'
 
 import { TAXI_LIMITS } from './constants'
@@ -40,15 +40,25 @@ export async function searchTransitWithTaxi(params: SearchParams, extraHeaders: 
     }
 }
 
-export async function searchTransit(params: SearchParams, extraHeaders: {[key: string]: string}): Promise<TransitTripPatterns> {
+export async function searchTransit(
+    params: SearchParams,
+    extraHeaders: {[key: string]: string},
+    prevQueries?: GraphqlQuery[],
+): Promise<TransitTripPatterns> {
     const { initialSearchDate, ...searchParams } = params
     const { searchDate } = searchParams
 
-    const response = await sdk.getTripPatterns({
+    const getTripPatternsParams = {
         ...searchParams,
         useFlex: true,
         maxPreTransitWalkDistance: 2000,
-    }, { headers: extraHeaders })
+    }
+
+    const response = await sdk.getTripPatterns(getTripPatternsParams, { headers: extraHeaders })
+
+    const query = getTripPatternsQuery(getTripPatternsParams)
+    const queries = [...prevQueries || [], query]
+
     const tripPatterns = response
         .map(parseTripPattern)
         .filter(isValidTransitAlternative)
@@ -56,14 +66,14 @@ export async function searchTransit(params: SearchParams, extraHeaders: {[key: s
 
     if (!tripPatterns.length && isSameDaySearch) {
         const nextSearchParams = getNextSearchParams(params)
-
-        return searchTransit(nextSearchParams, extraHeaders)
+        return searchTransit(nextSearchParams, extraHeaders, queries)
     }
 
     return {
         tripPatterns,
         hasFlexibleTripPattern: tripPatterns.some(isFlexibleAlternative),
         isSameDaySearch,
+        queries,
     }
 }
 

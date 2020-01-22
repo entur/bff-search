@@ -7,7 +7,7 @@ import cors from 'cors'
 import express, { Request } from 'express'
 import { parseJSON } from 'date-fns'
 
-import { RawSearchParams, SearchParams } from '../types'
+import { RawSearchParams, SearchParams, GraphqlQuery } from '../types'
 
 import {
     searchTransitWithTaxi, searchTransit, searchNonTransit, searchBikeRental,
@@ -31,6 +31,20 @@ function getHeadersFromClient(req: Request): {[key: string]: string} {
     })
 }
 
+function generateShamashLink({ query, variables }: GraphqlQuery): string {
+    const host = process.env.ENVIRONMENT === 'prod'
+        ? 'https://api.entur.io/journey-planner/v2/ide/'
+        : `https://api.${process.env.ENVIRONMENT}.entur.io/journey-planner/v2/ide/`
+    const q = encodeURIComponent(query.trim().replace(/\s+/g, ' '))
+
+    if (variables) {
+        const vars = encodeURIComponent(JSON.stringify(variables))
+        return `${host}?query=${q}&variables=${vars}`
+    }
+
+    return `${host}?query=${q}`
+}
+
 app.post('/v1/transit', async (req, res, next) => {
     try {
         const cursorData = parseCursor(req.body?.cursor)
@@ -38,7 +52,7 @@ app.post('/v1/transit', async (req, res, next) => {
 
         const extraHeaders = getHeadersFromClient(req)
 
-        const { tripPatterns, hasFlexibleTripPattern, isSameDaySearch } = cursorData
+        const { tripPatterns, hasFlexibleTripPattern, isSameDaySearch, queries } = cursorData
             ? await searchTransit(params, extraHeaders)
             : await searchTransitWithTaxi(params, extraHeaders)
 
@@ -47,6 +61,12 @@ app.post('/v1/transit', async (req, res, next) => {
             hasFlexibleTripPattern,
             isSameDaySearch,
             nextCursor: generateCursor(params, tripPatterns),
+            queries: process.env.ENVIRONMENT === 'prod'
+                ? undefined
+                : queries.map(q => ({
+                    ...q,
+                    shamash: generateShamashLink(q),
+                })),
         })
     } catch (error) {
         next(error)
