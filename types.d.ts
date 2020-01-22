@@ -22,10 +22,16 @@ export interface SearchResults {
     nonTransitTripPatterns: NonTransitTripPatterns
 }
 
+export interface GraphqlQuery {
+    query: string
+    variables?: object
+}
+
 export interface TransitTripPatterns {
     tripPatterns: TripPattern[]
     hasFlexibleTripPattern: boolean
     isSameDaySearch: boolean
+    queries: GraphqlQuery[]
 }
 
 export interface NonTransitTripPatterns {
