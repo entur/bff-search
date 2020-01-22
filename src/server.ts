@@ -11,9 +11,9 @@ import { RawSearchParams, SearchParams } from '../types'
 
 import {
     searchTransitWithTaxi, searchTransit, searchNonTransit, searchBikeRental,
-} from "./search"
-import { parseCursor, generateCursor } from "./utils/cursor"
-import { filterModesAndSubModes } from "./utils/modes"
+} from './search'
+import { parseCursor, generateCursor } from './utils/cursor'
+import { filterModesAndSubModes } from './utils/modes'
 import { clean } from './utils/object'
 
 const PORT = process.env.PORT || 9000
