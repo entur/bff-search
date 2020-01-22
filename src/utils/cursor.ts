@@ -1,6 +1,6 @@
 import {
     compressToEncodedURIComponent, decompressFromEncodedURIComponent,
-} from "lz-string"
+} from 'lz-string'
 import { addMinutes, subMinutes, parseJSON } from 'date-fns'
 
 import { TripPattern } from '@entur/sdk'

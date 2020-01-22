@@ -114,6 +114,7 @@ module.exports = {
         'prefer-destructuring': 'off',
         'prefer-object-spread': 'error',
         'prefer-template': 'error',
+        'quotes': ['error', 'single'],
         'quote-props': ['error', 'as-needed', { numbers: true }],
         semi: ['error', 'never'],
         'space-infix-ops': 'error',
