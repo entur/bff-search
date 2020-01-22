@@ -20,14 +20,15 @@ const sdk = new EnturService({
     },
 })
 
-export async function searchTransitWithTaxi(params: SearchParams): Promise<TransitTripPatterns> {
+export async function searchTransitWithTaxi(params: SearchParams, extraHeaders: {[key: string]: string}): Promise<TransitTripPatterns> {
     const [transitResults, nonTransitResults] = await Promise.all([
-        searchTransit(params), searchNonTransit(params),
+        searchTransit(params, extraHeaders),
+        searchNonTransit(params, extraHeaders),
     ])
     const tripPatterns = transitResults.tripPatterns
     const carPattern = nonTransitResults.car
     const tripPatternsWithTaxi = shouldSearchWithTaxi(params, tripPatterns[0], nonTransitResults)
-        ? await searchTaxiFrontBack(params, carPattern)
+        ? await searchTaxiFrontBack(params, carPattern, extraHeaders)
         : []
 
     return {
@@ -39,7 +40,7 @@ export async function searchTransitWithTaxi(params: SearchParams): Promise<Trans
     }
 }
 
-export async function searchTransit(params: SearchParams): Promise<TransitTripPatterns> {
+export async function searchTransit(params: SearchParams, extraHeaders: {[key: string]: string}): Promise<TransitTripPatterns> {
     const { initialSearchDate, ...searchParams } = params
     const { searchDate } = searchParams
 
@@ -47,7 +48,7 @@ export async function searchTransit(params: SearchParams): Promise<TransitTripPa
         ...searchParams,
         useFlex: true,
         maxPreTransitWalkDistance: 2000,
-    })
+    }, { headers: extraHeaders })
     const tripPatterns = response
         .map(parseTripPattern)
         .filter(isValidTransitAlternative)
@@ -56,7 +57,7 @@ export async function searchTransit(params: SearchParams): Promise<TransitTripPa
     if (!tripPatterns.length && isSameDaySearch) {
         const nextSearchParams = getNextSearchParams(params)
 
-        return searchTransit(nextSearchParams)
+        return searchTransit(nextSearchParams, extraHeaders)
     }
 
     return {
@@ -66,7 +67,7 @@ export async function searchTransit(params: SearchParams): Promise<TransitTripPa
     }
 }
 
-export async function searchNonTransit(params: SearchParams): Promise<NonTransitTripPatterns> {
+export async function searchNonTransit(params: SearchParams, extraHeaders: {[key: string]: string}): Promise<NonTransitTripPatterns> {
     const modes = [LegMode.FOOT, LegMode.BICYCLE, LegMode.CAR]
 
     const [foot, bicycle, car] = await Promise.all(modes.map(async mode => {
@@ -75,7 +76,7 @@ export async function searchNonTransit(params: SearchParams): Promise<NonTransit
             limit: 1,
             modes: [mode],
             maxPreTransitWalkDistance: 2000,
-        })
+        }, { headers: extraHeaders })
 
         const tripPattern = result[0]
 
@@ -87,14 +88,14 @@ export async function searchNonTransit(params: SearchParams): Promise<NonTransit
     return { foot, bicycle, car }
 }
 
-export async function searchBikeRental(params: SearchParams): Promise<TripPattern | undefined> {
+export async function searchBikeRental(params: SearchParams, extraHeaders: {[key: string]: string}): Promise<TripPattern | undefined> {
     const response = await sdk.getTripPatterns({
         ...params,
         limit: 5,
         modes: [LegMode.BICYCLE, LegMode.FOOT],
         maxPreTransitWalkDistance: 2000,
         allowBikeRental: true,
-    })
+    }, { headers: extraHeaders })
 
     const tripPattern = (response || []).filter(isBikeRentalAlternative)[0]
 
@@ -103,7 +104,7 @@ export async function searchBikeRental(params: SearchParams): Promise<TripPatter
         : undefined
 }
 
-async function searchTaxiFrontBack(params: SearchParams, carPattern?: TripPattern): Promise<TripPattern[]> {
+async function searchTaxiFrontBack(params: SearchParams, carPattern?: TripPattern, extraHeaders?: {[key: string]: string}): Promise<TripPattern[]> {
     const { initialSearchDate, modes: initialModes = [], ...searchParams } = params
     const modes: QueryMode[] = ['car_pickup', 'car_dropoff']
 
@@ -113,7 +114,7 @@ async function searchTaxiFrontBack(params: SearchParams, carPattern?: TripPatter
             limit: 1,
             maxPreTransitWalkDistance: 2000,
             modes: [...initialModes, mode],
-        })
+        }, { headers: extraHeaders })
 
         if (!response?.length) return []
 
