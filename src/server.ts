@@ -4,7 +4,7 @@ if (process.env.NODE_ENV === 'production') {
 
 import bodyParser from 'body-parser'
 import cors from 'cors'
-import express from 'express'
+import express, { Request } from 'express'
 import { parseJSON } from 'date-fns'
 
 import { RawSearchParams, SearchParams } from '../types'
@@ -14,6 +14,7 @@ import {
 } from "./search"
 import { parseCursor, generateCursor } from "./utils/cursor"
 import { filterModesAndSubModes } from "./utils/modes"
+import { clean } from './utils/object'
 
 const PORT = process.env.PORT || 9000
 const app = express()
@@ -21,13 +22,25 @@ const app = express()
 app.use(cors())
 app.use(bodyParser.json())
 
-app.post('/v1/transit', async ({ body }, res, next) => {
+function getHeadersFromClient(req: Request): {[key: string]: string} {
+    const clientName = req.get('ET-Client-Name')
+
+    return clean({
+        'X-Correlation-Id': req.get('X-Correlation-Id'),
+        'ET-Client-Name': clientName ? `${clientName}-bff` : 'entur-search',
+    })
+}
+
+app.post('/v1/transit', async (req, res, next) => {
     try {
-        const cursorData = parseCursor(body?.cursor)
-        const params = cursorData?.params || getParams(body)
+        const cursorData = parseCursor(req.body?.cursor)
+        const params = cursorData?.params || getParams(req.body)
+
+        const extraHeaders = getHeadersFromClient(req)
+
         const { tripPatterns, hasFlexibleTripPattern, isSameDaySearch } = cursorData
-            ? await searchTransit(params)
-            : await searchTransitWithTaxi(params)
+            ? await searchTransit(params, extraHeaders)
+            : await searchTransitWithTaxi(params, extraHeaders)
 
         res.json({
             tripPatterns,
@@ -40,10 +53,12 @@ app.post('/v1/transit', async ({ body }, res, next) => {
     }
 })
 
-app.post('/v1/non-transit', async ({ body }, res, next) => {
+app.post('/v1/non-transit', async (req, res, next) => {
     try {
-        const params = getParams(body)
-        const tripPatterns = await searchNonTransit(params)
+        const params = getParams(req.body)
+        const extraHeaders = getHeadersFromClient(req)
+
+        const tripPatterns = await searchNonTransit(params, extraHeaders)
 
         res.json({ tripPatterns })
     } catch (error) {
@@ -51,10 +66,11 @@ app.post('/v1/non-transit', async ({ body }, res, next) => {
     }
 })
 
-app.post('/v1/bike-rental', async ({ body }, res, next) => {
+app.post('/v1/bike-rental', async (req, res, next) => {
     try {
-        const params = getParams(body)
-        const tripPattern = await searchBikeRental(params)
+        const params = getParams(req.body)
+        const extraHeaders = getHeadersFromClient(req)
+        const tripPattern = await searchBikeRental(params, extraHeaders)
 
         res.json({ tripPattern })
     } catch (error) {
