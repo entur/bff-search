@@ -47,7 +47,7 @@ export async function searchTransit(params: SearchParams): Promise<TransitTripPa
         ...searchParams,
         useFlex: true,
         maxPreTransitWalkDistance: 2000,
-    }, [])
+    })
     const tripPatterns = response
         .map(parseTripPattern)
         .filter(isValidTransitAlternative)
@@ -75,7 +75,7 @@ export async function searchNonTransit(params: SearchParams): Promise<NonTransit
             limit: 1,
             modes: [mode],
             maxPreTransitWalkDistance: 2000,
-        }, [])
+        })
 
         const tripPattern = result[0]
 
@@ -94,7 +94,7 @@ export async function searchBikeRental(params: SearchParams): Promise<TripPatter
         modes: [LegMode.BICYCLE, LegMode.FOOT],
         maxPreTransitWalkDistance: 2000,
         allowBikeRental: true,
-    }, [])
+    })
 
     const tripPattern = (response || []).filter(isBikeRentalAlternative)[0]
 
@@ -113,7 +113,7 @@ async function searchTaxiFrontBack(params: SearchParams, carPattern?: TripPatter
             limit: 1,
             maxPreTransitWalkDistance: 2000,
             modes: [...initialModes, mode],
-        }, [])
+        })
 
         if (!response?.length) return []
 

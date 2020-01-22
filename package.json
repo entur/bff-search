@@ -23,7 +23,7 @@
     "populate-env-vars": "ts-node ./populateEnvVars.ts"
   },
   "dependencies": {
-    "@entur/sdk": "^1.0.0-next.46",
+    "@entur/sdk": "^1.0.0-next.49",
     "@google-cloud/trace-agent": "^4.2.5",
     "body-parser": "^1.19.0",
     "cors": "^2.8.5",
@@ -37,8 +37,8 @@
     "@types/jest": "^24.9.0",
     "@types/lz-string": "^1.3.33",
     "@types/node": "^13.1.8",
-    "@typescript-eslint/eslint-plugin": "^2.6.1",
-    "@typescript-eslint/parser": "^2.6.1",
+    "@typescript-eslint/eslint-plugin": "^2.17.0",
+    "@typescript-eslint/parser": "^2.17.0",
     "eslint": "^6.8.0",
     "eslint-loader": "^3.0.2",
     "eslint-plugin-fp": "^2.3.0",
