@@ -42,9 +42,13 @@ npm run deploy staging
 npm run deploy prod
 ```
 
+This will deploy the app to **gcloud**, as well as to **Apigee**.
+
 -----
 
-## 🛰 Apigee Deploy
+## 🛰 Apigee Deploy (manually)
+
+❗The steps below are **not necessary** as long as you are running the deploy script above ( `npm run deploy` ). Use these steps for redeploying the same revision, or for debugging.
 
 Apigee has 3 environments (-e): `dev`, `stage` and `prod`.
 
@@ -59,9 +63,9 @@ apigeetool deployproxy -V -o entur -e dev -n client-search -d api/client-search 
 
 Get the username and password from **Lastpass** (under Apigee).
 
-❗Every time you deploy, the revision number will be bumped to the next revision (+1).
-
 ### Upgrade **staging** to **dev** revision
+
+Every time you deploy, the revision number will be bumped to the next revision (+1). So when deploying to staging or prod, we first fetch the latest revision number from dev, and deploy using that number.
 
 - To get the **dev** revision:
 
@@ -80,7 +84,7 @@ apigeetool deployExistingRevision -V -u $APIGEEUSER -p $APIGEEPASSWORD -o entur 
 
 ### GUI
 
-You can also use the **Apigee GUI** to check revision status across all environments, and to make deployments: https://apigee.com/platform/entur/proxies/client-search/overview/4
+You can also use the **Apigee GUI** to check revision status across all environments, and to make manual apigee deployments: https://apigee.com/platform/entur/proxies/client-search/overview/4
 
 ### More info
 - Entur's Apigee documentation: https://enturas.atlassian.netwiki/spaces/ESP/pages/486834198/Apigee
