@@ -1,4 +1,6 @@
-node_modules
 .idea
-dist
 .vscode
+
+node_modules
+dist
+search-endpoints.txt
