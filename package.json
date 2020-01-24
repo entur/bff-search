@@ -20,6 +20,7 @@
     "build:staging": "tsc && npm run populate-env-vars staging",
     "build:prod": "tsc && npm run populate-env-vars prod",
     "deploy": "./scripts/deploy.sh",
+    "apigee": "./scripts/deploy-apigee.sh",
     "populate-env-vars": "ts-node ./populateEnvVars.ts"
   },
   "dependencies": {
