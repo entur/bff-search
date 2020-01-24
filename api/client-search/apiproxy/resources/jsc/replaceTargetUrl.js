@@ -1,13 +1,8 @@
-var oldTargetUrl = context.getVariable("target.url");
-var namespace = context.getVariable("config.namespace");
 var queryString = context.getVariable("request.querystring");
 var pathSuffix = context.getVariable("proxy.pathsuffix");
+var namespace = context.getVariable("config.namespace").replace("production", "prod");
+var oldTargetUrl = context.getVariable("target.url").replace("ENVIRONMENT", namespace);
 
-if (namespace == "production") {
-  namespace = "";
-}
-
-var oldTargetUrl = oldTargetUrl.replace("ENVIRONMENT", namespace);
 var targetUrl = oldTargetUrl + pathSuffix;
 
 if (queryString !== '') {
