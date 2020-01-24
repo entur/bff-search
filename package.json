@@ -20,10 +20,11 @@
     "build:staging": "tsc && npm run populate-env-vars staging",
     "build:prod": "tsc && npm run populate-env-vars prod",
     "deploy": "./scripts/deploy.sh",
+    "apigee": "./scripts/deploy-apigee.sh",
     "populate-env-vars": "ts-node ./populateEnvVars.ts"
   },
   "dependencies": {
-    "@entur/sdk": "^1.0.0-next.49",
+    "@entur/sdk": "^1.0.0-next.50",
     "@google-cloud/trace-agent": "^4.2.5",
     "body-parser": "^1.19.0",
     "cors": "^2.8.5",

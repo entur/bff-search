@@ -42,45 +42,26 @@ npm run deploy staging
 npm run deploy prod
 ```
 
+This will deploy the app to **gcloud**.
+
 -----
 
 ## 🛰 Apigee Deploy
 
-Apigee has 3 environments (-e): `dev`, `stage` and `prod`.
-
-To deploy to any of these environments, you must first install the **apigeetool**, which can be found here: https://www.npmjs.com/package/apigeetool
-
-### Deploy api on **dev**
-
-```bash
-read -s APIGEEPASSWORD && \
-apigeetool deployproxy -V -o entur -e dev -n client-search -d api/client-search -u $APIGEEUSER -p $APIGEEPASSWORD
+```
+npm run apigee // dev is the default
+npm run apigee dev
+npm run apigee staging
+npm run apigee prod
 ```
 
-Get the username and password from **Lastpass** (under Apigee).
+This will deploy the app to **Apigee**.
 
-❗Every time you deploy, the revision number will be bumped to the next revision (+1).
-
-### Upgrade **staging** to **dev** revision
-
-- To get the **dev** revision:
-
-```bash
-read -s APIGEEPASSWORD && \
-apigeetool listdeployments -V -u $APIGEEUSER -p $APIGEEPASSWORD  -o entur -n client-search -j | jq '.deployments[] | select(.environment |contains("dev")) |.revision'
-```
-
-- To deploy **dev** revision to **staging** (or for **prod**, change the target to `-e prod`):
-
-```bash
-read -s APIGEEPASSWORD && \
-revision=$(apigeetool listdeployments -u $APIGEEUSER -p $APIGEEPASSWORD  -o entur -n client-search -j | jq '.deployments[] | select(.environment |contains("dev")) |.revision') && \
-apigeetool deployExistingRevision -V -u $APIGEEUSER -p $APIGEEPASSWORD -o entur -e stage  -n client-search -r $revision
-```
+❗Please note that, when deploying to `staging` or `prod`, the script will deploy the version (revision) that is currently running on `dev`. So, if you have made any new changes to the api endpoints **ALWAYS** deploy to `dev` first!
 
 ### GUI
 
-You can also use the **Apigee GUI** to check revision status across all environments, and to make deployments: https://apigee.com/platform/entur/proxies/client-search/overview/4
+You can also use the **Apigee GUI** to check revision status across all environments, and to make manual apigee deployments: https://apigee.com/platform/entur/proxies/client-search/overview/4
 
 ### More info
 - Entur's Apigee documentation: https://enturas.atlassian.netwiki/spaces/ESP/pages/486834198/Apigee
