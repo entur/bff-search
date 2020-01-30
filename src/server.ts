@@ -10,8 +10,18 @@ import { parseJSON } from 'date-fns'
 import { RawSearchParams, SearchParams, GraphqlQuery } from '../types'
 
 import {
-    searchTransitWithTaxi, searchTransit, searchNonTransit, searchBikeRental,
+    searchTransitWithTaxi,
+    searchTransit,
+    searchNonTransit,
+    searchBikeRental,
 } from './search'
+
+import {
+    searchTransit as searchTransitOtp2,
+    searchNonTransit as searchNonTransitOtp2,
+    searchBikeRental as searchBikeRentalOtp2,
+} from './search-otp2'
+
 import { parseCursor, generateCursor } from './utils/cursor'
 import { filterModesAndSubModes } from './utils/modes'
 import { clean } from './utils/object'
@@ -91,6 +101,53 @@ app.post('/v1/bike-rental', async (req, res, next) => {
         const params = getParams(req.body)
         const extraHeaders = getHeadersFromClient(req)
         const tripPattern = await searchBikeRental(params, extraHeaders)
+
+        res.json({ tripPattern })
+    } catch (error) {
+        next(error)
+    }
+})
+
+app.post('/otp2/v1/transit', async (req, res, next) => {
+    try {
+        const params = getParams(req.body)
+        const extraHeaders = getHeadersFromClient(req)
+        const { tripPatterns, hasFlexibleTripPattern, isSameDaySearch, queries } = await searchTransitOtp2(params, extraHeaders)
+
+        const queriesWithLinks = process.env.ENVIRONMENT === 'prod'
+            ? undefined
+            : queries.map(q => ({
+                ...q,
+                shamash: generateShamashLink(q),
+            }))
+
+        res.json({
+            tripPatterns,
+            hasFlexibleTripPattern,
+            isSameDaySearch,
+            queries: queriesWithLinks,
+        })
+    } catch (error) {
+        next(error)
+    }
+})
+
+app.post('/otp2/v1/non-transit', async (req, res, next) => {
+    try {
+        const params = getParams(req.body)
+        const extraHeaders = getHeadersFromClient(req)
+        const tripPatterns = await searchNonTransitOtp2(params, extraHeaders)
+        res.json({ tripPatterns })
+    } catch (error) {
+        next(error)
+    }
+})
+
+app.post('/otp2/v1/bike-rental', async (req, res, next) => {
+    try {
+        const params = getParams(req.body)
+        const extraHeaders = getHeadersFromClient(req)
+        const tripPattern = await searchBikeRentalOtp2(params, extraHeaders)
 
         res.json({ tripPattern })
     } catch (error) {
