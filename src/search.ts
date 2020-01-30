@@ -1,4 +1,4 @@
-import EnturService, { getTripPatternsQuery, LegMode, TripPattern, QueryMode } from '@entur/sdk'
+import createEnturService, { getTripPatternsQuery, LegMode, TripPattern, QueryMode } from '@entur/sdk'
 import {
     addHours, differenceInHours, setHours, setMinutes, isSameDay,
 } from 'date-fns'
@@ -13,7 +13,7 @@ import {
     isValidTransitAlternative, isValidTaxiAlternative, isValidNonTransitDistance, parseTripPattern,
 } from './utils/tripPattern'
 
-const sdk = new EnturService({
+const sdk = createEnturService({
     clientName: 'entur-search',
     hosts: {
         journeyPlanner: process.env.JOURNEY_PLANNER_HOST,
