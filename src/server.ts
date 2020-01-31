@@ -26,6 +26,8 @@ import { parseCursor, generateCursor } from './utils/cursor'
 import { filterModesAndSubModes } from './utils/modes'
 import { clean } from './utils/object'
 
+import logger from './logger'
+
 const PORT = process.env.PORT || 9000
 const app = express()
 
@@ -161,6 +163,7 @@ app.all('*', (_, res) => {
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 app.use((error: Error, _1: express.Request, res: express.Response, _2: express.NextFunction) => {
+    logger.error(error.message)
     res.status(500).json({ error: error.message, stack: error.stack })
 })
 
