@@ -26,6 +26,7 @@ import { parseCursor, generateCursor } from './utils/cursor'
 import { filterModesAndSubModes } from './utils/modes'
 import { clean } from './utils/object'
 
+import { logTransitAnalytics } from './bigquery'
 import logger from './logger'
 
 const PORT = process.env.PORT || 9000
@@ -34,39 +35,17 @@ const app = express()
 app.use(cors())
 app.use(bodyParser.json())
 
-function getHeadersFromClient(req: Request): {[key: string]: string} {
-    const clientName = req.get('ET-Client-Name')
-
-    return clean({
-        'X-Correlation-Id': req.get('X-Correlation-Id'),
-        'ET-Client-Name': clientName ? `${clientName}-bff` : 'entur-search',
-    })
-}
-
-function generateShamashLink({ query, variables }: GraphqlQuery): string {
-    const host = process.env.ENVIRONMENT === 'prod'
-        ? 'https://api.entur.io/journey-planner/v2/ide/'
-        : `https://api.${process.env.ENVIRONMENT}.entur.io/journey-planner/v2/ide/`
-    const q = encodeURIComponent(query.trim().replace(/\s+/g, ' '))
-
-    if (variables) {
-        const vars = encodeURIComponent(JSON.stringify(variables))
-        return `${host}?query=${q}&variables=${vars}`
-    }
-
-    return `${host}?query=${q}`
-}
-
 app.post('/v1/transit', async (req, res, next) => {
     try {
         const cursorData = parseCursor(req.body?.cursor)
         const params = cursorData?.params || getParams(req.body)
-
         const extraHeaders = getHeadersFromClient(req)
 
         const { tripPatterns, hasFlexibleTripPattern, isSameDaySearch, queries } = cursorData
             ? await searchTransit(params, extraHeaders)
             : await searchTransitWithTaxi(params, extraHeaders)
+
+        logTransitAnalytics(params, extraHeaders)
 
         res.json({
             tripPatterns,
@@ -190,3 +169,28 @@ function getParams(params: RawSearchParams): SearchParams {
         whiteListed,
     }
 }
+
+function getHeadersFromClient(req: Request): ExtraHeaders {
+    const clientName = req.get('ET-Client-Name')
+
+    return clean({
+        'X-Correlation-Id': req.get('X-Correlation-Id'),
+        'ET-Client-Name': clientName ? `${clientName}-bff` : 'entur-search',
+    })
+}
+
+function generateShamashLink({ query, variables }: GraphqlQuery): string {
+    const host = process.env.ENVIRONMENT === 'prod'
+        ? 'https://api.entur.io/journey-planner/v2/ide/'
+        : `https://api.${process.env.ENVIRONMENT}.entur.io/journey-planner/v2/ide/`
+    const q = encodeURIComponent(query.trim().replace(/\s+/g, ' '))
+
+    if (variables) {
+        const vars = encodeURIComponent(JSON.stringify(variables))
+        return `${host}?query=${q}&variables=${vars}`
+    }
+
+    return `${host}?query=${q}`
+}
+
+interface ExtraHeaders { [key: string]: string }
