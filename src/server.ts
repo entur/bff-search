@@ -45,7 +45,7 @@ app.post('/v1/transit', async (req, res, next) => {
             ? await searchTransit(params, extraHeaders)
             : await searchTransitWithTaxi(params, extraHeaders)
 
-        logTransitAnalytics(params, extraHeaders)
+        if (!cursorData) logTransitAnalytics(params, extraHeaders)
 
         res.json({
             tripPatterns,
