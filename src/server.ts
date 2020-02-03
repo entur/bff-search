@@ -26,13 +26,15 @@ import { parseCursor, generateCursor } from './utils/cursor'
 import { filterModesAndSubModes } from './utils/modes'
 import { clean } from './utils/object'
 
-import logger from './logger'
+import logger, { requestLoggerMiddleware } from './logger'
 
 const PORT = process.env.PORT || 9000
 const app = express()
 
 app.use(cors())
 app.use(bodyParser.json())
+
+app.use(requestLoggerMiddleware)
 
 function getHeadersFromClient(req: Request): {[key: string]: string} {
     const clientName = req.get('ET-Client-Name')
