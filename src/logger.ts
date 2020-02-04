@@ -8,9 +8,11 @@ const loggingWinston = new LoggingWinston()
 const transportsDev = [new winston.transports.Console()]
 const transportsProd = [loggingWinston]
 
+const transports = process.env.NODE_ENV === 'production' ? transportsProd : transportsDev
+
 const logger = winston.createLogger({
     level: 'info',
-    transports: process.env.NODE_ENV === 'production' ? transportsProd : transportsDev,
+    transports,
 })
 
 type ExpressWinstonResponse = Response & {
@@ -19,11 +21,11 @@ type ExpressWinstonResponse = Response & {
 }
 
 export const requestLoggerMiddleware = expressWinston.logger({
-    transports: [new LoggingWinston({})],
-    metaField: undefined, // this causes the metadata to be stored at the root of the log entry
-    responseField: undefined, // this prevents the response from being included in the metadata (including body and status code)
-    requestWhitelist: ['headers', 'query', 'body'],  // these are not included in the standard StackDriver httpRequest
-    responseWhitelist: ['body'], // this populates the `res.body` so we can get the response size (not required)
+    transports,
+    metaField: undefined,
+    responseField: undefined,
+    requestWhitelist: ['headers', 'query', 'body'],
+    responseWhitelist: ['body'],
     // @ts-ignore Library is using the wrong 'Request' type
     dynamicMeta: (req: Request, res: ExpressWinstonResponse) => {
         const meta: Record<string, any> = {}
@@ -58,6 +60,12 @@ export const requestLoggerMiddleware = expressWinston.logger({
         }
         return meta
     },
+})
+
+export const errorLoggerMiddleware = expressWinston.errorLogger({
+    transports,
+    msg: '{{req.method}} {{req.url}} {{err.message}}',
+    requestWhitelist: ['headers', 'query', 'body'],
 })
 
 export default logger
