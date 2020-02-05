@@ -26,6 +26,7 @@ import { parseCursor, generateCursor } from './utils/cursor'
 import { filterModesAndSubModes } from './utils/modes'
 import { clean } from './utils/object'
 
+import { requestLoggerMiddleware, errorLoggerMiddleware } from './logger'
 import { logTransitAnalytics } from './bigquery'
 import logger from './logger'
 
@@ -140,9 +141,10 @@ app.all('*', (_, res) => {
     res.status(404).json({ error: '404 Not Found' })
 })
 
+app.use(errorLoggerMiddleware)
+
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 app.use((error: Error, _1: express.Request, res: express.Response, _2: express.NextFunction) => {
-    logger.error(error.message)
     res.status(500).json({ error: error.message, stack: error.stack })
 })
 
