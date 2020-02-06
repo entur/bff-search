@@ -26,7 +26,7 @@ import { parseCursor, generateCursor } from './utils/cursor'
 import { filterModesAndSubModes } from './utils/modes'
 import { clean } from './utils/object'
 
-import { requestLoggerMiddleware, errorLoggerMiddleware } from './logger'
+import { reqResLoggerMiddleware, errorLoggerMiddleware } from './logger'
 import { logTransitAnalytics } from './bigquery'
 import logger from './logger'
 
@@ -35,6 +35,7 @@ const app = express()
 
 app.use(cors())
 app.use(bodyParser.json())
+app.use(reqResLoggerMiddleware)
 
 app.post('/v1/transit', async (req, res, next) => {
     try {

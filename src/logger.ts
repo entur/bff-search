@@ -1,7 +1,8 @@
 import winston from 'winston'
 import { LoggingWinston } from '@google-cloud/logging-winston'
-import expressWinston from 'express-winston'
-import { Request, Response } from 'express'
+import { Request, Response, NextFunction } from 'express'
+
+import { clean } from './utils/object'
 
 const loggingWinston = new LoggingWinston()
 
@@ -15,57 +16,58 @@ const logger = winston.createLogger({
     transports,
 })
 
-type ExpressWinstonResponse = Response & {
-    responseTime: number
-    body?: string | object
+function reqBodyMapper(body: Record<string, any>): Record<string, any> {
+    return {
+        ...body,
+        from: clean<string>({
+            ...body.from,
+            name: undefined,
+        }),
+        to: clean<string>({
+            ...body.to,
+            name: undefined,
+        }),
+    }
 }
 
-export const requestLoggerMiddleware = expressWinston.logger({
-    transports,
-    metaField: undefined,
-    responseField: undefined,
-    requestWhitelist: ['headers', 'query', 'body'],
-    responseWhitelist: ['body'],
-    // @ts-ignore Library is using the wrong 'Request' type
-    dynamicMeta: (req: Request, res: ExpressWinstonResponse) => {
-        const meta: Record<string, any> = {}
+function reqHeadersMapper(req: Request): {[key: string]: string} {
+    return clean({
+        'X-Correlation-Id': req.get('X-Correlation-Id'),
+        'ET-Client-Name': req.get('ET-Client-Name'),
+    })
+}
 
-        if (req) {
-            meta.httpRequest = {
-                requestMethod: req.method,
-                requestUrl: `${req.protocol}://${req.get('host')}${req.originalUrl}`,
-                protocol: `HTTP/${req.httpVersion}`,
-                requestSize: req.socket.bytesRead,
-                userAgent: req.get('User-Agent'),
-                referrer: req.get('Referrer'),
-            }
-        }
+export function reqResLoggerMiddleware(req: Request, res: Response, next: NextFunction): void {
+    logger.info(`Request ${req.method} ${req.url}`, {
+        body: reqBodyMapper(req.body),
+        headers: req.headers,
+    })
 
-        if (res) {
-            meta.httpRequest = {
-                ...meta.httpRequest,
-                status: res.statusCode,
-                latency: {
-                    seconds: Math.floor(res.responseTime / 1000),
-                    nanos: (res.responseTime % 1000 ) * 1000000,
-                },
-            }
-            if (res.body) {
-                if (typeof res.body === 'object') {
-                    meta.httpRequest.responseSize = JSON.stringify(res.body).length
-                } else if (typeof res.body === 'string') {
-                    meta.httpRequest.responseSize = res.body.length
-                }
-            }
-        }
-        return meta
-    },
-})
+    const originalResEnd = res.end
+    res.end = (chunk: any, ...rest: any[]) => {
+        // @ts-ignore
+        originalResEnd.call(res, chunk, ...rest)
+        res.end = originalResEnd
 
-export const errorLoggerMiddleware = expressWinston.errorLogger({
-    transports,
-    msg: '{{req.method}} {{req.url}} {{err.message}}',
-    requestWhitelist: ['headers', 'query', 'body'],
-})
+        const resBody = chunk ? JSON.parse(chunk.toString()) : undefined
+
+        logger.info(`Response ${req.method} ${req.url}`, {
+            body: resBody,
+            reqHeaders: reqHeadersMapper(req),
+        })
+    }
+    next()
+}
+
+export function errorLoggerMiddleware(error: Error, req: Request, _res: Response, next: NextFunction): void {
+    logger.error(error.message, {
+        stack: error.stack,
+        req: {
+            body: reqBodyMapper(req.body),
+            headers: reqHeadersMapper(req),
+        },
+    })
+    next(error)
+}
 
 export default logger
