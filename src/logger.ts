@@ -16,15 +16,15 @@ const logger = winston.createLogger({
     transports,
 })
 
-function reqBodyMapper(body: Record<string, any>): Record<string, any> {
+function reqBodyMapper(req: Request): Record<string, any> {
     return {
-        ...body,
+        ...req.body,
         from: clean<string>({
-            ...body.from,
+            ...req.body.from,
             name: undefined,
         }),
         to: clean<string>({
-            ...body.to,
+            ...req.body.to,
             name: undefined,
         }),
     }
@@ -40,7 +40,7 @@ function reqHeadersMapper(req: Request): {[key: string]: string} {
 export function reqResLoggerMiddleware(req: Request, res: Response, next: NextFunction): void {
     logger.info(`Request ${req.method} ${req.url}`, {
         body: reqBodyMapper(req.body),
-        headers: req.headers,
+        headers: reqHeadersMapper(req),
     })
 
     const originalResEnd = res.end
@@ -53,7 +53,10 @@ export function reqResLoggerMiddleware(req: Request, res: Response, next: NextFu
 
         logger.info(`Response ${req.method} ${req.url}`, {
             body: resBody,
-            reqHeaders: reqHeadersMapper(req),
+            req: {
+                body: reqBodyMapper(req),
+                headers: reqHeadersMapper(req),
+            },
         })
     }
     next()
