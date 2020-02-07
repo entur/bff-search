@@ -39,7 +39,7 @@ function reqHeadersMapper(req: Request): {[key: string]: string} {
 
 export function reqResLoggerMiddleware(req: Request, res: Response, next: NextFunction): void {
     logger.info(`Request ${req.method} ${req.url}`, {
-        body: reqBodyMapper(req.body),
+        body: reqBodyMapper(req),
         headers: reqHeadersMapper(req),
     })
 
@@ -66,7 +66,7 @@ export function errorLoggerMiddleware(error: Error, req: Request, _res: Response
     logger.error(error.message, {
         stack: error.stack,
         req: {
-            body: reqBodyMapper(req.body),
+            body: reqBodyMapper(req),
             headers: reqHeadersMapper(req),
         },
     })
