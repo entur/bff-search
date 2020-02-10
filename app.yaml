@@ -1,4 +1,6 @@
 runtime: nodejs10
 service: search
+inbound_services:
+    - warmup
 # automatic_scaling:
 #   min_idle_instances: 1
