@@ -37,6 +37,10 @@ app.use(cors())
 app.use(bodyParser.json())
 app.use(reqResLoggerMiddleware)
 
+app.get('/_ah/warmup', (_req, res) => {
+    res.end()
+})
+
 app.post('/v1/transit', async (req, res, next) => {
     try {
         const cursorData = parseCursor(req.body?.cursor)
