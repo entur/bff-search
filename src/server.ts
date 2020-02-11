@@ -1,6 +1,5 @@
-if (process.env.NODE_ENV === 'production') {
-    import('@google-cloud/trace-agent').then(trace => trace.start())
-}
+// The tracer must be the first import in order to track time to import the other stuff
+import trace from './tracer'
 
 import bodyParser from 'body-parser'
 import cors from 'cors'
@@ -43,27 +42,42 @@ app.get('/_ah/warmup', (_req, res) => {
 
 app.post('/v1/transit', async (req, res, next) => {
     try {
+        let stopTrace = trace('parseCursor')
         const cursorData = parseCursor(req.body?.cursor)
+        stopTrace()
+
         const params = cursorData?.params || getParams(req.body)
         const extraHeaders = getHeadersFromClient(req)
 
+        stopTrace = trace(cursorData ? 'searchTransit' : 'searchTransitWithTaxi')
         const { tripPatterns, hasFlexibleTripPattern, isSameDaySearch, queries } = cursorData
             ? await searchTransit(params, extraHeaders)
             : await searchTransitWithTaxi(params, extraHeaders)
+        stopTrace()
 
+        stopTrace = trace('logTransitAnalytics')
         if (!cursorData) logTransitAnalytics(params, extraHeaders)
+        stopTrace()
+
+        stopTrace = trace('generateCursor')
+        const nextCursor = generateCursor(params, tripPatterns)
+        stopTrace()
+
+        stopTrace = trace('generateShamashLinks')
+        const mappedQueries = process.env.ENVIRONMENT === 'prod'
+            ? undefined
+            : queries.map(q => ({
+                ...q,
+                shamash: generateShamashLink(q),
+            }))
+        stopTrace()
 
         res.json({
             tripPatterns,
             hasFlexibleTripPattern,
             isSameDaySearch,
-            nextCursor: generateCursor(params, tripPatterns),
-            queries: process.env.ENVIRONMENT === 'prod'
-                ? undefined
-                : queries.map(q => ({
-                    ...q,
-                    shamash: generateShamashLink(q),
-                })),
+            nextCursor,
+            queries: mappedQueries,
         })
     } catch (error) {
         next(error)
