@@ -49,12 +49,8 @@ export function reqResLoggerMiddleware(req: Request, res: Response, next: NextFu
         originalResEnd.call(res, chunk, ...rest)
         res.end = originalResEnd
 
-        const resBody = chunk ? JSON.parse(chunk.toString()) : undefined
-
         logger.info(`Response ${req.method} ${req.url}`, {
-            body: resBody,
             req: {
-                body: reqBodyMapper(req),
                 headers: reqHeadersMapper(req),
             },
         })
