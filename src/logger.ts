@@ -1,6 +1,7 @@
 import winston from 'winston'
 import { LoggingWinston } from '@google-cloud/logging-winston'
 import { Request, Response, NextFunction } from 'express'
+import { get as getTracerAgent } from '@google-cloud/trace-agent'
 
 import { clean } from './utils/object'
 
@@ -41,6 +42,7 @@ export function reqResLoggerMiddleware(req: Request, res: Response, next: NextFu
     logger.info(`Request ${req.method} ${req.url}`, {
         body: reqBodyMapper(req),
         headers: reqHeadersMapper(req),
+        [LoggingWinston.LOGGING_TRACE_KEY]: getCurrentTraceFromAgent(),
     })
 
     const originalResEnd = res.end
@@ -53,6 +55,7 @@ export function reqResLoggerMiddleware(req: Request, res: Response, next: NextFu
             req: {
                 headers: reqHeadersMapper(req),
             },
+            [LoggingWinston.LOGGING_TRACE_KEY]: getCurrentTraceFromAgent(),
         })
     }
     next()
@@ -65,8 +68,29 @@ export function errorLoggerMiddleware(error: Error, req: Request, _res: Response
             body: reqBodyMapper(req),
             headers: reqHeadersMapper(req),
         },
+        [LoggingWinston.LOGGING_TRACE_KEY]: getCurrentTraceFromAgent(),
     })
     next(error)
+}
+
+// From: https://github.com/googleapis/nodejs-logging-winston/blob/master/src/common.ts#L57
+function getCurrentTraceFromAgent(): string | null {
+    const agent = getTracerAgent()
+    if (!agent || !agent.getCurrentContextId || !agent.getWriterProjectId) {
+        return null
+    }
+
+    const traceId = agent.getCurrentContextId()
+    if (!traceId) {
+        return null
+    }
+
+    const traceProjectId = agent.getWriterProjectId()
+    if (!traceProjectId) {
+        return null
+    }
+
+    return `projects/${traceProjectId}/traces/${traceId}`
 }
 
 export default logger
