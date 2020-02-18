@@ -1,5 +1,10 @@
 import {
-    GetTripPatternsParams, TripPattern, QueryMode, TransportSubmodeParam, InputBanned, InputWhiteListed,
+    GetTripPatternsParams,
+    TripPattern,
+    QueryMode,
+    TransportSubmodeParam,
+    InputBanned,
+    InputWhiteListed,
 } from '@entur/sdk'
 
 export type RawSearchParams = GetTripPatternsParams & {
@@ -47,12 +52,4 @@ export interface FilteredModesAndSubModes {
     whiteListed?: InputWhiteListed
 }
 
-export type SearchFilterType =
-    | 'bus'
-    | 'rail'
-    | 'tram'
-    | 'metro'
-    | 'air'
-    | 'water'
-    | 'flytog'
-    | 'flybuss'
+export type SearchFilterType = 'bus' | 'rail' | 'tram' | 'metro' | 'air' | 'water' | 'flytog' | 'flybuss'

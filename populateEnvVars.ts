@@ -3,11 +3,7 @@
 import { resolve } from 'path'
 import { promises as fsPromises } from 'fs'
 
-const {
-    readdir,
-    readFile,
-    writeFile,
-} = fsPromises
+const { readdir, readFile, writeFile } = fsPromises
 
 const ENV = process.argv[2] || 'dev'
 const ENV_FILE = `.env.${ENV}`
@@ -29,17 +25,17 @@ async function readEnvFile(): Promise<object> {
 
 async function getFiles(dir: string): Promise<string[]> {
     const dirents = await readdir(dir, { withFileTypes: true })
-    const files = await Promise.all(dirents.map((dirent) => {
-        const res = resolve(dir, dirent.name)
-        if (dirent.isDirectory()) {
-            return getFiles(res)
-        }
-        return [res]
-    }))
+    const files = await Promise.all(
+        dirents.map(dirent => {
+            const res = resolve(dir, dirent.name)
+            if (dirent.isDirectory()) {
+                return getFiles(res)
+            }
+            return [res]
+        }),
+    )
 
-    return files
-        .reduce((a, b) => [...a, ...b], [])
-        .filter(filePath => filePath.endsWith('.js'))
+    return files.reduce((a, b) => [...a, ...b], []).filter(filePath => filePath.endsWith('.js'))
 }
 
 type ReplacePattern = [string | RegExp, string]
@@ -49,7 +45,7 @@ async function findAndReplaceInFile(filePath: string, replacePatterns: ReplacePa
         const content = await readFile(filePath, 'utf-8')
         const newContent = replacePatterns.reduce(
             (acc, [searchValue, replaceValue]) => acc.replace(searchValue, replaceValue),
-            content
+            content,
         )
         await writeFile(filePath, newContent)
     } catch (error) {
@@ -61,8 +57,10 @@ async function findAndReplaceInFile(filePath: string, replacePatterns: ReplacePa
 async function replaceEnvVariables(): Promise<void> {
     const config = await readEnvFile()
     const filePaths = await getFiles('dist')
-    const patterns: ReplacePattern[] = Object.entries(config)
-        .map(([name, value]) => [new RegExp(`process.env.${name}`, 'g'), `'${value}'`])
+    const patterns: ReplacePattern[] = Object.entries(config).map(([name, value]) => [
+        new RegExp(`process.env.${name}`, 'g'),
+        `'${value}'`,
+    ])
     await Promise.all(filePaths.map(path => findAndReplaceInFile(path, patterns)))
 }
 

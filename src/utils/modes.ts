@@ -1,10 +1,6 @@
-import {
-    LegMode, QueryMode, TransportSubmode, TransportSubmodeParam,
-} from '@entur/sdk'
+import { LegMode, QueryMode, TransportSubmode, TransportSubmodeParam } from '@entur/sdk'
 
-import {
-    FilteredModesAndSubModes, SearchFilterType,
-} from '../../types'
+import { FilteredModesAndSubModes, SearchFilterType } from '../../types'
 
 import { ALL_BUS_SUBMODES, ALL_RAIL_SUBMODES, DEFAULT_QUERY_MODES } from '../constants'
 
@@ -49,7 +45,10 @@ export function filterModesAndSubModes(modes?: SearchFilterType[]): FilteredMode
     subModesFilter = [...prevOtherSubModeFilters, ...filtersForAirportLinkBus.subModesFilter]
 
     return {
-        filteredModes, subModesFilter, banned, whiteListed,
+        filteredModes,
+        subModesFilter,
+        banned,
+        whiteListed,
     }
 }
 
@@ -60,10 +59,12 @@ function filterModesForRailReplacementBus(modes: SearchFilterType[]): FilteredMo
     if (modesIncludeRailOrFlytog && !modes.includes(LegMode.BUS)) {
         return {
             filteredModes: [LegMode.BUS],
-            subModesFilter: [{
-                transportMode: LegMode.BUS,
-                transportSubmodes: [replacementBus],
-            }],
+            subModesFilter: [
+                {
+                    transportMode: LegMode.BUS,
+                    transportSubmodes: [replacementBus],
+                },
+            ],
         }
     }
 
@@ -72,10 +73,12 @@ function filterModesForRailReplacementBus(modes: SearchFilterType[]): FilteredMo
 
         return {
             filteredModes: [],
-            subModesFilter: [{
-                transportMode: LegMode.BUS,
-                transportSubmodes: allOtherBusSubModes,
-            }],
+            subModesFilter: [
+                {
+                    transportMode: LegMode.BUS,
+                    transportSubmodes: allOtherBusSubModes,
+                },
+            ],
         }
     }
 
@@ -89,10 +92,12 @@ function filterModesForAirportLinkRail(modes: SearchFilterType[]): FilteredModes
     if (modes.includes(flytog) && !modes.includes(LegMode.RAIL)) {
         return {
             filteredModes: [LegMode.RAIL],
-            subModesFilter: [{
-                transportMode: LegMode.RAIL,
-                transportSubmodes: [airportRail],
-            }],
+            subModesFilter: [
+                {
+                    transportMode: LegMode.RAIL,
+                    transportSubmodes: [airportRail],
+                },
+            ],
             whiteListed: onlyFootAndFlytog ? flytogWhitelist : undefined,
         }
     }
@@ -102,10 +107,12 @@ function filterModesForAirportLinkRail(modes: SearchFilterType[]): FilteredModes
 
         return {
             filteredModes: [],
-            subModesFilter: [{
-                transportMode: LegMode.RAIL,
-                transportSubmodes: allOtherRailSubModes,
-            }],
+            subModesFilter: [
+                {
+                    transportMode: LegMode.RAIL,
+                    transportSubmodes: allOtherRailSubModes,
+                },
+            ],
             banned: flytogWhitelist,
         }
     }
@@ -113,45 +120,55 @@ function filterModesForAirportLinkRail(modes: SearchFilterType[]): FilteredModes
     return { filteredModes: [], subModesFilter: [] }
 }
 
-function filterModesForAirportLinkBus(modes: SearchFilterType[], prevBusSubModes: TransportSubmode[]): FilteredModesAndSubModes {
+function filterModesForAirportLinkBus(
+    modes: SearchFilterType[],
+    prevBusSubModes: TransportSubmode[],
+): FilteredModesAndSubModes {
     if (modes.includes(flybuss) && !modes.includes(LegMode.BUS)) {
         return {
             filteredModes: [LegMode.BUS],
-            subModesFilter: [{
-                transportMode: LegMode.BUS,
-                transportSubmodes: [...prevBusSubModes, TransportSubmode.AIRPORT_LINK_BUS],
-            }],
+            subModesFilter: [
+                {
+                    transportMode: LegMode.BUS,
+                    transportSubmodes: [...prevBusSubModes, TransportSubmode.AIRPORT_LINK_BUS],
+                },
+            ],
         }
     }
 
     if (modes.includes(LegMode.BUS) && !modes.includes(flybuss)) {
         const isReplacementBusIncluded = prevBusSubModes.includes(TransportSubmode.RAIL_REPLACEMENT_BUS)
-        const allOtherBusSubModes = ALL_BUS_SUBMODES
-            .filter(mode => mode !== TransportSubmode.AIRPORT_LINK_BUS && (!isReplacementBusIncluded || mode !== TransportSubmode.RAIL_REPLACEMENT_BUS))
+        const allOtherBusSubModes = ALL_BUS_SUBMODES.filter(
+            mode =>
+                mode !== TransportSubmode.AIRPORT_LINK_BUS &&
+                (!isReplacementBusIncluded || mode !== TransportSubmode.RAIL_REPLACEMENT_BUS),
+        )
 
         return {
             filteredModes: [],
-            subModesFilter: [{
-                transportMode: LegMode.BUS,
-                transportSubmodes: allOtherBusSubModes,
-            }],
+            subModesFilter: [
+                {
+                    transportMode: LegMode.BUS,
+                    transportSubmodes: allOtherBusSubModes,
+                },
+            ],
         }
     }
 
     const defaultSubModesFilter = prevBusSubModes.length
-        ? [{
-            transportMode: LegMode.BUS,
-            transportSubmodes: prevBusSubModes,
-        }]
+        ? [
+              {
+                  transportMode: LegMode.BUS,
+                  transportSubmodes: prevBusSubModes,
+              },
+          ]
         : []
 
     return { filteredModes: [], subModesFilter: defaultSubModesFilter }
 }
 
 function convertSearchFiltersToMode(searchFilters: SearchFilterType[]): QueryMode[] {
-    const initialModes: QueryMode[] = searchFilters.includes('bus')
-        ? ['foot', 'coach']
-        : ['foot']
+    const initialModes: QueryMode[] = searchFilters.includes('bus') ? ['foot', 'coach'] : ['foot']
 
     return uniq(searchFilters.reduce(queryTransportModesReducer, initialModes))
 }
@@ -165,22 +182,23 @@ function isBusSubModesFilter({ transportMode }: TransportSubmodeParam): boolean 
 }
 
 function isQueryTransportMode(mode: QueryMode | string): boolean {
-    return mode === 'air'
-        || mode === 'bicycle'
-        || mode === 'bus'
-        || mode === 'cableway'
-        || mode === 'water'
-        || mode === 'funicular'
-        || mode === 'lift'
-        || mode === 'rail'
-        || mode === 'metro'
-        || mode === 'tram'
-        || mode === 'coach'
-        || mode === 'transit'
-        || mode === 'foot'
-        || mode === 'car'
-        || mode === 'car_park'
-        || mode === 'car_dropoff'
-        || mode === 'car_pickup'
-
+    return (
+        mode === 'air' ||
+        mode === 'bicycle' ||
+        mode === 'bus' ||
+        mode === 'cableway' ||
+        mode === 'water' ||
+        mode === 'funicular' ||
+        mode === 'lift' ||
+        mode === 'rail' ||
+        mode === 'metro' ||
+        mode === 'tram' ||
+        mode === 'coach' ||
+        mode === 'transit' ||
+        mode === 'foot' ||
+        mode === 'car' ||
+        mode === 'car_park' ||
+        mode === 'car_dropoff' ||
+        mode === 'car_pickup'
+    )
 }

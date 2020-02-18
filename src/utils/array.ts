@@ -19,5 +19,5 @@ export function uniq<T>(list: T[]): T[] {
 }
 
 function bestBy<T>(list: T[], isBetter: (x: T, y: T) => boolean): T {
-    return list.reduce((best, next) => isBetter(next, best) ? next : best)
+    return list.reduce((best, next) => (isBetter(next, best) ? next : best))
 }

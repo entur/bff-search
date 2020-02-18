@@ -31,7 +31,7 @@ function reqBodyMapper(req: Request): Record<string, any> {
     }
 }
 
-function reqHeadersMapper(req: Request): {[key: string]: string} {
+function reqHeadersMapper(req: Request): { [key: string]: string } {
     return clean({
         'X-Correlation-Id': req.get('X-Correlation-Id'),
         'ET-Client-Name': req.get('ET-Client-Name'),

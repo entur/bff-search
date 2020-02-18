@@ -1,6 +1,4 @@
-import {
-    Leg, LegMode, Place,
-} from '@entur/sdk'
+import { Leg, LegMode, Place } from '@entur/sdk'
 
 import { parseLeg, isFlexibleLeg, isTransitLeg, isBikeRentalLeg } from './leg'
 
@@ -14,9 +12,11 @@ describe('parseLeg', () => {
     it('should update the fromPlace name of transit legs', () => {
         const oldName = 'place name'
         const newName = 'quay name'
-        const buildLeg = (mode: LegMode): Leg => ({
-            fromPlace: { name: oldName, quay: { name: newName } }, mode,
-        } as Leg)
+        const buildLeg = (mode: LegMode): Leg =>
+            ({
+                fromPlace: { name: oldName, quay: { name: newName } },
+                mode,
+            } as Leg)
         const nonTransitLeg = buildLeg(LegMode.FOOT)
         const transitLeg = buildLeg(LegMode.RAIL)
 
@@ -47,13 +47,12 @@ describe('isTransitLeg', () => {
 })
 
 describe('isBikeRentalLeg', () => {
-    it('should check if the leg\'s from- and to-places are bike rental stations', () => {
-        const bikeStation = { bikeRentalStation: true } as unknown as Place
-        const nonBikeStation = { bikeRentalStation: false } as unknown as Place
+    it("should check if the leg's from- and to-places are bike rental stations", () => {
+        const bikeStation = ({ bikeRentalStation: true } as unknown) as Place
+        const nonBikeStation = ({ bikeRentalStation: false } as unknown) as Place
 
         expect(isBikeRentalLeg({ fromPlace: nonBikeStation, toPlace: bikeStation } as Leg)).toBeFalsy()
         expect(isBikeRentalLeg({ fromPlace: bikeStation, toPlace: nonBikeStation } as Leg)).toBeFalsy()
         expect(isBikeRentalLeg({ fromPlace: bikeStation, toPlace: bikeStation } as Leg)).toBeTruthy()
-
     })
 })
