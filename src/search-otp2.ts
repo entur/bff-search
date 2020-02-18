@@ -1,4 +1,4 @@
-import createEnturService, { getTripPatternsQuery, LegMode, TripPattern } from '@entur/sdk'
+import createEnturService, { getTripPatternsQuery, LegMode, TripPattern, QueryMode, IntermediateEstimatedCall, Leg, Notice, Authority } from '@entur/sdk'
 import { isSameDay } from 'date-fns'
 
 import {
@@ -17,9 +17,390 @@ const sdk = createEnturService({
     },
 })
 
+const JOURNEY_PLANNER_QUERY = `
+query (
+    $numTripPatterns: Int!,
+    $from: Location!,
+    $to: Location!,
+    $dateTime: DateTime!,
+    $arriveBy: Boolean!,
+    $wheelchair: Boolean!,
+    $modes: [Mode]!,
+    $transportSubmodes: [TransportSubmodeFilter],
+    $maxPreTransitWalkDistance: Float,
+    $walkSpeed: Float,
+    $minimumTransferTime: Int,
+    $allowBikeRental: Boolean,
+    $useFlex: Boolean,
+    $banned: InputBanned,
+    $whiteListed: InputWhiteListed,
+    $debugItineraryFilter: Boolean,
+) {
+    trip(
+        numTripPatterns: $numTripPatterns,
+        from: $from,
+        to: $to,
+        dateTime: $dateTime,
+        arriveBy: $arriveBy,
+        wheelchair: $wheelchair,
+        modes: $modes,
+        transportSubmodes: $transportSubmodes,
+        maxPreTransitWalkDistance: $maxPreTransitWalkDistance,
+        walkSpeed: $walkSpeed,
+        minimumTransferTime: $minimumTransferTime,
+        allowBikeRental: $allowBikeRental,
+        useFlex: $useFlex,
+        banned: $banned,
+        whiteListed: $whiteListed,
+        debugItineraryFilter: $debugItineraryFilter
+    ) {
+      tripPatterns {
+        startTime
+        endTime
+        directDuration
+        duration
+        distance
+        walkDistance
+        legs {
+          ...legFields
+        }
+      }
+    }
+  }
+
+  fragment legFields on Leg {
+    aimedEndTime
+    aimedStartTime
+    authority {
+      ...authorityFields
+    }
+    distance
+    directDuration
+    duration
+    expectedEndTime
+    expectedStartTime
+    fromEstimatedCall {
+      ...estimatedCallFields
+    }
+    fromPlace {
+      ...placeFields
+    }
+    interchangeFrom {
+      ...interchangeFields
+    }
+    interchangeTo {
+      ...interchangeFields
+    }
+    intermediateEstimatedCalls {
+      ...estimatedCallFields
+    }
+    line {
+      ...lineFields
+    }
+    mode
+    operator {
+      ...operatorFields
+    }
+    pointsOnLink {
+      ...pointsOnLinkFields
+    }
+    realtime
+    ride
+    rentedBike
+    serviceJourney {
+      ...serviceJourneyFields
+    }
+    situations {
+      ...situationFields
+    }
+    toEstimatedCall {
+      ...estimatedCallFields
+    }
+    toPlace {
+      ...placeFields
+    }
+    transportSubmode
+  }
+
+  fragment lineFields on Line {
+    bookingArrangements {
+      ...bookingArrangementFields
+    }
+    description
+    flexibleLineType
+    id
+    name
+    notices {
+      ...noticeFields
+    }
+    publicCode
+    transportMode
+    transportSubmode
+  }
+
+  fragment bookingArrangementFields on BookingArrangement {
+    bookingMethods
+    bookingNote
+    minimumBookingPeriod
+    bookingContact {
+      phone
+      url
+    }
+  }
+
+  fragment noticeFields on Notice {
+    text
+  }
+
+  fragment placeFields on Place {
+    name
+    latitude
+    longitude
+    quay {
+      ...quayFields
+    }
+    bikeRentalStation {
+      ...bikeRentalStationFields
+    }
+  }
+
+  fragment quayFields on Quay {
+    id
+    name
+    description
+    publicCode
+    situations {
+      ...situationFields
+    }
+    stopPlace {
+      ...stopPlaceFields
+    }
+  }
+
+  fragment situationFields on PtSituationElement {
+    situationNumber
+    summary {
+      language
+      value
+    }
+    description {
+      language
+      value
+    }
+    detail {
+      language
+      value
+    }
+    lines {
+      ...lineFields
+    }
+    validityPeriod {
+      startTime
+      endTime
+    }
+    reportType
+    infoLinks {
+      uri
+      label
+    }
+  }
+
+  fragment stopPlaceFields on StopPlace {
+    id
+    description
+    name
+    tariffZones {
+      id
+    }
+  }
+
+  fragment bikeRentalStationFields on BikeRentalStation {
+    id
+    name
+    networks
+    bikesAvailable
+    spacesAvailable
+    longitude
+    latitude
+  }
+
+  fragment authorityFields on Authority {
+    id
+    name
+    url
+  }
+
+  fragment operatorFields on Operator {
+    id
+    name
+    url
+  }
+
+  fragment serviceJourneyFields on ServiceJourney {
+    id
+    journeyPattern {
+      line {
+        ...lineFields
+      }
+      notices {
+        ...noticeFields
+      }
+    }
+    notices {
+      ...noticeFields
+    }
+    publicCode
+    transportSubmode
+  }
+
+  fragment interchangeFields on Interchange {
+    guaranteed
+    staySeated
+  }
+
+  fragment pointsOnLinkFields on PointsOnLink {
+    points
+    length
+  }
+
+  fragment estimatedCallFields on EstimatedCall {
+    actualArrivalTime
+    actualDepartureTime
+    aimedArrivalTime
+    aimedDepartureTime
+    cancellation
+    date
+    destinationDisplay {
+      frontText
+    }
+    expectedDepartureTime
+    expectedArrivalTime
+    forAlighting
+    forBoarding
+    notices {
+      ...noticeFields
+    }
+    quay {
+      ...quayFields
+    }
+    realtime
+    requestStop
+    serviceJourney {
+      ...serviceJourneyFields
+    }
+    situations {
+      ...situationFields
+    }
+  }
+`
+
+const DEFAULT_MODES: QueryMode[] = ['foot', 'bus', 'tram', 'rail', 'metro', 'water', 'air']
+
+function getTripPatternsVariables(
+    params: any,
+): any {
+    const {
+        from,
+        to,
+        searchDate = new Date(),
+        arriveBy = false,
+        modes = DEFAULT_MODES,
+        transportSubmodes = [],
+        wheelchairAccessible = false,
+        limit = 5,
+        ...rest
+    } = params || {}
+
+    return {
+        ...rest,
+        from,
+        to,
+        dateTime: searchDate.toISOString(),
+        arriveBy,
+        modes,
+        transportSubmodes,
+        wheelchair: wheelchairAccessible,
+        numTripPatterns: limit,
+    }
+}
+
+function uniqBy<T, K>(arr: T[], getKey: (arg: T) => K): T[] {
+    return [
+        ...arr
+            .reduce((map, item) => {
+                const key = getKey(item)
+
+                if (!map.has(key)) {
+                    map.set(key, item)
+                }
+
+                return map
+            }, new Map())
+            .values(),
+    ]
+}
+
+function getNoticesFromIntermediateEstimatedCalls(
+    estimatedCalls: IntermediateEstimatedCall[],
+): Notice[] {
+    if (!estimatedCalls?.length) return []
+    return estimatedCalls
+        .map(({ notices }) => notices || [])
+        .reduce((a, b) => [...a, ...b], [])
+}
+function getNotices(leg: Leg): Notice[] {
+    const notices = [
+        ...getNoticesFromIntermediateEstimatedCalls(
+            leg.intermediateEstimatedCalls,
+        ),
+        ...leg.serviceJourney?.notices || [],
+        ...leg.serviceJourney?.journeyPattern?.notices || [],
+        ...leg.serviceJourney?.journeyPattern?.line?.notices || [],
+        ...leg.fromEstimatedCall?.notices || [],
+        ...leg.toEstimatedCall?.notices || [],
+        ...leg.line?.notices || [],
+    ]
+    return uniqBy(notices, notice => notice.text)
+}
+
+function authorityMapper(authority?: Authority): Authority | undefined {
+    if (!authority) return undefined
+
+    return {
+        id: authority.id,
+        name: authority.name,
+        codeSpace: authority.id.split(':')[0],
+        url: authority.url,
+    }
+}
+
+export function legMapper(leg: Leg): Leg {
+    return {
+        ...leg,
+        authority: authorityMapper(leg.authority),
+        notices: getNotices(leg),
+    }
+}
+
+async function getTripPatterns(params: any): Promise<any> {
+    const res = await sdk.queryJourneyPlanner<{ trip: { tripPatterns: any[] } }>(
+        JOURNEY_PLANNER_QUERY,
+        getTripPatternsVariables(params),
+    )
+
+    if (!res.trip?.tripPatterns) {
+        return []
+    }
+
+    return res.trip.tripPatterns.map((trip: any) => ({
+        ...trip,
+        legs: trip.legs.map(legMapper),
+    }))
+}
+
 export async function searchTransit(
     params: SearchParams,
-    extraHeaders: {[key: string]: string},
+    _extraHeaders: {[key: string]: string},
     prevQueries?: GraphqlQuery[],
 ): Promise<TransitTripPatterns> {
     const { initialSearchDate, ...searchParams } = params
@@ -31,7 +412,7 @@ export async function searchTransit(
         maxPreTransitWalkDistance: 2000,
     }
 
-    const response = await sdk.getTripPatterns(getTripPatternsParams, { headers: extraHeaders })
+    const response = await getTripPatterns(getTripPatternsParams)
 
     const query = getTripPatternsQuery(getTripPatternsParams)
     const queries = [...prevQueries || [], query]
