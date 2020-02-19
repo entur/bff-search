@@ -14,12 +14,18 @@ export function logTransitAnalytics(params: SearchParams, headers: { [key: strin
     const table = getTableForClient(client)
     const errorMessage = `Failed storing analytics for transit search from: <${client}>`
 
-    if(!table) return
+    if (!table) return
 
     try {
         const {
-            from, to, searchDate, searchFilter = [], arriveBy = false,
-            walkSpeed, minimumTransferTime, useFlex = false,
+            from,
+            to,
+            searchDate,
+            searchFilter = [],
+            arriveBy = false,
+            walkSpeed,
+            minimumTransferTime,
+            useFlex = false,
         } = params
         const searchDateParsed = searchDate ? `"${parseJSON(searchDate).toISOString()}"` : ''
         const query = `INSERT INTO \`${table}\` (
@@ -39,6 +45,6 @@ export function logTransitAnalytics(params: SearchParams, headers: { [key: strin
 
 function getTableForClient(client: string): string | undefined {
     if (ENV !== 'prod') return
-    if(client.startsWith('entur-client-app')) return 'entur-prod.analytics_app.transit_search'
-    if(client.startsWith('entur-client-web')) return 'entur-prod.analytics_web.transit_search'
+    if (client.startsWith('entur-client-app')) return 'entur-prod.analytics_app.transit_search'
+    if (client.startsWith('entur-client-web')) return 'entur-prod.analytics_web.transit_search'
 }

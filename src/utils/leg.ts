@@ -1,20 +1,18 @@
-import {
-    isBicycle, isCar, isFoot,
-    Leg, LegMode,
-} from '@entur/sdk'
+import { isBicycle, isCar, isFoot, Leg, LegMode } from '@entur/sdk'
 
 export function parseLeg(leg: Leg): Leg {
     const { fromPlace, fromEstimatedCall } = leg
     const fromQuayName = fromPlace?.quay?.name || fromEstimatedCall?.quay?.name
-    const parsedLeg = isFlexibleLeg(leg) || !fromQuayName
-        ? leg
-        : {
-            ...leg,
-            fromPlace: {
-                ...fromPlace,
-                name: isTransitLeg(leg) ? fromQuayName : fromPlace.name,
-            },
-        }
+    const parsedLeg =
+        isFlexibleLeg(leg) || !fromQuayName
+            ? leg
+            : {
+                  ...leg,
+                  fromPlace: {
+                      ...fromPlace,
+                      name: isTransitLeg(leg) ? fromQuayName : fromPlace.name,
+                  },
+              }
 
     return coachLegToBusLeg(parsedLeg)
 }

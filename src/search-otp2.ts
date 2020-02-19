@@ -1,13 +1,23 @@
-import createEnturService, { getTripPatternsQuery, LegMode, TripPattern, QueryMode, IntermediateEstimatedCall, Leg, Notice, Authority } from '@entur/sdk'
+import createEnturService, {
+    getTripPatternsQuery,
+    LegMode,
+    TripPattern,
+    QueryMode,
+    IntermediateEstimatedCall,
+    Leg,
+    Notice,
+    Authority,
+} from '@entur/sdk'
 import { isSameDay } from 'date-fns'
 
-import {
-    SearchParams, TransitTripPatterns, NonTransitTripPatterns, GraphqlQuery,
-} from '../types'
+import { SearchParams, TransitTripPatterns, NonTransitTripPatterns, GraphqlQuery } from '../types'
 
 import {
-    isBikeRentalAlternative, isFlexibleAlternative,
-    isValidTransitAlternative, isValidNonTransitDistance, parseTripPattern,
+    isBikeRentalAlternative,
+    isFlexibleAlternative,
+    isValidTransitAlternative,
+    isValidNonTransitDistance,
+    parseTripPattern,
 } from './utils/tripPattern'
 
 const sdk = createEnturService({
@@ -296,9 +306,7 @@ query (
 
 const DEFAULT_MODES: QueryMode[] = ['foot', 'bus', 'tram', 'rail', 'metro', 'water', 'air']
 
-function getTripPatternsVariables(
-    params: any,
-): any {
+function getTripPatternsVariables(params: any): any {
     const {
         from,
         to,
@@ -340,25 +348,19 @@ function uniqBy<T, K>(arr: T[], getKey: (arg: T) => K): T[] {
     ]
 }
 
-function getNoticesFromIntermediateEstimatedCalls(
-    estimatedCalls: IntermediateEstimatedCall[],
-): Notice[] {
+function getNoticesFromIntermediateEstimatedCalls(estimatedCalls: IntermediateEstimatedCall[]): Notice[] {
     if (!estimatedCalls?.length) return []
-    return estimatedCalls
-        .map(({ notices }) => notices || [])
-        .reduce((a, b) => [...a, ...b], [])
+    return estimatedCalls.map(({ notices }) => notices || []).reduce((a, b) => [...a, ...b], [])
 }
 function getNotices(leg: Leg): Notice[] {
     const notices = [
-        ...getNoticesFromIntermediateEstimatedCalls(
-            leg.intermediateEstimatedCalls,
-        ),
-        ...leg.serviceJourney?.notices || [],
-        ...leg.serviceJourney?.journeyPattern?.notices || [],
-        ...leg.serviceJourney?.journeyPattern?.line?.notices || [],
-        ...leg.fromEstimatedCall?.notices || [],
-        ...leg.toEstimatedCall?.notices || [],
-        ...leg.line?.notices || [],
+        ...getNoticesFromIntermediateEstimatedCalls(leg.intermediateEstimatedCalls),
+        ...(leg.serviceJourney?.notices || []),
+        ...(leg.serviceJourney?.journeyPattern?.notices || []),
+        ...(leg.serviceJourney?.journeyPattern?.line?.notices || []),
+        ...(leg.fromEstimatedCall?.notices || []),
+        ...(leg.toEstimatedCall?.notices || []),
+        ...(leg.line?.notices || []),
     ]
     return uniqBy(notices, notice => notice.text)
 }
@@ -383,10 +385,9 @@ export function legMapper(leg: Leg): Leg {
 }
 
 async function getTripPatterns(params: any): Promise<any> {
-    const res = await sdk.queryJourneyPlanner<{ trip: { tripPatterns: any[] } }>(
-        JOURNEY_PLANNER_QUERY,
-        getTripPatternsVariables(params),
-    )
+    const res = await sdk.queryJourneyPlanner<{
+        trip: { tripPatterns: any[] }
+    }>(JOURNEY_PLANNER_QUERY, getTripPatternsVariables(params))
 
     if (!res.trip?.tripPatterns) {
         return []
@@ -400,7 +401,7 @@ async function getTripPatterns(params: any): Promise<any> {
 
 export async function searchTransit(
     params: SearchParams,
-    _extraHeaders: {[key: string]: string},
+    _extraHeaders: { [key: string]: string },
     prevQueries?: GraphqlQuery[],
 ): Promise<TransitTripPatterns> {
     const { initialSearchDate, ...searchParams } = params
@@ -415,11 +416,9 @@ export async function searchTransit(
     const response = await getTripPatterns(getTripPatternsParams)
 
     const query = getTripPatternsQuery(getTripPatternsParams)
-    const queries = [...prevQueries || [], query]
+    const queries = [...(prevQueries || []), query]
 
-    const tripPatterns = response
-        .map(parseTripPattern)
-        .filter(isValidTransitAlternative)
+    const tripPatterns = response.map(parseTripPattern).filter(isValidTransitAlternative)
     const isSameDaySearch = isSameDay(searchDate, initialSearchDate)
 
     return {
@@ -430,39 +429,51 @@ export async function searchTransit(
     }
 }
 
-export async function searchNonTransit(params: SearchParams, extraHeaders: {[key: string]: string}): Promise<NonTransitTripPatterns> {
+export async function searchNonTransit(
+    params: SearchParams,
+    extraHeaders: { [key: string]: string },
+): Promise<NonTransitTripPatterns> {
     const modes = [LegMode.FOOT, LegMode.BICYCLE, LegMode.CAR]
 
-    const [foot, bicycle, car] = await Promise.all(modes.map(async mode => {
-        const result = await sdk.getTripPatterns({
-            ...params,
-            limit: 1,
-            modes: [mode],
-            maxPreTransitWalkDistance: 2000,
-        }, { headers: extraHeaders })
+    const [foot, bicycle, car] = await Promise.all(
+        modes.map(async mode => {
+            const result = await sdk.getTripPatterns(
+                {
+                    ...params,
+                    limit: 1,
+                    modes: [mode],
+                    maxPreTransitWalkDistance: 2000,
+                },
+                { headers: extraHeaders },
+            )
 
-        const tripPattern = result[0]
+            const tripPattern = result[0]
 
-        return tripPattern && isValidNonTransitDistance(tripPattern, mode)
-            ? parseTripPattern(tripPattern)
-            : undefined
-    }))
+            return tripPattern && isValidNonTransitDistance(tripPattern, mode)
+                ? parseTripPattern(tripPattern)
+                : undefined
+        }),
+    )
 
     return { foot, bicycle, car }
 }
 
-export async function searchBikeRental(params: SearchParams, extraHeaders: {[key: string]: string}): Promise<TripPattern | undefined> {
-    const response = await sdk.getTripPatterns({
-        ...params,
-        limit: 5,
-        modes: [LegMode.BICYCLE, LegMode.FOOT],
-        maxPreTransitWalkDistance: 2000,
-        allowBikeRental: true,
-    }, { headers: extraHeaders })
+export async function searchBikeRental(
+    params: SearchParams,
+    extraHeaders: { [key: string]: string },
+): Promise<TripPattern | undefined> {
+    const response = await sdk.getTripPatterns(
+        {
+            ...params,
+            limit: 5,
+            modes: [LegMode.BICYCLE, LegMode.FOOT],
+            maxPreTransitWalkDistance: 2000,
+            allowBikeRental: true,
+        },
+        { headers: extraHeaders },
+    )
 
     const tripPattern = (response || []).filter(isBikeRentalAlternative)[0]
 
-    return tripPattern && isValidNonTransitDistance(tripPattern, 'bicycle')
-        ? parseTripPattern(tripPattern)
-        : undefined
+    return tripPattern && isValidNonTransitDistance(tripPattern, 'bicycle') ? parseTripPattern(tripPattern) : undefined
 }

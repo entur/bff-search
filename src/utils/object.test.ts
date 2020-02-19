@@ -14,12 +14,14 @@ describe('clean', () => {
     })
 
     it('should remove undefined fields', () => {
-        expect(clean({
-            age: 4,
-            name: 'Boaty McBoatface',
-            notMuch: null,
-            undef: undefined,
-        })).toEqual({
+        expect(
+            clean({
+                age: 4,
+                name: 'Boaty McBoatface',
+                notMuch: null,
+                undef: undefined,
+            }),
+        ).toEqual({
             age: 4,
             name: 'Boaty McBoatface',
             notMuch: null,

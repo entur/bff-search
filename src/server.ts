@@ -8,12 +8,7 @@ import { parseJSON } from 'date-fns'
 
 import { RawSearchParams, SearchParams, GraphqlQuery } from '../types'
 
-import {
-    searchTransitWithTaxi,
-    searchTransit,
-    searchNonTransit,
-    searchBikeRental,
-} from './search'
+import { searchTransitWithTaxi, searchTransit, searchNonTransit, searchBikeRental } from './search'
 
 import {
     searchTransit as searchTransitOtp2,
@@ -64,12 +59,13 @@ app.post('/v1/transit', async (req, res, next) => {
         stopTrace()
 
         stopTrace = trace('generateShamashLinks')
-        const mappedQueries = process.env.ENVIRONMENT === 'prod'
-            ? undefined
-            : queries.map(q => ({
-                ...q,
-                shamash: generateShamashLink(q),
-            }))
+        const mappedQueries =
+            process.env.ENVIRONMENT === 'prod'
+                ? undefined
+                : queries.map(q => ({
+                      ...q,
+                      shamash: generateShamashLink(q),
+                  }))
         stopTrace()
 
         res.json({
@@ -113,14 +109,18 @@ app.post('/otp2/v1/transit', async (req, res, next) => {
     try {
         const params = getParams(req.body)
         const extraHeaders = getHeadersFromClient(req)
-        const { tripPatterns, hasFlexibleTripPattern, isSameDaySearch, queries } = await searchTransitOtp2(params, extraHeaders)
+        const { tripPatterns, hasFlexibleTripPattern, isSameDaySearch, queries } = await searchTransitOtp2(
+            params,
+            extraHeaders,
+        )
 
-        const queriesWithLinks = process.env.ENVIRONMENT === 'prod'
-            ? undefined
-            : queries.map(q => ({
-                ...q,
-                shamash: generateShamashLink(q),
-            }))
+        const queriesWithLinks =
+            process.env.ENVIRONMENT === 'prod'
+                ? undefined
+                : queries.map(q => ({
+                      ...q,
+                      shamash: generateShamashLink(q),
+                  }))
 
         res.json({
             tripPatterns,
@@ -173,12 +173,8 @@ app.listen(PORT, () => {
 })
 
 function getParams(params: RawSearchParams): SearchParams {
-    const searchDate = params.searchDate
-        ? parseJSON(params.searchDate)
-        : new Date()
-    const {
-        filteredModes, subModesFilter, banned, whiteListed,
-    } = filterModesAndSubModes(params.searchFilter)
+    const searchDate = params.searchDate ? parseJSON(params.searchDate) : new Date()
+    const { filteredModes, subModesFilter, banned, whiteListed } = filterModesAndSubModes(params.searchFilter)
 
     return {
         ...params,
@@ -201,9 +197,10 @@ function getHeadersFromClient(req: Request): ExtraHeaders {
 }
 
 function generateShamashLink({ query, variables }: GraphqlQuery): string {
-    const host = process.env.ENVIRONMENT === 'prod'
-        ? 'https://api.entur.io/journey-planner/v2/ide/'
-        : `https://api.${process.env.ENVIRONMENT}.entur.io/journey-planner/v2/ide/`
+    const host =
+        process.env.ENVIRONMENT === 'prod'
+            ? 'https://api.entur.io/journey-planner/v2/ide/'
+            : `https://api.${process.env.ENVIRONMENT}.entur.io/journey-planner/v2/ide/`
     const q = encodeURIComponent(query.trim().replace(/\s+/g, ' '))
 
     if (variables) {
@@ -214,4 +211,6 @@ function generateShamashLink({ query, variables }: GraphqlQuery): string {
     return `${host}?query=${q}`
 }
 
-interface ExtraHeaders { [key: string]: string }
+interface ExtraHeaders {
+    [key: string]: string
+}
