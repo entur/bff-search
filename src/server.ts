@@ -117,9 +117,12 @@ app.post('/otp2/v1/transit', async (req, res, next) => {
         const queriesWithLinks =
             process.env.ENVIRONMENT === 'prod'
                 ? undefined
-                : queries.map(q => ({
-                      ...q,
-                      shamash: generateShamashLink(q),
+                : queries.map(query => ({
+                      ...query,
+                      shamash: generateShamashLink(
+                          query,
+                          `https://api.${process.env.ENVIRONMENT}.entur.io/graphql-explorer/journey-planner-v3`,
+                      ),
                   }))
 
         res.json({
@@ -196,11 +199,16 @@ function getHeadersFromClient(req: Request): ExtraHeaders {
     })
 }
 
-function generateShamashLink({ query, variables }: GraphqlQuery): string {
-    const host =
+function generateShamashLink({ query, variables }: GraphqlQuery, overrideUrl?: string): string {
+    let host =
         process.env.ENVIRONMENT === 'prod'
             ? 'https://api.entur.io/journey-planner/v2/ide/'
             : `https://api.${process.env.ENVIRONMENT}.entur.io/journey-planner/v2/ide/`
+
+    if (overrideUrl) {
+        host = overrideUrl
+    }
+
     const q = encodeURIComponent(query.trim().replace(/\s+/g, ' '))
 
     if (variables) {
