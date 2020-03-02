@@ -17,6 +17,7 @@ import {
 } from './search-otp2'
 
 import { parseCursor, generateCursor } from './utils/cursor'
+import { parseCursor as parseOtp2Cursor, generateCursor as generateOtp2Cursor } from './utils/cursor-otp2'
 import { filterModesAndSubModes } from './utils/modes'
 import { clean } from './utils/object'
 
@@ -107,9 +108,10 @@ app.post('/v1/bike-rental', async (req, res, next) => {
 
 app.post('/otp2/v1/transit', async (req, res, next) => {
     try {
-        const params = getParams(req.body)
+        const cursorData = parseOtp2Cursor(req.body?.cursor)
+        const params = cursorData?.params || getParams(req.body)
         const extraHeaders = getHeadersFromClient(req)
-        const { tripPatterns, hasFlexibleTripPattern, isSameDaySearch, queries } = await searchTransitOtp2(
+        const { tripPatterns, hasFlexibleTripPattern, isSameDaySearch, queries, metadata } = await searchTransitOtp2(
             params,
             extraHeaders,
         )
@@ -125,10 +127,13 @@ app.post('/otp2/v1/transit', async (req, res, next) => {
                       ),
                   }))
 
+        const nextCursor = generateOtp2Cursor(params, metadata, tripPatterns)
+
         res.json({
             tripPatterns,
             hasFlexibleTripPattern,
             isSameDaySearch,
+            nextCursor,
             queries: queriesWithLinks,
         })
     } catch (error) {

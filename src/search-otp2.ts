@@ -64,6 +64,11 @@ query (
         whiteListed: $whiteListed,
         debugItineraryFilter: $debugItineraryFilter
     ) {
+      metadata {
+        searchWindowUsed
+        nextDateTime
+        prevDateTime
+      }
       tripPatterns {
         startTime
         endTime
@@ -384,26 +389,37 @@ export function legMapper(leg: Leg): Leg {
     }
 }
 
+export interface Metadata {
+    searchWindowUsed: number
+    nextDateTime: string
+    prevDateTime: string
+}
+
 async function getTripPatterns(params: any): Promise<any> {
     const res = await sdk.queryJourneyPlanner<{
-        trip: { tripPatterns: any[] }
+        trip: { metadata: Metadata; tripPatterns: any[] }
     }>(JOURNEY_PLANNER_QUERY, getTripPatternsVariables(params))
 
     if (!res.trip?.tripPatterns) {
         return []
     }
 
-    return res.trip.tripPatterns.map((trip: any) => ({
-        ...trip,
-        legs: trip.legs.map(legMapper),
-    }))
+    const { metadata } = res.trip
+
+    return [
+        res.trip.tripPatterns.map((trip: any) => ({
+            ...trip,
+            legs: trip.legs.map(legMapper),
+        })),
+        metadata,
+    ]
 }
 
 export async function searchTransit(
     params: SearchParams,
-    _extraHeaders: { [key: string]: string },
+    extraHeaders: { [key: string]: string },
     prevQueries?: GraphqlQuery[],
-): Promise<TransitTripPatterns> {
+): Promise<TransitTripPatterns & { metadata: Metadata }> {
     const { initialSearchDate, ...searchParams } = params
     const { searchDate } = searchParams
 
@@ -413,7 +429,7 @@ export async function searchTransit(
         maxPreTransitWalkDistance: 2000,
     }
 
-    const response = await getTripPatterns(getTripPatternsParams)
+    const [response, metadata] = await getTripPatterns(getTripPatternsParams)
 
     const query = getTripPatternsQuery(getTripPatternsParams)
     const queries = [...(prevQueries || []), query]
@@ -421,8 +437,14 @@ export async function searchTransit(
     const tripPatterns = response.map(parseTripPattern).filter(isValidTransitAlternative)
     const isSameDaySearch = isSameDay(searchDate, initialSearchDate)
 
+    if (!tripPatterns.length && isSameDaySearch) {
+        const nextSearchParams = { ...params, searchDate: new Date(metadata.nextDateTime) }
+        return searchTransit(nextSearchParams, extraHeaders, queries)
+    }
+
     return {
         tripPatterns,
+        metadata,
         hasFlexibleTripPattern: tripPatterns.some(isFlexibleAlternative),
         isSameDaySearch,
         queries,
