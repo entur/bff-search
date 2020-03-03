@@ -1,12 +1,12 @@
 import { compressToEncodedURIComponent, decompressFromEncodedURIComponent } from 'lz-string'
-import { addMinutes, subMinutes, parseJSON } from 'date-fns'
+import { parseJSON } from 'date-fns'
 
 import { TripPattern } from '@entur/sdk'
 
-import { maxBy, minBy } from './array'
 import { isTransitAlternative, isFlexibleAlternative } from './tripPattern'
 
 import { CursorData, SearchParams } from '../../types'
+import { Metadata } from '../search-otp2'
 
 export function parseCursor(cursor?: string): CursorData | undefined {
     if (!cursor?.length) return undefined
@@ -24,16 +24,17 @@ export function parseCursor(cursor?: string): CursorData | undefined {
     }
 }
 
-export function generateCursor(params: SearchParams, tripPatterns: TripPattern[] = []): string | undefined {
-    const { arriveBy } = params
+export function generateCursor(
+    params: SearchParams,
+    metadata: Metadata,
+    tripPatterns: TripPattern[] = [],
+): string | undefined {
     const hasTransitPatterns = tripPatterns.some(isTransitAlternative)
     const hasFlexiblePatterns = tripPatterns.some(isFlexibleAlternative)
 
     if (!tripPatterns.length || !hasTransitPatterns) return
 
-    const nextDate = arriveBy
-        ? subMinutes(new Date(minBy(tripPatterns, getEndTime).endTime), 1)
-        : addMinutes(new Date(maxBy(tripPatterns, getStartTime).startTime), 1)
+    const nextDate = new Date(metadata.nextDateTime)
 
     const cursorData = {
         v: 1,
@@ -42,7 +43,3 @@ export function generateCursor(params: SearchParams, tripPatterns: TripPattern[]
 
     return compressToEncodedURIComponent(JSON.stringify(cursorData))
 }
-
-const getStartTime = (tripPattern: TripPattern): string => tripPattern.startTime
-
-const getEndTime = (tripPattern: TripPattern): string => tripPattern.endTime
