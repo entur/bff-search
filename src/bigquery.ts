@@ -28,12 +28,14 @@ export function logTransitAnalytics(params: SearchParams, headers: { [key: strin
             useFlex = false,
         } = params
         const searchDateParsed = searchDate ? `"${parseJSON(searchDate).toISOString()}"` : ''
+        const createdAt = new Date().toISOString()
         const query = `INSERT INTO \`${table}\` (
             fromName, fromPlace, toName, toPlace, searchDate, searchFilter,
-            arriveBy, walkSpeed, minimumTransferTime, useFlex
+            arriveBy, walkSpeed, minimumTransferTime, useFlex, createdAt
         ) VALUES (
             "${from.name}", "${from.place}", "${to.name}", "${to.place}", ${searchDateParsed},
-            "${searchFilter.join()}", ${arriveBy}, ${walkSpeed}, ${minimumTransferTime}, ${useFlex}
+            "${searchFilter.join()}", ${arriveBy}, ${walkSpeed}, ${minimumTransferTime}, ${useFlex},
+            "${createdAt}"
         )`
         bigQuery.query({ query, useLegacySql: false }).catch(error => {
             logger.error(errorMessage, { client, error })
