@@ -24,12 +24,12 @@ export function parseCursor(cursor?: string): CursorData | undefined {
     }
 }
 
-export function generateCursor(params: SearchParams, tripPatterns?: TripPattern[]): string | undefined {
+export function generateCursor(params: SearchParams, tripPatterns: TripPattern[] = []): string | undefined {
     const { arriveBy } = params
-    const hasTransitPatterns = (tripPatterns || []).some(isTransitAlternative)
-    const hasFlexiblePatterns = (tripPatterns || []).some(isFlexibleAlternative)
+    const hasTransitPatterns = tripPatterns.some(isTransitAlternative)
+    const hasFlexiblePatterns = tripPatterns.some(isFlexibleAlternative)
 
-    if (!tripPatterns || !hasTransitPatterns) return
+    if (!tripPatterns.length || !hasTransitPatterns) return
 
     const nextDate = arriveBy
         ? subMinutes(new Date(minBy(tripPatterns, getEndTime).endTime), 1)

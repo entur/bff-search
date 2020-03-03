@@ -27,12 +27,12 @@ export function parseCursor(cursor?: string): CursorData | undefined {
 export function generateCursor(
     params: SearchParams,
     metadata: Metadata,
-    tripPatterns?: TripPattern[],
+    tripPatterns: TripPattern[] = [],
 ): string | undefined {
-    const hasTransitPatterns = (tripPatterns || []).some(isTransitAlternative)
-    const hasFlexiblePatterns = (tripPatterns || []).some(isFlexibleAlternative)
+    const hasTransitPatterns = tripPatterns.some(isTransitAlternative)
+    const hasFlexiblePatterns = tripPatterns.some(isFlexibleAlternative)
 
-    if (!tripPatterns || !hasTransitPatterns) return
+    if (!tripPatterns.length || !hasTransitPatterns) return
 
     const nextDate = new Date(metadata.nextDateTime)
 
