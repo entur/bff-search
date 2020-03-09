@@ -443,7 +443,6 @@ export async function searchTransit(
         tripPatterns,
         metadata,
         hasFlexibleTripPattern: tripPatterns.some(isFlexibleAlternative),
-        isSameDaySearch: true,
         queries,
     }
 }

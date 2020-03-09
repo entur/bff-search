@@ -35,7 +35,7 @@ export interface GraphqlQuery {
 export interface TransitTripPatterns {
     tripPatterns: TripPattern[]
     hasFlexibleTripPattern: boolean
-    isSameDaySearch: boolean
+    isSameDaySearch?: boolean
     queries: GraphqlQuery[]
 }
 
