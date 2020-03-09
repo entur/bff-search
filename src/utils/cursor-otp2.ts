@@ -26,13 +26,13 @@ export function parseCursor(cursor?: string): CursorData | undefined {
 
 export function generateCursor(
     params: SearchParams,
-    metadata: Metadata,
+    metadata: Metadata | undefined,
     tripPatterns: TripPattern[] = [],
 ): string | undefined {
     const hasTransitPatterns = tripPatterns.some(isTransitAlternative)
     const hasFlexiblePatterns = tripPatterns.some(isFlexibleAlternative)
 
-    if (!tripPatterns.length || !hasTransitPatterns) return
+    if (!metadata || !tripPatterns.length || !hasTransitPatterns) return
 
     const nextDate = new Date(metadata.nextDateTime)
 
