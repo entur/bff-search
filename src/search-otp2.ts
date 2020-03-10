@@ -367,7 +367,7 @@ function getNotices(leg: Leg): Notice[] {
         ...(leg.toEstimatedCall?.notices || []),
         ...(leg.line?.notices || []),
     ]
-    return uniqBy(notices, notice => notice.text)
+    return uniqBy(notices, (notice) => notice.text)
 }
 
 function authorityMapper(authority?: Authority): Authority | undefined {
@@ -416,7 +416,7 @@ export async function searchTransit(
     extraHeaders: { [key: string]: string },
     prevQueries?: GraphqlQuery[],
 ): Promise<TransitTripPatterns & { metadata?: Metadata }> {
-    const { initialSearchDate, ...searchParams } = params
+    const { initialSearchDate, searchFilter, ...searchParams } = params
     const { searchDate } = searchParams
 
     const getTripPatternsParams = {
@@ -454,7 +454,7 @@ export async function searchNonTransit(
     const modes = [LegMode.FOOT, LegMode.BICYCLE, LegMode.CAR]
 
     const [foot, bicycle, car] = await Promise.all(
-        modes.map(async mode => {
+        modes.map(async (mode) => {
             const result = await sdk.getTripPatterns(
                 {
                     ...params,
