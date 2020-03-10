@@ -8,7 +8,7 @@ import createEnturService, {
     Notice,
     Authority,
 } from '@entur/sdk'
-import { isSameDay } from 'date-fns'
+import { differenceInHours } from 'date-fns'
 
 import { SearchParams, TransitTripPatterns, NonTransitTripPatterns, GraphqlQuery } from '../types'
 
@@ -367,7 +367,7 @@ function getNotices(leg: Leg): Notice[] {
         ...(leg.toEstimatedCall?.notices || []),
         ...(leg.line?.notices || []),
     ]
-    return uniqBy(notices, notice => notice.text)
+    return uniqBy(notices, (notice) => notice.text)
 }
 
 function authorityMapper(authority?: Authority): Authority | undefined {
@@ -395,21 +395,17 @@ export interface Metadata {
     prevDateTime: string
 }
 
-async function getTripPatterns(params: any): Promise<any> {
+async function getTripPatterns(params: any): Promise<[TripPattern[], Metadata | undefined]> {
     const res = await sdk.queryJourneyPlanner<{
         trip: { metadata: Metadata; tripPatterns: any[] }
     }>(JOURNEY_PLANNER_QUERY, getTripPatternsVariables(params))
 
-    if (!res.trip?.tripPatterns) {
-        return []
-    }
-
     const { metadata } = res.trip
 
     return [
-        res.trip.tripPatterns.map((trip: any) => ({
-            ...trip,
-            legs: trip.legs.map(legMapper),
+        (res.trip?.tripPatterns || []).map((pattern: any) => ({
+            ...pattern,
+            legs: pattern.legs.map(legMapper),
         })),
         metadata,
     ]
@@ -419,7 +415,7 @@ export async function searchTransit(
     params: SearchParams,
     extraHeaders: { [key: string]: string },
     prevQueries?: GraphqlQuery[],
-): Promise<TransitTripPatterns & { metadata: Metadata }> {
+): Promise<TransitTripPatterns & { metadata?: Metadata }> {
     const { initialSearchDate, searchFilter, ...searchParams } = params
     const { searchDate } = searchParams
 
@@ -435,9 +431,10 @@ export async function searchTransit(
     const queries = [...(prevQueries || []), query]
 
     const tripPatterns = response.map(parseTripPattern).filter(isValidTransitAlternative)
-    const isSameDaySearch = isSameDay(searchDate, initialSearchDate)
 
-    if (!tripPatterns.length && isSameDaySearch) {
+    const searchTimeWithinRange = differenceInHours(searchDate, initialSearchDate) < 12
+
+    if (!tripPatterns.length && searchTimeWithinRange && metadata) {
         const nextSearchParams = { ...params, searchDate: new Date(metadata.nextDateTime) }
         return searchTransit(nextSearchParams, extraHeaders, queries)
     }
@@ -446,7 +443,6 @@ export async function searchTransit(
         tripPatterns,
         metadata,
         hasFlexibleTripPattern: tripPatterns.some(isFlexibleAlternative),
-        isSameDaySearch,
         queries,
     }
 }
@@ -458,7 +454,7 @@ export async function searchNonTransit(
     const modes = [LegMode.FOOT, LegMode.BICYCLE, LegMode.CAR]
 
     const [foot, bicycle, car] = await Promise.all(
-        modes.map(async mode => {
+        modes.map(async (mode) => {
             const result = await sdk.getTripPatterns(
                 {
                     ...params,

@@ -71,7 +71,7 @@ export async function searchTransit(
     return {
         tripPatterns,
         hasFlexibleTripPattern: tripPatterns.some(isFlexibleAlternative),
-        isSameDaySearch,
+        isSameDaySearch, // TODO 2020-03-09: Deprecated! For compatibility with v5.2.0 and older app versions we need to keep returning isSameDaySearch for a while. See https://bitbucket.org/enturas/entur-clients/pull-requests/4167
         queries,
     }
 }
