@@ -76,12 +76,14 @@ export async function searchTransit(
     }
 }
 
+type NonTransitMode = 'foot' | 'bicycle' | 'car'
+
 export async function searchNonTransit(
     params: SearchParams,
     extraHeaders: { [key: string]: string },
-    modes: ('foot' | 'bicycle' | 'car')[] = [LegMode.FOOT, LegMode.BICYCLE, LegMode.CAR],
+    modes: NonTransitMode[] = [LegMode.FOOT, LegMode.BICYCLE, LegMode.CAR],
 ): Promise<NonTransitTripPatterns> {
-    const results: { mode: LegMode; tripPattern: TripPattern | undefined }[] = await Promise.all(
+    const results = await Promise.all(
         modes.map(async mode => {
             const result = await sdk.getTripPatterns(
                 {
