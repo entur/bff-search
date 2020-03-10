@@ -46,7 +46,7 @@ export async function searchTransit(
     extraHeaders: { [key: string]: string },
     prevQueries?: GraphqlQuery[],
 ): Promise<TransitTripPatterns> {
-    const { initialSearchDate, ...searchParams } = params
+    const { initialSearchDate, searchFilter, ...searchParams } = params
     const { searchDate } = searchParams
 
     const getTripPatternsParams = {
