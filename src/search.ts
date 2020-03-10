@@ -27,7 +27,7 @@ export async function searchTransitWithTaxi(
 ): Promise<TransitTripPatterns> {
     const [transitResults, nonTransitResults] = await Promise.all([
         searchTransit(params, extraHeaders),
-        searchNonTransit(params, extraHeaders),
+        searchNonTransit(params, extraHeaders, [LegMode.FOOT, LegMode.CAR]),
     ])
     const tripPatterns = transitResults.tripPatterns
     const carPattern = nonTransitResults.car
@@ -76,13 +76,14 @@ export async function searchTransit(
     }
 }
 
+type NonTransitMode = 'foot' | 'bicycle' | 'car'
+
 export async function searchNonTransit(
     params: SearchParams,
     extraHeaders: { [key: string]: string },
+    modes: NonTransitMode[] = [LegMode.FOOT, LegMode.BICYCLE, LegMode.CAR],
 ): Promise<NonTransitTripPatterns> {
-    const modes = [LegMode.FOOT, LegMode.BICYCLE, LegMode.CAR]
-
-    const [foot, bicycle, car] = await Promise.all(
+    const results = await Promise.all(
         modes.map(async mode => {
             const result = await sdk.getTripPatterns(
                 {
@@ -94,15 +95,22 @@ export async function searchNonTransit(
                 { headers: extraHeaders },
             )
 
-            const tripPattern = result[0]
+            const firstRes = result[0]
 
-            return tripPattern && isValidNonTransitDistance(tripPattern, mode)
-                ? parseTripPattern(tripPattern)
-                : undefined
+            const tripPattern =
+                firstRes && isValidNonTransitDistance(firstRes, mode) ? parseTripPattern(firstRes) : undefined
+
+            return { mode, tripPattern }
         }),
     )
 
-    return { foot, bicycle, car }
+    return results.reduce(
+        (acc, { mode, tripPattern }) => ({
+            ...acc,
+            [mode]: tripPattern,
+        }),
+        {},
+    )
 }
 
 export async function searchBikeRental(
