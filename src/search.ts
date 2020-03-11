@@ -13,6 +13,7 @@ import {
     isValidNonTransitDistance,
     parseTripPattern,
 } from './utils/tripPattern'
+import { sortBy } from './utils/array'
 
 const sdk = createEnturService({
     clientName: 'entur-search',
@@ -29,16 +30,14 @@ export async function searchTransitWithTaxi(
         searchTransit(params, extraHeaders),
         searchNonTransit(params, extraHeaders, [LegMode.FOOT, LegMode.CAR]),
     ])
-    const tripPatterns = transitResults.tripPatterns
+    const transitPatterns = transitResults.tripPatterns
     const carPattern = nonTransitResults.car
-    const tripPatternsWithTaxi = shouldSearchWithTaxi(params, tripPatterns[0], nonTransitResults)
+    const patternsWithTaxi = shouldSearchWithTaxi(params, transitPatterns[0], nonTransitResults)
         ? await searchTaxiFrontBack(params, carPattern, extraHeaders)
         : []
+    const tripPatterns = sortBy([...patternsWithTaxi, ...transitPatterns], getEndTime)
 
-    return {
-        ...transitResults,
-        tripPatterns: [...tripPatterns, ...tripPatternsWithTaxi],
-    }
+    return { ...transitResults, tripPatterns }
 }
 
 export async function searchTransit(
@@ -194,3 +193,5 @@ function shouldSearchWithTaxi(
 
     return hoursBetween >= TAXI_LIMITS.DURATION_MAX_HOURS
 }
+
+const getEndTime = (tripPattern: TripPattern): string => tripPattern.endTime
