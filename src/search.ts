@@ -32,33 +32,13 @@ export async function searchTransitWithTaxi(
     ])
     const transitPatterns = transitResults.tripPatterns
     const carPattern = nonTransitResults.car
-    const test = shouldSearchWithTaxi(params, transitPatterns[0], nonTransitResults)
-
-    console.log('transitPatterns[0] :', transitPatterns[0])
-    console.log('shouldSearchWithTaxi :', test)
-    const patternsWithTaxi = test ? await searchTaxiFrontBack(params, carPattern, extraHeaders) : []
+    const patternsWithTaxi = shouldSearchWithTaxi(params, transitPatterns[0], nonTransitResults)
+        ? await searchTaxiFrontBack(params, carPattern, extraHeaders)
+        : []
     const tripPatterns = sortBy<TripPattern, string>(
         [...patternsWithTaxi, ...transitPatterns],
         tripPattern => tripPattern.endTime,
         params.arriveBy ? 'desc' : 'asc',
-    )
-
-    console.log('params :', JSON.stringify(params, undefined, 5))
-    console.log(
-        'patternsWithTaxi :',
-        JSON.stringify(
-            patternsWithTaxi.map(t => t.startTime),
-            undefined,
-            5,
-        ),
-    )
-    console.log(
-        'tripPatterns :',
-        JSON.stringify(
-            tripPatterns.map(t => t.startTime),
-            undefined,
-            5,
-        ),
     )
 
     return { ...transitResults, tripPatterns }
