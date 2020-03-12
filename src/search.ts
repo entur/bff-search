@@ -35,7 +35,11 @@ export async function searchTransitWithTaxi(
     const patternsWithTaxi = shouldSearchWithTaxi(params, transitPatterns[0], nonTransitResults)
         ? await searchTaxiFrontBack(params, carPattern, extraHeaders)
         : []
-    const tripPatterns = sortBy([...patternsWithTaxi, ...transitPatterns], getEndTime)
+    const tripPatterns = sortBy<TripPattern, string>(
+        [...patternsWithTaxi, ...transitPatterns],
+        tripPattern => tripPattern.endTime,
+        params.arriveBy ? 'desc' : 'asc',
+    )
 
     return { ...transitResults, tripPatterns }
 }
@@ -193,5 +197,3 @@ function shouldSearchWithTaxi(
 
     return hoursBetween >= TAXI_LIMITS.DURATION_MAX_HOURS
 }
-
-const getEndTime = (tripPattern: TripPattern): string => tripPattern.endTime
