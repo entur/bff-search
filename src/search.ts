@@ -32,10 +32,34 @@ export async function searchTransitWithTaxi(
     ])
     const transitPatterns = transitResults.tripPatterns
     const carPattern = nonTransitResults.car
-    const patternsWithTaxi = shouldSearchWithTaxi(params, transitPatterns[0], nonTransitResults)
-        ? await searchTaxiFrontBack(params, carPattern, extraHeaders)
-        : []
-    const tripPatterns = sortBy([...patternsWithTaxi, ...transitPatterns], getEndTime)
+    const test = shouldSearchWithTaxi(params, transitPatterns[0], nonTransitResults)
+
+    console.log('transitPatterns[0] :', transitPatterns[0])
+    console.log('shouldSearchWithTaxi :', test)
+    const patternsWithTaxi = test ? await searchTaxiFrontBack(params, carPattern, extraHeaders) : []
+    const tripPatterns = sortBy<TripPattern, string>(
+        [...patternsWithTaxi, ...transitPatterns],
+        tripPattern => tripPattern.endTime,
+        params.arriveBy ? 'desc' : 'asc',
+    )
+
+    console.log('params :', JSON.stringify(params, undefined, 5))
+    console.log(
+        'patternsWithTaxi :',
+        JSON.stringify(
+            patternsWithTaxi.map(t => t.startTime),
+            undefined,
+            5,
+        ),
+    )
+    console.log(
+        'tripPatterns :',
+        JSON.stringify(
+            tripPatterns.map(t => t.startTime),
+            undefined,
+            5,
+        ),
+    )
 
     return { ...transitResults, tripPatterns }
 }
@@ -154,7 +178,9 @@ async function searchTaxiFrontBack(
 
             if (!response?.length) return []
 
-            return response.map(parseTripPattern).filter(isValidTaxiAlternative(initialSearchDate, carPattern))
+            return response
+                .map(parseTripPattern)
+                .filter(isValidTaxiAlternative(initialSearchDate, carPattern, params.arriveBy))
         }),
     )
 
@@ -193,5 +219,3 @@ function shouldSearchWithTaxi(
 
     return hoursBetween >= TAXI_LIMITS.DURATION_MAX_HOURS
 }
-
-const getEndTime = (tripPattern: TripPattern): string => tripPattern.endTime

@@ -24,12 +24,28 @@ export function isValidTransitAlternative(pattern: TripPattern): boolean {
 export function isValidTaxiAlternative(
     searchDate: Date,
     carPattern?: TripPattern,
+    arriveBy?: boolean,
 ): (taxiPattern: TripPattern) => boolean {
-    return (taxiPattern: TripPattern) =>
-        isTaxiAlternative(taxiPattern) &&
-        isFlexibleTripsInCombination(taxiPattern) &&
-        isTaxiAlternativeBetterThanCarAlternative(taxiPattern, carPattern) &&
-        hoursBetweenDateAndTripPattern(searchDate, taxiPattern) < TAXI_LIMITS.DURATION_MAX_HOURS
+    return (taxiPattern: TripPattern) => {
+        console.log('===============================')
+        console.log('isTaxiAlternative(taxiPattern) :', isTaxiAlternative(taxiPattern))
+        console.log('isFlexibleTripsInCombination(taxiPattern) :', isFlexibleTripsInCombination(taxiPattern))
+        console.log(
+            'isTaxiAlternativeBetterThanCarAlternative :',
+            isTaxiAlternativeBetterThanCarAlternative(taxiPattern, carPattern),
+        )
+        console.log(
+            'hoursBetweenDateAndTripPattern :',
+            hoursBetweenDateAndTripPattern(searchDate, taxiPattern, arriveBy) < TAXI_LIMITS.DURATION_MAX_HOURS,
+        )
+
+        return (
+            isTaxiAlternative(taxiPattern) &&
+            isFlexibleTripsInCombination(taxiPattern) &&
+            isTaxiAlternativeBetterThanCarAlternative(taxiPattern, carPattern) &&
+            hoursBetweenDateAndTripPattern(searchDate, taxiPattern, arriveBy) < TAXI_LIMITS.DURATION_MAX_HOURS
+        )
+    }
 }
 
 export function isValidNonTransitDistance(pattern: TripPattern, mode: 'foot' | 'bicycle' | 'car'): boolean {
@@ -51,6 +67,11 @@ export function parseTripPattern(rawTripPattern: any): TripPattern {
 
 export function hoursBetweenDateAndTripPattern(date: Date, tripPattern: TripPattern, arriveBy?: boolean): number {
     const tripPatternDate = parseJSON(arriveBy ? tripPattern.endTime : tripPattern.startTime)
+
+    console.log('date :', date)
+    console.log('tripPattern :', tripPattern)
+    console.log('arriveBy :', arriveBy)
+    console.log('differenceInHours:', Math.abs(differenceInHours(tripPatternDate, date)))
 
     return Math.abs(differenceInHours(tripPatternDate, date))
 }
