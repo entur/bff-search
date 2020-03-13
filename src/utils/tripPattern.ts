@@ -26,14 +26,11 @@ export function isValidTaxiAlternative(
     carPattern: TripPattern | undefined,
     arriveBy: boolean,
 ): (taxiPattern: TripPattern) => boolean {
-    return (taxiPattern: TripPattern) => {
-        return (
-            isTaxiAlternative(taxiPattern) &&
-            isFlexibleTripsInCombination(taxiPattern) &&
-            isTaxiAlternativeBetterThanCarAlternative(taxiPattern, carPattern) &&
-            hoursBetweenDateAndTripPattern(searchDate, taxiPattern, arriveBy) < TAXI_LIMITS.DURATION_MAX_HOURS
-        )
-    }
+    return (taxiPattern: TripPattern) =>
+        isTaxiAlternative(taxiPattern) &&
+        isFlexibleTripsInCombination(taxiPattern) &&
+        isTaxiAlternativeBetterThanCarAlternative(taxiPattern, carPattern) &&
+        hoursBetweenDateAndTripPattern(searchDate, taxiPattern, arriveBy) < TAXI_LIMITS.DURATION_MAX_HOURS
 }
 
 export function isValidNonTransitDistance(pattern: TripPattern, mode: 'foot' | 'bicycle' | 'car'): boolean {
