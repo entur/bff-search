@@ -176,7 +176,7 @@ function getNextSearchDate(arriveBy: boolean, initialDate: Date, searchDate: Dat
     const hoursSinceInitialSearch = Math.abs(differenceInHours(initialDate, searchDate))
     const sign = arriveBy ? -1 : 1
     const searchDateOffset = hoursSinceInitialSearch === 0 ? sign * 2 : sign * hoursSinceInitialSearch * 3
-    const nextSearchDate = addHours(searchDate, searchDateOffset)
+    const nextSearchDate = addHours(initialDate, searchDateOffset)
 
     if (isSameDay(nextSearchDate, initialDate)) return nextSearchDate
 
