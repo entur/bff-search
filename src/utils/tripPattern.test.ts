@@ -21,7 +21,7 @@ describe('isValidTaxiAlternative', () => {
     }
 
     const carPattern = { duration: 999 } as TripPattern
-    const isValidTaxi = isValidTaxiAlternative(now, carPattern, undefined)
+    const isValidTaxi = isValidTaxiAlternative(now, carPattern, false)
 
     it('should be false unless the given pattern has at least one CAR leg, and one non-CAR leg', () => {
         const onlyMetro = mockPattern({ legs: [mockLeg({ mode: LegMode.METRO })] })
@@ -70,18 +70,27 @@ describe('isValidTaxiAlternative', () => {
         const isValidTaxiForArriveBy = isValidTaxiAlternative(now, carPattern, true)
         const isValidTaxiForDepartAfter = isValidTaxiAlternative(now, carPattern, false)
 
-        const validAlternative = mockPattern({
+        const validArriveByAlternative = mockPattern({
+            endTime: subHours(now, 3),
+            legs: [mockLeg({ mode: LegMode.METRO }), mockLeg({ mode: LegMode.CAR, duration: 420 })],
+        })
+        const invalidArriveByAlternative = mockPattern({
+            startTime: subHours(now, 4),
+            legs: [mockLeg({ mode: LegMode.METRO }), mockLeg({ mode: LegMode.CAR, duration: 420 })],
+        })
+        const validDepartAfterAlternative = mockPattern({
             startTime: addHours(now, 3),
             legs: [mockLeg({ mode: LegMode.METRO }), mockLeg({ mode: LegMode.CAR, duration: 420 })],
         })
-        const invalidAlternative = mockPattern({
+        const invalidDepartAfterAlternative = mockPattern({
             startTime: addHours(now, 4),
             legs: [mockLeg({ mode: LegMode.METRO }), mockLeg({ mode: LegMode.CAR, duration: 420 })],
         })
 
-        expect(isValidTaxiForArriveBy(validAlternative)).toEqual(true)
-        expect(isValidTaxiForDepartAfter(validAlternative)).toEqual(true)
-        expect(isValidTaxiForDepartAfter(invalidAlternative)).toEqual(false)
+        expect(isValidTaxiForArriveBy(validArriveByAlternative)).toEqual(true)
+        expect(isValidTaxiForArriveBy(invalidArriveByAlternative)).toEqual(false)
+        expect(isValidTaxiForDepartAfter(validDepartAfterAlternative)).toEqual(true)
+        expect(isValidTaxiForDepartAfter(invalidDepartAfterAlternative)).toEqual(false)
     })
 })
 
