@@ -158,7 +158,9 @@ async function searchTaxiFrontBack(
 
             if (!response?.length) return []
 
-            return response.map(parseTripPattern).filter(isValidTaxiAlternative(initialSearchDate, carPattern))
+            return response
+                .map(parseTripPattern)
+                .filter(isValidTaxiAlternative(initialSearchDate, carPattern, Boolean(params.arriveBy)))
         }),
     )
 
@@ -193,7 +195,7 @@ function shouldSearchWithTaxi(
     if (car && car.duration < TAXI_LIMITS.CAR_ALTERNATIVE_MIN_SECONDS) return false
 
     const { initialSearchDate, arriveBy } = params
-    const hoursBetween = hoursBetweenDateAndTripPattern(initialSearchDate, tripPattern, arriveBy)
+    const hoursBetween = hoursBetweenDateAndTripPattern(initialSearchDate, tripPattern, Boolean(arriveBy))
 
     return hoursBetween >= TAXI_LIMITS.DURATION_MAX_HOURS
 }

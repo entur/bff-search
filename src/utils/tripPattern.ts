@@ -23,13 +23,14 @@ export function isValidTransitAlternative(pattern: TripPattern): boolean {
 
 export function isValidTaxiAlternative(
     searchDate: Date,
-    carPattern?: TripPattern,
+    carPattern: TripPattern | undefined,
+    arriveBy: boolean,
 ): (taxiPattern: TripPattern) => boolean {
     return (taxiPattern: TripPattern) =>
         isTaxiAlternative(taxiPattern) &&
         isFlexibleTripsInCombination(taxiPattern) &&
         isTaxiAlternativeBetterThanCarAlternative(taxiPattern, carPattern) &&
-        hoursBetweenDateAndTripPattern(searchDate, taxiPattern) < TAXI_LIMITS.DURATION_MAX_HOURS
+        hoursBetweenDateAndTripPattern(searchDate, taxiPattern, arriveBy) < TAXI_LIMITS.DURATION_MAX_HOURS
 }
 
 export function isValidNonTransitDistance(pattern: TripPattern, mode: 'foot' | 'bicycle' | 'car'): boolean {
@@ -49,7 +50,7 @@ export function parseTripPattern(rawTripPattern: any): TripPattern {
     }
 }
 
-export function hoursBetweenDateAndTripPattern(date: Date, tripPattern: TripPattern, arriveBy?: boolean): number {
+export function hoursBetweenDateAndTripPattern(date: Date, tripPattern: TripPattern, arriveBy: boolean): number {
     const tripPatternDate = parseJSON(arriveBy ? tripPattern.endTime : tripPattern.startTime)
 
     return Math.abs(differenceInHours(tripPatternDate, date))
