@@ -7,6 +7,7 @@ import { searchTransit, searchNonTransit, searchBikeRental } from './controller'
 
 import { parseCursor, generateCursor } from './cursor'
 import { filterModesAndSubModes } from '../utils/modes'
+import { buildShamashLink } from '../utils/graphql'
 import { clean } from '../utils/object'
 
 const router = Router()
@@ -24,24 +25,13 @@ function getHeadersFromClient(req: Request): ExtraHeaders {
     })
 }
 
-function generateShamashLink({ query, variables }: GraphqlQuery, overrideUrl?: string): string {
-    let host =
+function generateShamashLink({ query, variables }: GraphqlQuery): string {
+    const host =
         process.env.ENVIRONMENT === 'prod'
-            ? 'https://api.entur.io/journey-planner/v2/ide/'
-            : `https://api.${process.env.ENVIRONMENT}.entur.io/journey-planner/v2/ide/`
+            ? 'https://api.entur.io/graphql-explorer/journey-planner-v3'
+            : `https://api.${process.env.ENVIRONMENT}.entur.io/graphql-explorer/journey-planner-v3`
 
-    if (overrideUrl) {
-        host = overrideUrl
-    }
-
-    const q = encodeURIComponent(query.trim().replace(/\s+/g, ' '))
-
-    if (variables) {
-        const vars = encodeURIComponent(JSON.stringify(variables))
-        return `${host}?query=${q}&variables=${vars}`
-    }
-
-    return `${host}?query=${q}`
+    return buildShamashLink(host, query, variables)
 }
 
 function getParams(params: RawSearchParams): SearchParams {
@@ -74,10 +64,7 @@ router.post('/v1/transit', async (req, res, next) => {
                 ? undefined
                 : queries.map(query => ({
                       ...query,
-                      shamash: generateShamashLink(
-                          query,
-                          `https://api.${process.env.ENVIRONMENT}.entur.io/graphql-explorer/journey-planner-v3`,
-                      ),
+                      shamash: generateShamashLink(query),
                   }))
 
         const nextCursor = generateCursor(params, metadata, tripPatterns)

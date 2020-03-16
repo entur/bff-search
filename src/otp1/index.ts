@@ -9,6 +9,7 @@ import { searchTransitWithTaxi, searchTransit, searchNonTransit, searchBikeRenta
 
 import { parseCursor, generateCursor } from './cursor'
 import { filterModesAndSubModes } from '../utils/modes'
+import { buildShamashLink } from '../utils/graphql'
 import { clean } from '../utils/object'
 
 import { logTransitAnalytics } from '../bigquery'
@@ -28,24 +29,13 @@ function getHeadersFromClient(req: Request): ExtraHeaders {
     })
 }
 
-function generateShamashLink({ query, variables }: GraphqlQuery, overrideUrl?: string): string {
-    let host =
+function generateShamashLink({ query, variables }: GraphqlQuery): string {
+    const host =
         process.env.ENVIRONMENT === 'prod'
             ? 'https://api.entur.io/journey-planner/v2/ide/'
             : `https://api.${process.env.ENVIRONMENT}.entur.io/journey-planner/v2/ide/`
 
-    if (overrideUrl) {
-        host = overrideUrl
-    }
-
-    const q = encodeURIComponent(query.trim().replace(/\s+/g, ' '))
-
-    if (variables) {
-        const vars = encodeURIComponent(JSON.stringify(variables))
-        return `${host}?query=${q}&variables=${vars}`
-    }
-
-    return `${host}?query=${q}`
+    return buildShamashLink(host, query, variables)
 }
 
 function getParams(params: RawSearchParams): SearchParams {
