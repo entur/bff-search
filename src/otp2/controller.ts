@@ -10,7 +10,7 @@ import createEnturService, {
 } from '@entur/sdk'
 import { differenceInHours } from 'date-fns'
 
-import { SearchParams, TransitTripPatterns, NonTransitTripPatterns, GraphqlQuery } from '../types'
+import { SearchParams, TransitTripPatterns, NonTransitTripPatterns, GraphqlQuery } from '../../types'
 
 import {
     isBikeRentalAlternative,
@@ -18,7 +18,7 @@ import {
     isValidTransitAlternative,
     isValidNonTransitDistance,
     parseTripPattern,
-} from './utils/tripPattern'
+} from '../utils/tripPattern'
 
 const sdk = createEnturService({
     clientName: 'entur-search',

@@ -3,8 +3,8 @@ import { addMinutes, subMinutes, parseJSON } from 'date-fns'
 
 import { TripPattern } from '@entur/sdk'
 
-import { maxBy, minBy } from './array'
-import { isTransitAlternative, isFlexibleAlternative } from './tripPattern'
+import { maxBy, minBy } from '../utils/array'
+import { isTransitAlternative, isFlexibleAlternative } from '../utils/tripPattern'
 
 import { CursorData, SearchParams } from '../../types'
 
