@@ -3,10 +3,10 @@ import { parseJSON } from 'date-fns'
 
 import { TripPattern } from '@entur/sdk'
 
-import { isTransitAlternative, isFlexibleAlternative } from './tripPattern'
+import { isTransitAlternative, isFlexibleAlternative } from '../utils/tripPattern'
 
 import { CursorData, SearchParams } from '../../types'
-import { Metadata } from '../search-otp2'
+import { Metadata } from './controller'
 
 export function parseCursor(cursor?: string): CursorData | undefined {
     if (!cursor?.length) return undefined

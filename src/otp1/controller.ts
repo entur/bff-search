@@ -1,9 +1,9 @@
 import createEnturService, { getTripPatternsQuery, LegMode, TripPattern, QueryMode } from '@entur/sdk'
 import { addHours, differenceInHours, setHours, setMinutes, isSameDay } from 'date-fns'
 
-import { SearchParams, TransitTripPatterns, NonTransitTripPatterns, GraphqlQuery } from '../types'
+import { SearchParams, TransitTripPatterns, NonTransitTripPatterns, GraphqlQuery } from '../../types'
 
-import { TAXI_LIMITS } from './constants'
+import { TAXI_LIMITS } from '../constants'
 import {
     hoursBetweenDateAndTripPattern,
     isBikeRentalAlternative,
@@ -12,8 +12,8 @@ import {
     isValidTaxiAlternative,
     isValidNonTransitDistance,
     parseTripPattern,
-} from './utils/tripPattern'
-import { sortBy } from './utils/array'
+} from '../utils/tripPattern'
+import { sortBy } from '../utils/array'
 
 const sdk = createEnturService({
     clientName: 'entur-search',
