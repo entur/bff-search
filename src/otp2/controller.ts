@@ -10,15 +10,16 @@ import createEnturService, {
 } from '@entur/sdk'
 import { differenceInHours } from 'date-fns'
 
-import { SearchParams, TransitTripPatterns, NonTransitTripPatterns, GraphqlQuery } from '../../types'
+import { SearchParams, NonTransitTripPatterns, GraphqlQuery } from '../../types'
 
 import {
     isBikeRentalAlternative,
     isFlexibleAlternative,
     isValidTransitAlternative,
     isValidNonTransitDistance,
-    parseTripPattern,
 } from '../utils/tripPattern'
+
+import { parseLeg } from '../utils/leg'
 
 const sdk = createEnturService({
     clientName: 'entur-search',
@@ -26,6 +27,29 @@ const sdk = createEnturService({
         journeyPlanner: process.env.JOURNEY_PLANNER_V3_HOST,
     },
 })
+
+interface Otp2TripPattern extends TripPattern {
+    systemNotices: {
+        tag: string
+        text: string
+    }[]
+}
+
+interface TransitTripPatterns {
+    tripPatterns: Otp2TripPattern[]
+    hasFlexibleTripPattern: boolean
+    queries: GraphqlQuery[]
+}
+
+function parseTripPattern(rawTripPattern: any): Otp2TripPattern {
+    return {
+        ...rawTripPattern,
+        legs: rawTripPattern.legs.map(parseLeg),
+        genId: `${new Date().getTime()}:${Math.random()
+            .toString(36)
+            .slice(2, 12)}`,
+    }
+}
 
 const JOURNEY_PLANNER_QUERY = `
 query (
@@ -76,6 +100,10 @@ query (
         duration
         distance
         walkDistance
+        systemNotices {
+          tag
+          text
+        }
         legs {
           ...legFields
         }
@@ -395,7 +423,7 @@ export interface Metadata {
     prevDateTime: string
 }
 
-async function getTripPatterns(params: any): Promise<[TripPattern[], Metadata | undefined]> {
+async function getTripPatterns(params: any): Promise<[Otp2TripPattern[], Metadata | undefined]> {
     const res = await sdk.queryJourneyPlanner<{
         trip: { metadata: Metadata; tripPatterns: any[] }
     }>(JOURNEY_PLANNER_QUERY, getTripPatternsVariables(params))
