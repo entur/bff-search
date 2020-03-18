@@ -54,10 +54,7 @@ router.post('/v1/transit', async (req, res, next) => {
         const cursorData = parseCursor(req.body?.cursor)
         const params = cursorData?.params || getParams(req.body)
         const extraHeaders = getHeadersFromClient(req)
-        const { tripPatterns, hasFlexibleTripPattern, isSameDaySearch, queries, metadata } = await searchTransit(
-            params,
-            extraHeaders,
-        )
+        const { tripPatterns, hasFlexibleTripPattern, queries, metadata } = await searchTransit(params, extraHeaders)
 
         const queriesWithLinks =
             process.env.ENVIRONMENT === 'prod'
@@ -72,7 +69,6 @@ router.post('/v1/transit', async (req, res, next) => {
         res.json({
             tripPatterns,
             hasFlexibleTripPattern,
-            isSameDaySearch,
             nextCursor,
             queries: queriesWithLinks,
         })
