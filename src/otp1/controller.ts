@@ -37,7 +37,7 @@ export async function searchTransitWithTaxi(
         : []
     const tripPatterns = sortBy<TripPattern, string>(
         [...patternsWithTaxi, ...transitPatterns],
-        tripPattern => tripPattern.endTime,
+        (tripPattern) => tripPattern.endTime,
         params.arriveBy ? 'desc' : 'asc',
     )
 
@@ -87,7 +87,7 @@ export async function searchNonTransit(
     modes: NonTransitMode[] = [LegMode.FOOT, LegMode.BICYCLE, LegMode.CAR],
 ): Promise<NonTransitTripPatterns> {
     const results = await Promise.all(
-        modes.map(async mode => {
+        modes.map(async (mode) => {
             const result = await sdk.getTripPatterns(
                 {
                     ...params,
@@ -145,7 +145,7 @@ async function searchTaxiFrontBack(
     const modes: QueryMode[] = ['car_pickup', 'car_dropoff']
 
     const [pickup, dropoff] = await Promise.all(
-        modes.map(async mode => {
+        modes.map(async (mode) => {
             const response = await sdk.getTripPatterns(
                 {
                     ...searchParams,

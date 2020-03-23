@@ -9,11 +9,11 @@ import { ALL_BUS_SUBMODES, ALL_RAIL_SUBMODES } from '../constants'
 const flytogWhitelist = { authorities: ['FLT:Authority:FLT'] }
 
 function getBusFilter(filters: TransportSubmodeParam[]): TransportSubmodeParam {
-    return filters.find(filter => filter.transportMode === LegMode.BUS) as TransportSubmodeParam
+    return filters.find((filter) => filter.transportMode === LegMode.BUS) as TransportSubmodeParam
 }
 
 function getRailFilter(filters: TransportSubmodeParam[]): TransportSubmodeParam {
-    return filters.find(filter => filter.transportMode === LegMode.RAIL) as TransportSubmodeParam
+    return filters.find((filter) => filter.transportMode === LegMode.RAIL) as TransportSubmodeParam
 }
 
 describe('filterModesAndSubModes', () => {

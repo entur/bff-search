@@ -44,9 +44,7 @@ export function parseTripPattern(rawTripPattern: any): TripPattern {
     return {
         ...rawTripPattern,
         legs: rawTripPattern.legs.map(parseLeg),
-        genId: `${new Date().getTime()}:${Math.random()
-            .toString(36)
-            .slice(2, 12)}`,
+        genId: `${new Date().getTime()}:${Math.random().toString(36).slice(2, 12)}`,
     }
 }
 

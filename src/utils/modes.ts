@@ -39,7 +39,7 @@ export function filterModesAndSubModes(modes?: SearchFilterType[]): FilteredMode
      * Merge bus-related sub modes with existing bus-related sub modes.
      */
     const prevBusSubModes = subModesFilter.find(isBusSubModesFilter)?.transportSubmodes || []
-    const prevOtherSubModeFilters = subModesFilter.filter(transportFilter => !isBusSubModesFilter(transportFilter))
+    const prevOtherSubModeFilters = subModesFilter.filter((transportFilter) => !isBusSubModesFilter(transportFilter))
     const filtersForAirportLinkBus = filterModesForAirportLinkBus(modes, prevBusSubModes)
     filteredModes = [...filteredModes, ...filtersForAirportLinkBus.filteredModes]
     subModesFilter = [...prevOtherSubModeFilters, ...filtersForAirportLinkBus.subModesFilter]
@@ -69,7 +69,7 @@ function filterModesForRailReplacementBus(modes: SearchFilterType[]): FilteredMo
     }
 
     if (modes.includes(LegMode.BUS) && !modesIncludeRailOrFlytog) {
-        const allOtherBusSubModes = ALL_BUS_SUBMODES.filter(mode => mode !== replacementBus)
+        const allOtherBusSubModes = ALL_BUS_SUBMODES.filter((mode) => mode !== replacementBus)
 
         return {
             filteredModes: [],
@@ -103,7 +103,7 @@ function filterModesForAirportLinkRail(modes: SearchFilterType[]): FilteredModes
     }
 
     if (modes.includes(LegMode.RAIL) && !modes.includes(flytog)) {
-        const allOtherRailSubModes = ALL_RAIL_SUBMODES.filter(mode => mode !== airportRail)
+        const allOtherRailSubModes = ALL_RAIL_SUBMODES.filter((mode) => mode !== airportRail)
 
         return {
             filteredModes: [],
@@ -139,7 +139,7 @@ function filterModesForAirportLinkBus(
     if (modes.includes(LegMode.BUS) && !modes.includes(flybuss)) {
         const isReplacementBusIncluded = prevBusSubModes.includes(TransportSubmode.RAIL_REPLACEMENT_BUS)
         const allOtherBusSubModes = ALL_BUS_SUBMODES.filter(
-            mode =>
+            (mode) =>
                 mode !== TransportSubmode.AIRPORT_LINK_BUS &&
                 (!isReplacementBusIncluded || mode !== TransportSubmode.RAIL_REPLACEMENT_BUS),
         )
