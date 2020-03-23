@@ -1,10 +1,10 @@
 {
   "name": "@entur/entur-search",
   "version": "1.0.0",
-  "description": "",
+  "description": "A backend that handles travel search for Entur clients.",
   "main": "dist/server.js",
-  "author": "",
-  "license": "UNLICENSED",
+  "author": "Entur AS",
+  "license": "EUPL-1.2",
   "private": true,
   "engines": {
     "node": ">=10"
