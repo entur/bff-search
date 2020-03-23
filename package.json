@@ -1,5 +1,5 @@
 {
-  "name": "@entur/entur-search",
+  "name": "@entur/bff-search",
   "version": "1.0.0",
   "description": "A backend that handles travel search for Entur clients.",
   "main": "dist/server.js",
