@@ -37,7 +37,7 @@ export function logTransitAnalytics(params: SearchParams, headers: { [key: strin
             "${searchFilter.join()}", ${arriveBy}, ${walkSpeed}, ${minimumTransferTime}, ${useFlex},
             "${createdAt}"
         )`
-        bigQuery.query({ query, useLegacySql: false }).catch(error => {
+        bigQuery.query({ query, useLegacySql: false }).catch((error) => {
             logger.error(errorMessage, { client, error })
         })
     } catch (error) {

@@ -11,11 +11,11 @@ export function sortBy<T, S>(list: T[], getValue: (x: T) => S, order: 'asc' | 'd
 }
 
 export function difference<T>(listA: T[], listB: T[]): T[] {
-    return listA.filter(x => !listB.includes(x))
+    return listA.filter((x) => !listB.includes(x))
 }
 
 export function intersection<T>(listA: T[], listB: T[]): T[] {
-    return listA.filter(x => listB.includes(x))
+    return listA.filter((x) => listB.includes(x))
 }
 
 export function maxBy<T, S>(list: T[], getValue: (x: T) => S): T {

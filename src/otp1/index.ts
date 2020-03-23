@@ -80,7 +80,7 @@ router.post('/v1/transit', async (req, res, next) => {
         const mappedQueries =
             process.env.ENVIRONMENT === 'prod'
                 ? undefined
-                : queries.map(q => ({
+                : queries.map((q) => ({
                       ...q,
                       shamash: generateShamashLink(q),
                   }))

@@ -13,7 +13,7 @@ async function readEnvFile(): Promise<object> {
     const lines = content.trim().split('\n')
 
     const envMap = lines.reduce((map, line) => {
-        const [key, value] = line.split('=').map(s => s.trim())
+        const [key, value] = line.split('=').map((s) => s.trim())
         return {
             ...map,
             [key]: value,
@@ -26,7 +26,7 @@ async function readEnvFile(): Promise<object> {
 async function getFiles(dir: string): Promise<string[]> {
     const dirents = await readdir(dir, { withFileTypes: true })
     const files = await Promise.all(
-        dirents.map(dirent => {
+        dirents.map((dirent) => {
             const res = resolve(dir, dirent.name)
             if (dirent.isDirectory()) {
                 return getFiles(res)
@@ -35,7 +35,7 @@ async function getFiles(dir: string): Promise<string[]> {
         }),
     )
 
-    return files.reduce((a, b) => [...a, ...b], []).filter(filePath => filePath.endsWith('.js'))
+    return files.reduce((a, b) => [...a, ...b], []).filter((filePath) => filePath.endsWith('.js'))
 }
 
 type ReplacePattern = [string | RegExp, string]
@@ -61,7 +61,7 @@ async function replaceEnvVariables(): Promise<void> {
         new RegExp(`process.env.${name}`, 'g'),
         `'${value}'`,
     ])
-    await Promise.all(filePaths.map(path => findAndReplaceInFile(path, patterns)))
+    await Promise.all(filePaths.map((path) => findAndReplaceInFile(path, patterns)))
 }
 
 replaceEnvVariables()
