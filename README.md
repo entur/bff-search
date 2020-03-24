@@ -64,4 +64,4 @@ This will deploy the app to **Apigee**.
 You can also use the **Apigee GUI** to check revision status across all environments, and to make manual apigee deployments: https://apigee.com/platform/entur/proxies/client-search/overview/4
 
 ### More info
-- Entur's Apigee documentation: https://enturas.atlassian.netwiki/spaces/ESP/pages/486834198/Apigee
+- Entur's Apigee documentation: https://enturas.atlassian.net/wiki/spaces/ESP/pages/486834198/Apigee
