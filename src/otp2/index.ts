@@ -80,8 +80,8 @@ router.post('/v1/transit', async (req, res, next) => {
 router.post('/v1/non-transit', async (req, res, next) => {
     try {
         const params = getParams(req.body)
-        const extraHeaders = getHeadersFromClient(req)
-        const tripPatterns = await searchNonTransit(params, extraHeaders)
+        // const extraHeaders = getHeadersFromClient(req)
+        const tripPatterns = await searchNonTransit(params)
         res.json({ tripPatterns })
     } catch (error) {
         next(error)
