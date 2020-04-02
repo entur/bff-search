@@ -1,5 +1,5 @@
 import createEnturService, { getTripPatternsQuery, LegMode, TripPattern, QueryMode } from '@entur/sdk'
-import { set, addHours, subHours, differenceInHours, isSameDay } from 'date-fns'
+import { set, addHours, subHours, differenceInHours } from 'date-fns'
 import { convertToTimeZone } from 'date-fns-timezone'
 
 import { SearchParams, TransitTripPatterns, NonTransitTripPatterns, GraphqlQuery } from '../../types'
@@ -22,6 +22,12 @@ const sdk = createEnturService({
         journeyPlanner: process.env.JOURNEY_PLANNER_HOST,
     },
 })
+
+function isSameNorwegianDate(dateA: Date, dateB: Date): boolean {
+    const norwegianA = convertToTimeZone(dateA, { timeZone: 'Europe/Oslo' })
+    const norwegianB = convertToTimeZone(dateB, { timeZone: 'Europe/Oslo' })
+    return norwegianA.getDate() === norwegianB.getDate()
+}
 
 export async function searchTransitWithTaxi(
     params: SearchParams,
@@ -65,7 +71,7 @@ export async function searchTransit(
     const queries = [...(prevQueries || []), query]
 
     const tripPatterns = response.map(parseTripPattern).filter(isValidTransitAlternative)
-    const isSameDaySearch = isSameDay(searchDate, initialSearchDate)
+    const isSameDaySearch = isSameNorwegianDate(searchDate, initialSearchDate)
 
     if (!tripPatterns.length && isSameDaySearch) {
         const nextSearchParams = getNextSearchParams(params)
@@ -173,12 +179,6 @@ function getNextSearchParams(params: SearchParams): SearchParams {
     const nextDate = getNextSearchDate(Boolean(arriveBy), initialSearchDate, searchDate)
 
     return { ...params, searchDate: nextDate }
-}
-
-function isSameNorwegianDate(dateA: Date, dateB: Date): boolean {
-    const norwegianA = convertToTimeZone(dateA, { timeZone: 'Europe/Oslo' })
-    const norwegianB = convertToTimeZone(dateB, { timeZone: 'Europe/Oslo' })
-    return norwegianA.getDate() === norwegianB.getDate()
 }
 
 function getNextSearchDate(arriveBy: boolean, initialDate: Date, searchDate: Date): Date {
