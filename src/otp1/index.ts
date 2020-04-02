@@ -5,7 +5,7 @@ import trace from '../tracer'
 
 import { RawSearchParams, SearchParams, GraphqlQuery } from '../../types'
 
-import { searchTransitWithTaxi, searchTransit, searchNonTransit, searchBikeRental } from './controller'
+import { searchTransitWithTaxi, searchTransit, searchNonTransit } from './controller'
 
 import { parseCursor, generateCursor } from './cursor'
 import { filterModesAndSubModes } from '../utils/modes'
@@ -111,11 +111,12 @@ router.post('/v1/non-transit', async (req, res, next) => {
     }
 })
 
+// TODO 2020-04-02: Deprecated. Bike rental alternatives are now fetched through the non-transit endpoint
 router.post('/v1/bike-rental', async (req, res, next) => {
     try {
         const params = getParams(req.body)
         const extraHeaders = getHeadersFromClient(req)
-        const tripPattern = await searchBikeRental(params, extraHeaders)
+        const tripPattern = await searchNonTransit(params, extraHeaders, ['bicycle_rent'])
 
         res.json({ tripPattern })
     } catch (error) {

@@ -42,11 +42,13 @@ export const ALL_RAIL_SUBMODES: TransportSubmode[] = [
 export const NON_TRANSIT_DISTANCE_LIMITS = {
     UPPER: {
         bicycle: 100000,
+        bicycle_rent: 100000,
         car: 120000,
         foot: 100000,
     },
     LOWER: {
         foot: 1,
+        bicycle_rent: 1,
         bicycle: 1,
         car: 1,
     },
