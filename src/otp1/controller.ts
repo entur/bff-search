@@ -1,5 +1,6 @@
 import createEnturService, { getTripPatternsQuery, LegMode, TripPattern, QueryMode } from '@entur/sdk'
-import { addHours, differenceInHours, setHours, setMinutes, isSameDay } from 'date-fns'
+import { set, addHours, subHours, differenceInHours } from 'date-fns'
+import { convertToTimeZone } from 'date-fns-timezone'
 
 import { SearchParams, TransitTripPatterns, NonTransitTripPatterns, GraphqlQuery } from '../../types'
 
@@ -21,6 +22,12 @@ const sdk = createEnturService({
         journeyPlanner: process.env.JOURNEY_PLANNER_HOST,
     },
 })
+
+function isSameNorwegianDate(dateA: Date, dateB: Date): boolean {
+    const norwegianA = convertToTimeZone(dateA, { timeZone: 'Europe/Oslo' })
+    const norwegianB = convertToTimeZone(dateB, { timeZone: 'Europe/Oslo' })
+    return norwegianA.getDate() === norwegianB.getDate()
+}
 
 export async function searchTransitWithTaxi(
     params: SearchParams,
@@ -64,7 +71,7 @@ export async function searchTransit(
     const queries = [...(prevQueries || []), query]
 
     const tripPatterns = response.map(parseTripPattern).filter(isValidTransitAlternative)
-    const isSameDaySearch = isSameDay(searchDate, initialSearchDate)
+    const isSameDaySearch = isSameNorwegianDate(searchDate, initialSearchDate)
 
     if (!tripPatterns.length && isSameDaySearch) {
         const nextSearchParams = getNextSearchParams(params)
@@ -180,9 +187,24 @@ function getNextSearchDate(arriveBy: boolean, initialDate: Date, searchDate: Dat
     const searchDateOffset = hoursSinceInitialSearch === 0 ? sign * 2 : sign * hoursSinceInitialSearch * 3
     const nextSearchDate = addHours(initialDate, searchDateOffset)
 
-    if (isSameDay(nextSearchDate, initialDate)) return nextSearchDate
+    if (isSameNorwegianDate(nextSearchDate, initialDate)) {
+        return nextSearchDate
+    }
 
-    return arriveBy ? setMinutes(setHours(nextSearchDate, 23), 59) : setMinutes(setHours(nextSearchDate, 0), 1)
+    const norwegianDate = convertToTimeZone(nextSearchDate, { timeZone: 'Europe/Oslo' })
+
+    const next = set(nextSearchDate, {
+        year: norwegianDate.getFullYear(),
+        month: norwegianDate.getMonth(),
+        date: norwegianDate.getDate(),
+        hours: arriveBy ? 23 : 0,
+        minutes: arriveBy ? 59 : 1,
+        seconds: 0,
+        milliseconds: 0,
+    })
+
+    const tzOffset = differenceInHours(norwegianDate, nextSearchDate)
+    return subHours(next, tzOffset)
 }
 
 function shouldSearchWithTaxi(
