@@ -33,7 +33,10 @@ export function isValidTaxiAlternative(
         hoursBetweenDateAndTripPattern(searchDate, taxiPattern, arriveBy) < TAXI_LIMITS.DURATION_MAX_HOURS
 }
 
-export function isValidNonTransitDistance(pattern: TripPattern, mode: 'foot' | 'bicycle' | 'car'): boolean {
+export function isValidNonTransitDistance(
+    pattern: TripPattern,
+    mode: 'foot' | 'bicycle' | 'bicycle_rent' | 'car',
+): boolean {
     return (
         pattern.distance <= NON_TRANSIT_DISTANCE_LIMITS.UPPER[mode] &&
         pattern.distance >= NON_TRANSIT_DISTANCE_LIMITS.LOWER[mode]

@@ -41,6 +41,7 @@ export interface TransitTripPatterns {
 
 export interface NonTransitTripPatterns {
     bicycle?: TripPattern
+    bicycle_rent?: TripPattern
     car?: TripPattern
     foot?: TripPattern
 }

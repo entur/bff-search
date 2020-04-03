@@ -3,7 +3,7 @@ import { parseJSON } from 'date-fns'
 
 import { RawSearchParams, SearchParams, GraphqlQuery } from '../../types'
 
-import { searchTransit, searchNonTransit, searchBikeRental } from './controller'
+import { searchTransit, searchNonTransit } from './controller'
 
 import { parseCursor, generateCursor } from './cursor'
 import { filterModesAndSubModes } from '../utils/modes'
@@ -87,14 +87,11 @@ router.post('/v1/non-transit', async (req, res, next) => {
         next(error)
     }
 })
-
-router.post('/v1/bike-rental', async (req, res, next) => {
+// TODO 2020-04-02: Deprecated. Bike rental alternatives are now fetched through the non-transit endpoint
+// Only reason to keep this for OTP2 is to prevent 404s in test clients.
+router.post('/v1/bike-rental', async (_req, res, next) => {
     try {
-        const params = getParams(req.body)
-        const extraHeaders = getHeadersFromClient(req)
-        const tripPattern = await searchBikeRental(params, extraHeaders)
-
-        res.json({ tripPattern })
+        res.json({})
     } catch (error) {
         next(error)
     }

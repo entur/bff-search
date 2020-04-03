@@ -1,4 +1,4 @@
-import createEnturService, { getTripPatternsQuery, LegMode, TripPattern, QueryMode } from '@entur/sdk'
+import createEnturService, { getTripPatternsQuery, LegMode, TripPattern, QueryMode, Leg } from '@entur/sdk'
 import { set, addHours, subHours, differenceInHours } from 'date-fns'
 import { convertToTimeZone } from 'date-fns-timezone'
 
@@ -86,29 +86,44 @@ export async function searchTransit(
     }
 }
 
-type NonTransitMode = 'foot' | 'bicycle' | 'car'
+type NonTransitMode = 'foot' | 'bicycle' | 'car' | 'bicycle_rent'
 
 export async function searchNonTransit(
     params: SearchParams,
     extraHeaders: { [key: string]: string },
-    modes: NonTransitMode[] = [LegMode.FOOT, LegMode.BICYCLE, LegMode.CAR],
+    modes: NonTransitMode[] = [LegMode.FOOT, LegMode.BICYCLE, LegMode.CAR, 'bicycle_rent'],
 ): Promise<NonTransitTripPatterns> {
     const results = await Promise.all(
         modes.map(async (mode) => {
             const result = await sdk.getTripPatterns(
                 {
                     ...params,
-                    limit: 1,
-                    modes: [mode],
+                    limit: mode === 'bicycle_rent' ? 3 : 1,
+                    modes: mode === 'bicycle_rent' ? [LegMode.FOOT, LegMode.BICYCLE] : [mode],
                     maxPreTransitWalkDistance: 2000,
+                    allowBikeRental: mode === 'bicycle_rent',
                 },
                 { headers: extraHeaders },
             )
 
-            const firstRes = result[0]
+            const candidate = result.find(({ legs }) => {
+                const modeToCheck = mode === 'bicycle_rent' ? LegMode.BICYCLE : mode
+
+                const matchesMode = (leg: Leg): boolean =>
+                    leg.mode === modeToCheck && leg.rentedBike === (mode === 'bicycle_rent')
+
+                const matchesModes =
+                    legs.some(matchesMode) && legs.every((leg) => leg.mode === LegMode.FOOT || matchesMode(leg))
+
+                return matchesModes
+            })
 
             const tripPattern =
-                firstRes && isValidNonTransitDistance(firstRes, mode) ? parseTripPattern(firstRes) : undefined
+                candidate &&
+                isValidNonTransitDistance(candidate, mode) &&
+                (mode !== 'bicycle_rent' || isBikeRentalAlternative(candidate))
+                    ? parseTripPattern(candidate)
+                    : undefined
 
             return { mode, tripPattern }
         }),
@@ -121,26 +136,6 @@ export async function searchNonTransit(
         }),
         {},
     )
-}
-
-export async function searchBikeRental(
-    params: SearchParams,
-    extraHeaders: { [key: string]: string },
-): Promise<TripPattern | undefined> {
-    const response = await sdk.getTripPatterns(
-        {
-            ...params,
-            limit: 5,
-            modes: [LegMode.BICYCLE, LegMode.FOOT],
-            maxPreTransitWalkDistance: 2000,
-            allowBikeRental: true,
-        },
-        { headers: extraHeaders },
-    )
-
-    const tripPattern = (response || []).filter(isBikeRentalAlternative)[0]
-
-    return tripPattern && isValidNonTransitDistance(tripPattern, 'bicycle') ? parseTripPattern(tripPattern) : undefined
 }
 
 async function searchTaxiFrontBack(
