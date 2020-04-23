@@ -11,7 +11,10 @@ import { CursorData, SearchParams } from '../../types'
 export function parseCursor(cursor?: string): CursorData | undefined {
     if (!cursor?.length) return undefined
 
-    const parsed = JSON.parse(decompressFromEncodedURIComponent(cursor))
+    const decompressed = decompressFromEncodedURIComponent(cursor)
+    if (!decompressed) return undefined
+
+    const parsed = JSON.parse(decompressed)
     const { params } = parsed
 
     return {
