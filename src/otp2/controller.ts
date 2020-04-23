@@ -209,18 +209,18 @@ export async function searchTransit(
     }
 }
 
-type NonTransitMode = 'foot' | 'bicycle' | 'car' | 'bicycle_rent'
+type NonTransitMode = 'foot' | 'bicycle' | 'car' | 'bike_rental'
 
 export async function searchNonTransit(
     params: SearchParams,
-    modes: NonTransitMode[] = [LegMode.FOOT, LegMode.BICYCLE, LegMode.CAR, 'bicycle_rent'],
+    modes: NonTransitMode[] = [LegMode.FOOT, LegMode.BICYCLE, LegMode.CAR, 'bike_rental'],
 ): Promise<NonTransitTripPatterns> {
     const results = await Promise.all(
         modes.map(async (mode) => {
-            const result = await getTripPatterns({
+            const [result] = await getTripPatterns({
                 ...params,
                 limit: 1,
-                allowBikeRental: mode === 'bicycle_rent',
+                allowBikeRental: mode === 'bike_rental',
                 modes: {
                     accessMode: LegMode.FOOT,
                     egressMode: LegMode.FOOT,
@@ -237,11 +237,11 @@ export async function searchNonTransit(
         }),
     )
 
-    return results.reduce(
-        (acc, { mode, tripPattern }) => ({
+    return results.reduce((acc, { mode, tripPattern }) => {
+        const m = mode === 'bike_rental' ? 'bicycle_rent' : mode
+        return {
             ...acc,
-            [mode]: tripPattern,
-        }),
-        {},
-    )
+            [m]: tripPattern,
+        }
+    }, {})
 }
