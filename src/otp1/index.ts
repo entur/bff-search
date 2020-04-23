@@ -1,7 +1,10 @@
 import { Router, Request } from 'express'
 import { parseJSON } from 'date-fns'
+import { v4 as uuid } from 'uuid'
 
 import trace from '../tracer'
+import { set as cacheSet, get as cacheGet } from '../cache'
+import { NotFoundError } from '../errors'
 
 import { RawSearchParams, SearchParams, GraphqlQuery } from '../../types'
 
@@ -86,13 +89,36 @@ router.post('/v1/transit', async (req, res, next) => {
                   }))
         stopTrace()
 
+        const tripPatternsWithId = tripPatterns.map((tripPattern) => ({ ...tripPattern, id: uuid() }))
+
+        // eslint-disable-next-line no-for-each/no-for-each
+        tripPatternsWithId.forEach((tripPattern) => {
+            cacheSet(`trip-pattern:${tripPattern.id}`, tripPattern)
+        })
+
         res.json({
-            tripPatterns,
+            tripPatterns: tripPatternsWithId,
             hasFlexibleTripPattern,
             isSameDaySearch,
             nextCursor,
             queries: mappedQueries,
         })
+    } catch (error) {
+        next(error)
+    }
+})
+
+router.get('/v1/trip-patterns/:id', async (req, res, next) => {
+    try {
+        const { id } = req.params
+
+        const tripPattern = await cacheGet(`trip-pattern:${id}`)
+
+        if (!tripPattern) {
+            throw new NotFoundError(`Found no trip pattern with id ${id}. Maybe cache entry expired?`)
+        }
+
+        res.json({ tripPattern })
     } catch (error) {
         next(error)
     }

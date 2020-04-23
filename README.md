@@ -68,6 +68,26 @@ The backend is a REST service which we would like to keep _stateless_. That mean
 npm install
 ```
 
+### Redis
+
+You need to have Redis v4 installed on your machine for cache to work locally. Version 4 is the not the latest version, but the one we are using in production.
+
+Mac installation instructions:
+
+```
+cd ~
+mdkir redis
+cd redis
+curl -O http://download.redis.io/releases/redis-4.0.14.tar.gz
+tar xzf redis-4.0.14.tar.gz
+cd redis-4.0.14
+make
+make test
+make install
+```
+
+After this, you can start a Redis server with `redis-server`, and use `redis-cli` for management. The default port is 6379.
+
 -----
 
 ## 🛠 Develop
