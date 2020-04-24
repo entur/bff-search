@@ -14,7 +14,6 @@ module.exports = {
     plugins: [
         '@typescript-eslint',
         'fp',
-        'no-for-each',
         'prettier',
     ],
     settings: {
@@ -75,7 +74,6 @@ module.exports = {
         'no-cond-assign': "error",
         'no-console': "warn",
         'no-empty': "error",
-        'no-for-each/no-for-each': 'warn',
         'no-lonely-if': 'error',
         'no-restricted-syntax': [
             'warn',
