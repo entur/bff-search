@@ -86,7 +86,7 @@ function getTripPatternsVariables(params: any): any {
     }
 }
 
-function getTripPatternsQuery(params: object): { query: string; variables: object } {
+function getTripPatternsQuery(params: object): GraphqlQuery {
     return {
         query: JOURNEY_PLANNER_QUERY,
         variables: getTripPatternsVariables(params),
@@ -209,39 +209,57 @@ export async function searchTransit(
     }
 }
 
-type NonTransitMode = 'foot' | 'bicycle' | 'car' | 'bike_rental'
+export type NonTransitMode = 'foot' | 'bicycle' | 'car' | 'bike_rental'
 
 export async function searchNonTransit(
     params: SearchParams,
     modes: NonTransitMode[] = [LegMode.FOOT, LegMode.BICYCLE, LegMode.CAR, 'bike_rental'],
-): Promise<NonTransitTripPatterns> {
+): Promise<{
+    tripPatterns: NonTransitTripPatterns
+    queries: { [key in NonTransitMode]?: GraphqlQuery }
+}> {
     const results = await Promise.all(
         modes.map(async (mode) => {
-            const [result] = await getTripPatterns({
+            const getTripPatternsParams = {
                 ...params,
                 limit: 1,
                 allowBikeRental: mode === 'bike_rental',
                 modes: {
-                    accessMode: LegMode.FOOT,
-                    egressMode: LegMode.FOOT,
+                    accessMode: null,
+                    egressMode: null,
                     directMode: mode,
                     transportMode: [],
                 },
-            })
+            }
+
+            const [result] = await getTripPatterns(getTripPatternsParams)
+            const query = getTripPatternsQuery(getTripPatternsParams)
 
             const candidate = result[0]
 
             const tripPattern = candidate && parseTripPattern(candidate)
 
-            return { mode, tripPattern }
+            return { mode, tripPattern, query }
         }),
     )
 
-    return results.reduce((acc, { mode, tripPattern }) => {
-        const m = mode === 'bike_rental' ? 'bicycle_rent' : mode
-        return {
-            ...acc,
-            [m]: tripPattern,
-        }
-    }, {})
+    return results.reduce(
+        (acc, { mode, tripPattern, query }) => {
+            const m = mode === 'bike_rental' ? 'bicycle_rent' : mode
+            return {
+                tripPatterns: {
+                    ...acc.tripPatterns,
+                    [m]: tripPattern,
+                },
+                queries: {
+                    ...acc.queries,
+                    [m]: query,
+                },
+            }
+        },
+        {
+            tripPatterns: {},
+            queries: {},
+        },
+    )
 }
