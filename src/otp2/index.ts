@@ -3,7 +3,7 @@ import { parseJSON } from 'date-fns'
 
 import { RawSearchParams, SearchParams, GraphqlQuery } from '../../types'
 
-import { searchTransit, searchNonTransit } from './controller'
+import { searchTransit, searchNonTransit, NonTransitMode } from './controller'
 
 import { parseCursor, generateCursor } from './cursor'
 import { filterModesAndSubModes } from '../utils/modes'
@@ -80,13 +80,32 @@ router.post('/v1/transit', async (req, res, next) => {
 router.post('/v1/non-transit', async (req, res, next) => {
     try {
         const params = getParams(req.body)
-        const extraHeaders = getHeadersFromClient(req)
-        const tripPatterns = await searchNonTransit(params, extraHeaders)
-        res.json({ tripPatterns })
+        const { tripPatterns, queries } = await searchNonTransit(params)
+
+        let queriesWithLinks = undefined
+
+        if (process.env.ENVIRONMENT !== 'prod') {
+            const modes = Object.keys(queries) as NonTransitMode[]
+            queriesWithLinks = modes.reduce((acc, mode) => {
+                const q = queries[mode]
+                if (!q) return acc
+                const shamash = generateShamashLink(q)
+                return {
+                    ...acc,
+                    [mode]: {
+                        // ...q,
+                        shamash,
+                    },
+                }
+            }, {})
+        }
+
+        res.json({ tripPatterns, queries: queriesWithLinks })
     } catch (error) {
         next(error)
     }
 })
+
 // TODO 2020-04-02: Deprecated. Bike rental alternatives are now fetched through the non-transit endpoint
 // Only reason to keep this for OTP2 is to prevent 404s in test clients.
 router.post('/v1/bike-rental', async (_req, res, next) => {

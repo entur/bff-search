@@ -1,25 +1,21 @@
 import createEnturService, {
-    getTripPatternsQuery,
     LegMode,
     TripPattern,
-    QueryMode,
     IntermediateEstimatedCall,
     Leg,
     Notice,
     Authority,
+    TransportMode,
 } from '@entur/sdk'
 import { differenceInHours } from 'date-fns'
 
 import { SearchParams, NonTransitTripPatterns, GraphqlQuery } from '../../types'
 
-import {
-    isFlexibleAlternative,
-    isValidTransitAlternative,
-    isValidNonTransitDistance,
-    isBikeRentalAlternative,
-} from '../utils/tripPattern'
+import { isFlexibleAlternative, isValidTransitAlternative } from '../utils/tripPattern'
 
 import { parseLeg } from '../utils/leg'
+import { isTransportMode } from '../utils/modes'
+import JOURNEY_PLANNER_QUERY from './query'
 
 const sdk = createEnturService({
     clientName: 'entur-search',
@@ -49,293 +45,20 @@ function parseTripPattern(rawTripPattern: any): Otp2TripPattern {
     }
 }
 
-const JOURNEY_PLANNER_QUERY = `
-query (
-    $numTripPatterns: Int!,
-    $from: Location!,
-    $to: Location!,
-    $dateTime: DateTime!,
-    $arriveBy: Boolean!,
-    $wheelchair: Boolean!,
-    $modes: [Mode]!,
-    $transportSubmodes: [TransportSubmodeFilter],
-    $maxPreTransitWalkDistance: Float,
-    $walkSpeed: Float,
-    $minimumTransferTime: Int,
-    $allowBikeRental: Boolean,
-    $useFlex: Boolean,
-    $banned: InputBanned,
-    $whiteListed: InputWhiteListed,
-    $debugItineraryFilter: Boolean,
-) {
-    trip(
-        numTripPatterns: $numTripPatterns,
-        from: $from,
-        to: $to,
-        dateTime: $dateTime,
-        arriveBy: $arriveBy,
-        wheelchair: $wheelchair,
-        modes: $modes,
-        transportSubmodes: $transportSubmodes,
-        maxPreTransitWalkDistance: $maxPreTransitWalkDistance,
-        walkSpeed: $walkSpeed,
-        minimumTransferTime: $minimumTransferTime,
-        allowBikeRental: $allowBikeRental,
-        useFlex: $useFlex,
-        banned: $banned,
-        whiteListed: $whiteListed,
-        debugItineraryFilter: $debugItineraryFilter
-    ) {
-      metadata {
-        searchWindowUsed
-        nextDateTime
-        prevDateTime
-      }
-      tripPatterns {
-        startTime
-        endTime
-        directDuration
-        duration
-        distance
-        walkDistance
-        systemNotices {
-          tag
-          text
-        }
-        legs {
-          ...legFields
-        }
-      }
-    }
-  }
+type StreetMode = 'foot' | 'bicycle' | 'bike_park' | 'bike_rental' | 'car' | 'car_park' | 'taxi' | 'car_rental'
 
-  fragment legFields on Leg {
-    aimedEndTime
-    aimedStartTime
-    authority {
-      ...authorityFields
-    }
-    distance
-    directDuration
-    duration
-    expectedEndTime
-    expectedStartTime
-    fromEstimatedCall {
-      ...estimatedCallFields
-    }
-    fromPlace {
-      ...placeFields
-    }
-    interchangeFrom {
-      ...interchangeFields
-    }
-    interchangeTo {
-      ...interchangeFields
-    }
-    intermediateEstimatedCalls {
-      ...estimatedCallFields
-    }
-    line {
-      ...lineFields
-    }
-    mode
-    operator {
-      ...operatorFields
-    }
-    pointsOnLink {
-      ...pointsOnLinkFields
-    }
-    realtime
-    ride
-    rentedBike
-    serviceJourney {
-      ...serviceJourneyFields
-    }
-    situations {
-      ...situationFields
-    }
-    toEstimatedCall {
-      ...estimatedCallFields
-    }
-    toPlace {
-      ...placeFields
-    }
-    transportSubmode
-  }
+interface Modes {
+    accessMode: StreetMode
+    egressMode: StreetMode
+    directMode?: StreetMode
+    transportMode: TransportMode[]
+}
 
-  fragment lineFields on Line {
-    bookingArrangements {
-      ...bookingArrangementFields
-    }
-    description
-    flexibleLineType
-    id
-    name
-    notices {
-      ...noticeFields
-    }
-    publicCode
-    transportMode
-    transportSubmode
-  }
-
-  fragment bookingArrangementFields on BookingArrangement {
-    bookingMethods
-    bookingNote
-    minimumBookingPeriod
-    bookingContact {
-      phone
-      url
-    }
-  }
-
-  fragment noticeFields on Notice {
-    text
-  }
-
-  fragment placeFields on Place {
-    name
-    latitude
-    longitude
-    quay {
-      ...quayFields
-    }
-    bikeRentalStation {
-      ...bikeRentalStationFields
-    }
-  }
-
-  fragment quayFields on Quay {
-    id
-    name
-    description
-    publicCode
-    situations {
-      ...situationFields
-    }
-    stopPlace {
-      ...stopPlaceFields
-    }
-  }
-
-  fragment situationFields on PtSituationElement {
-    situationNumber
-    summary {
-      language
-      value
-    }
-    description {
-      language
-      value
-    }
-    detail {
-      language
-      value
-    }
-    lines {
-      ...lineFields
-    }
-    validityPeriod {
-      startTime
-      endTime
-    }
-    reportType
-    infoLinks {
-      uri
-      label
-    }
-  }
-
-  fragment stopPlaceFields on StopPlace {
-    id
-    description
-    name
-    tariffZones {
-      id
-    }
-  }
-
-  fragment bikeRentalStationFields on BikeRentalStation {
-    id
-    name
-    networks
-    bikesAvailable
-    spacesAvailable
-    longitude
-    latitude
-  }
-
-  fragment authorityFields on Authority {
-    id
-    name
-    url
-  }
-
-  fragment operatorFields on Operator {
-    id
-    name
-    url
-  }
-
-  fragment serviceJourneyFields on ServiceJourney {
-    id
-    journeyPattern {
-      line {
-        ...lineFields
-      }
-      notices {
-        ...noticeFields
-      }
-    }
-    notices {
-      ...noticeFields
-    }
-    publicCode
-    transportSubmode
-  }
-
-  fragment interchangeFields on Interchange {
-    guaranteed
-    staySeated
-  }
-
-  fragment pointsOnLinkFields on PointsOnLink {
-    points
-    length
-  }
-
-  fragment estimatedCallFields on EstimatedCall {
-    actualArrivalTime
-    actualDepartureTime
-    aimedArrivalTime
-    aimedDepartureTime
-    cancellation
-    date
-    destinationDisplay {
-      frontText
-    }
-    expectedDepartureTime
-    expectedArrivalTime
-    forAlighting
-    forBoarding
-    notices {
-      ...noticeFields
-    }
-    quay {
-      ...quayFields
-    }
-    realtime
-    requestStop
-    serviceJourney {
-      ...serviceJourneyFields
-    }
-    situations {
-      ...situationFields
-    }
-  }
-`
-
-const DEFAULT_MODES: QueryMode[] = ['foot', 'bus', 'tram', 'rail', 'metro', 'water', 'air']
+const DEFAULT_MODES: Modes = {
+    accessMode: 'foot',
+    egressMode: 'foot',
+    transportMode: ['bus', 'tram', 'rail', 'metro', 'water', 'air'],
+}
 
 function getTripPatternsVariables(params: any): any {
     const {
@@ -363,6 +86,13 @@ function getTripPatternsVariables(params: any): any {
     }
 }
 
+function getTripPatternsQuery(params: object): GraphqlQuery {
+    return {
+        query: JOURNEY_PLANNER_QUERY,
+        variables: getTripPatternsVariables(params),
+    }
+}
+
 function uniqBy<T, K>(arr: T[], getKey: (arg: T) => K): T[] {
     return [
         ...arr
@@ -383,6 +113,7 @@ function getNoticesFromIntermediateEstimatedCalls(estimatedCalls: IntermediateEs
     if (!estimatedCalls?.length) return []
     return estimatedCalls.map(({ notices }) => notices || []).reduce((a, b) => [...a, ...b], [])
 }
+
 function getNotices(leg: Leg): Notice[] {
     const notices = [
         ...getNoticesFromIntermediateEstimatedCalls(leg.intermediateEstimatedCalls),
@@ -449,6 +180,11 @@ export async function searchTransit(
         ...searchParams,
         useFlex: true,
         maxPreTransitWalkDistance: 2000,
+        modes: {
+            accessMode: 'foot',
+            egressMode: 'foot',
+            transportMode: (searchParams?.modes || []).filter(isTransportMode),
+        },
     }
 
     const [response, metadata] = await getTripPatterns(getTripPatternsParams)
@@ -473,54 +209,57 @@ export async function searchTransit(
     }
 }
 
-type NonTransitMode = 'foot' | 'bicycle' | 'car' | 'bicycle_rent'
+export type NonTransitMode = 'foot' | 'bicycle' | 'car' | 'bike_rental'
 
 export async function searchNonTransit(
     params: SearchParams,
-    extraHeaders: { [key: string]: string },
-    modes: NonTransitMode[] = [LegMode.FOOT, LegMode.BICYCLE, LegMode.CAR, 'bicycle_rent'],
-): Promise<NonTransitTripPatterns> {
+    modes: NonTransitMode[] = [LegMode.FOOT, LegMode.BICYCLE, LegMode.CAR, 'bike_rental'],
+): Promise<{
+    tripPatterns: NonTransitTripPatterns
+    queries: { [key in NonTransitMode]?: GraphqlQuery }
+}> {
     const results = await Promise.all(
         modes.map(async (mode) => {
-            const result = await sdk.getTripPatterns(
-                {
-                    ...params,
-                    limit: mode === 'bicycle_rent' ? 3 : 1,
-                    modes: mode === 'bicycle_rent' ? [LegMode.FOOT, LegMode.BICYCLE] : [mode],
-                    maxPreTransitWalkDistance: 2000,
-                    allowBikeRental: mode === 'bicycle_rent',
+            const getTripPatternsParams = {
+                ...params,
+                limit: 1,
+                allowBikeRental: mode === 'bike_rental',
+                modes: {
+                    accessMode: null,
+                    egressMode: null,
+                    directMode: mode,
+                    transportMode: [],
                 },
-                { headers: extraHeaders },
-            )
+            }
 
-            const candidate = result.find(({ legs }) => {
-                const modeToCheck = mode === 'bicycle_rent' ? LegMode.BICYCLE : mode
+            const [result] = await getTripPatterns(getTripPatternsParams)
+            const query = getTripPatternsQuery(getTripPatternsParams)
 
-                const matchesMode = (leg: Leg): boolean =>
-                    leg.mode === modeToCheck && leg.rentedBike === (mode === 'bicycle_rent')
+            const candidate = result[0]
 
-                const matchesModes =
-                    legs.some(matchesMode) && legs.every((leg) => leg.mode === LegMode.FOOT || matchesMode(leg))
+            const tripPattern = candidate && parseTripPattern(candidate)
 
-                return matchesModes
-            })
-
-            const tripPattern =
-                candidate &&
-                isValidNonTransitDistance(candidate, mode) &&
-                (mode !== 'bicycle_rent' || isBikeRentalAlternative(candidate))
-                    ? parseTripPattern(candidate)
-                    : undefined
-
-            return { mode, tripPattern }
+            return { mode, tripPattern, query }
         }),
     )
 
     return results.reduce(
-        (acc, { mode, tripPattern }) => ({
-            ...acc,
-            [mode]: tripPattern,
-        }),
-        {},
+        (acc, { mode, tripPattern, query }) => {
+            const m = mode === 'bike_rental' ? 'bicycle_rent' : mode
+            return {
+                tripPatterns: {
+                    ...acc.tripPatterns,
+                    [m]: tripPattern,
+                },
+                queries: {
+                    ...acc.queries,
+                    [m]: query,
+                },
+            }
+        },
+        {
+            tripPatterns: {},
+            queries: {},
+        },
     )
 }
