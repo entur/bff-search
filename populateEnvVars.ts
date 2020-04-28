@@ -58,8 +58,8 @@ async function replaceEnvVariables(): Promise<void> {
     const config = await readEnvFile()
     const filePaths = await getFiles('dist')
     const patterns: ReplacePattern[] = Object.entries(config).map(([name, value]) => [
-        new RegExp(`process.env.${name}\\W`, 'g'),
-        `'${value}'`,
+        new RegExp(`process.env.${name}(\\W)`, 'g'),
+        `'${value}'$1`,
     ])
     await Promise.all(filePaths.map((path) => findAndReplaceInFile(path, patterns)))
 }
