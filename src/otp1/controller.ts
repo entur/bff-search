@@ -16,10 +16,17 @@ import {
 } from '../utils/tripPattern'
 import { sortBy } from '../utils/array'
 
-const sdk = createEnturService({
+const sdkTransit = createEnturService({
     clientName: 'entur-search',
     hosts: {
-        journeyPlanner: process.env.JOURNEY_PLANNER_HOST,
+        journeyPlanner: process.env.TRANSIT_HOST,
+    },
+})
+
+const sdkNonTransit = createEnturService({
+    clientName: 'entur-search',
+    hosts: {
+        journeyPlanner: process.env.NON_TRANSIT_HOST,
     },
 })
 
@@ -65,7 +72,7 @@ export async function searchTransit(
         maxPreTransitWalkDistance: 2000,
     }
 
-    const response = await sdk.getTripPatterns(getTripPatternsParams, { headers: extraHeaders })
+    const response = await sdkTransit.getTripPatterns(getTripPatternsParams, { headers: extraHeaders })
 
     const query = getTripPatternsQuery(getTripPatternsParams)
     const queries = [...(prevQueries || []), query]
@@ -95,7 +102,7 @@ export async function searchNonTransit(
 ): Promise<NonTransitTripPatterns> {
     const results = await Promise.all(
         modes.map(async (mode) => {
-            const result = await sdk.getTripPatterns(
+            const result = await sdkNonTransit.getTripPatterns(
                 {
                     ...params,
                     limit: mode === 'bicycle_rent' ? 3 : 1,
@@ -148,7 +155,7 @@ async function searchTaxiFrontBack(
 
     const [pickup, dropoff] = await Promise.all(
         modes.map(async (mode) => {
-            const response = await sdk.getTripPatterns(
+            const response = await sdkTransit.getTripPatterns(
                 {
                     ...searchParams,
                     limit: 1,
