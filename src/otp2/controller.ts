@@ -20,7 +20,7 @@ import JOURNEY_PLANNER_QUERY from './query'
 const sdk = createEnturService({
     clientName: 'entur-search',
     hosts: {
-        journeyPlanner: process.env.JOURNEY_PLANNER_V3_HOST,
+        journeyPlanner: process.env.TRANSIT_HOST_OTP2,
     },
 })
 
