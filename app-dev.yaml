@@ -1,0 +1,6 @@
+runtime: nodejs10
+service: search
+inbound_services:
+    - warmup
+vpc_access_connector:
+  name: "projects/entur-dev/locations/us-central1/connectors/bff-search-redis"

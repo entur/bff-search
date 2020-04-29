@@ -1,0 +1,8 @@
+runtime: nodejs10
+service: search
+inbound_services:
+    - warmup
+automatic_scaling:
+  min_idle_instances: 1
+vpc_access_connector:
+  name: "projects/entur-staging/locations/us-central1/connectors/bff-search-redis"
