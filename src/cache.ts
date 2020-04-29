@@ -12,13 +12,13 @@ const client = redis.createClient(REDIS_PORT, REDIS_HOST)
 client.on('error', (err) => logger.error('REDIS ERROR:', err))
 
 const hgetall = promisify(client.hgetall).bind(client)
-const hmset = promisify(client.hmset).bind(client)
+const hset = promisify(client.hset).bind(client)
 const expire = promisify(client.expire).bind(client)
 
 const DEFAULT_EXPIRE = 30 * 60 // 30 minutes
 
 export async function set(key: string, value: any, expireInSeconds: number = DEFAULT_EXPIRE): Promise<void> {
-    await hmset([key, 'data', JSON.stringify(value)])
+    await hset(key, 'data', JSON.stringify(value))
     await expire(key, expireInSeconds)
 }
 
