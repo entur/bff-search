@@ -89,7 +89,10 @@ router.post('/v1/transit', async (req, res, next) => {
                   }))
         stopTrace()
 
-        const tripPatternsWithId = tripPatterns.map((tripPattern) => ({ ...tripPattern, id: uuid() }))
+        const tripPatternsWithId = tripPatterns.map((tripPattern) => ({
+            ...tripPattern,
+            id: tripPattern.id || uuid(),
+        }))
 
         tripPatternsWithId.forEach((tripPattern) => {
             cacheSet(`trip-pattern:${tripPattern.id}`, tripPattern)
