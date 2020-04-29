@@ -8,6 +8,7 @@ import createEnturService, {
     TransportMode,
 } from '@entur/sdk'
 import { differenceInHours } from 'date-fns'
+import { v4 as uuid } from 'uuid'
 
 import { SearchParams, NonTransitTripPatterns, GraphqlQuery } from '../../types'
 
@@ -40,6 +41,7 @@ interface TransitTripPatterns {
 function parseTripPattern(rawTripPattern: any): Otp2TripPattern {
     return {
         ...rawTripPattern,
+        id: rawTripPattern.id || uuid(),
         legs: rawTripPattern.legs.map(parseLeg),
         genId: `${new Date().getTime()}:${Math.random().toString(36).slice(2, 12)}`,
     }

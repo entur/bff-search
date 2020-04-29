@@ -1,4 +1,5 @@
 import { isCar, LegMode, TripPattern } from '@entur/sdk'
+import { v4 as uuid } from 'uuid'
 import { differenceInHours, parseJSON } from 'date-fns'
 
 import { NON_TRANSIT_DISTANCE_LIMITS, TAXI_LIMITS } from '../constants'
@@ -46,6 +47,7 @@ export function isValidNonTransitDistance(
 export function parseTripPattern(rawTripPattern: any): TripPattern {
     return {
         ...rawTripPattern,
+        id: rawTripPattern.id || uuid(),
         legs: rawTripPattern.legs.map(parseLeg),
         genId: `${new Date().getTime()}:${Math.random().toString(36).slice(2, 12)}`,
     }
