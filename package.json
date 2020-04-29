@@ -27,7 +27,6 @@
     "@entur/sdk": "^1.4.3",
     "@google-cloud/bigquery": "^4.7.0",
     "@google-cloud/logging-winston": "^3.0.6",
-    "@google-cloud/redis": "^1.6.0",
     "@google-cloud/trace-agent": "^4.2.5",
     "body-parser": "^1.19.0",
     "cors": "^2.8.5",
