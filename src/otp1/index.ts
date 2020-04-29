@@ -91,7 +91,6 @@ router.post('/v1/transit', async (req, res, next) => {
 
         const tripPatternsWithId = tripPatterns.map((tripPattern) => ({ ...tripPattern, id: uuid() }))
 
-        // eslint-disable-next-line no-for-each/no-for-each
         tripPatternsWithId.forEach((tripPattern) => {
             cacheSet(`trip-pattern:${tripPattern.id}`, tripPattern)
         })
