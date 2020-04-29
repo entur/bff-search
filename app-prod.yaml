@@ -5,4 +5,4 @@ inbound_services:
 automatic_scaling:
   min_idle_instances: 1
 vpc_access_connector:
-  name: "projects/entur-prod/locations/eu-west1/connectors/bff-search-redis"
+  name: "projects/entur-prod/locations/europe-west1/connectors/bff-search-redis"
