@@ -17,9 +17,9 @@ const expire = promisify(client.expire).bind(client)
 
 const DEFAULT_EXPIRE = 30 * 60 // 30 minutes
 
-export async function set(key: string, value: any, expireInSeconds?: number): Promise<void> {
+export async function set(key: string, value: any, expireInSeconds: number = DEFAULT_EXPIRE): Promise<void> {
     await hmset([key, 'data', JSON.stringify(value)])
-    await expire(key, expireInSeconds ?? DEFAULT_EXPIRE)
+    await expire(key, expireInSeconds)
 }
 
 export async function get<T>(key: string): Promise<T | null> {
