@@ -1,6 +1,5 @@
 import { Router, Request } from 'express'
 import { parseJSON } from 'date-fns'
-import { v4 as uuid } from 'uuid'
 
 import { set as cacheSet } from '../cache'
 import { RawSearchParams, SearchParams, GraphqlQuery } from '../../types'
@@ -68,17 +67,12 @@ router.post('/v1/transit', async (req, res, next) => {
 
         const nextCursor = generateCursor(params, metadata, tripPatterns)
 
-        const tripPatternsWithId = tripPatterns.map((tripPattern) => ({
-            ...tripPattern,
-            id: tripPattern.id || uuid(),
-        }))
-
-        tripPatternsWithId.forEach((tripPattern) => {
+        tripPatterns.forEach((tripPattern) => {
             cacheSet(`trip-pattern:${tripPattern.id}`, tripPattern)
         })
 
         res.json({
-            tripPatterns: tripPatternsWithId,
+            tripPatterns,
             hasFlexibleTripPattern,
             nextCursor,
             queries: queriesWithLinks,

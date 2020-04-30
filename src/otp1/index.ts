@@ -1,6 +1,5 @@
 import { Router, Request } from 'express'
 import { parseJSON } from 'date-fns'
-import { v4 as uuid } from 'uuid'
 
 import trace from '../tracer'
 import { set as cacheSet, get as cacheGet } from '../cache'
@@ -89,17 +88,12 @@ router.post('/v1/transit', async (req, res, next) => {
                   }))
         stopTrace()
 
-        const tripPatternsWithId = tripPatterns.map((tripPattern) => ({
-            ...tripPattern,
-            id: tripPattern.id || uuid(),
-        }))
-
-        tripPatternsWithId.forEach((tripPattern) => {
+        tripPatterns.forEach((tripPattern) => {
             cacheSet(`trip-pattern:${tripPattern.id}`, tripPattern)
         })
 
         res.json({
-            tripPatterns: tripPatternsWithId,
+            tripPatterns,
             hasFlexibleTripPattern,
             isSameDaySearch,
             nextCursor,
