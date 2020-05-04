@@ -1,9 +1,11 @@
 import { Router, Request } from 'express'
 import { parseJSON } from 'date-fns'
+import { v4 as uuid } from 'uuid'
 
 import trace from '../tracer'
 import { set as cacheSet, get as cacheGet } from '../cache'
-import { NotFoundError } from '../errors'
+import { NotFoundError, InvalidArgumentError } from '../errors'
+import { verifyPartnerToken } from '../auth'
 
 import { RawSearchParams, SearchParams, GraphqlQuery } from '../../types'
 
@@ -115,6 +117,31 @@ router.get('/v1/trip-patterns/:id', async (req, res, next) => {
         }
 
         res.json({ tripPattern })
+    } catch (error) {
+        next(error)
+    }
+})
+
+router.post('/v1/trip-patterns', verifyPartnerToken, async (req, res, next) => {
+    try {
+        const { tripPattern } = req.body
+
+        if (!tripPattern) {
+            throw new InvalidArgumentError('Found no `tripPattern` key in body.')
+        }
+
+        if (typeof tripPattern !== 'object') {
+            throw new InvalidArgumentError(`\`tripPattern\` is invalid. Expected an object, got ${typeof tripPattern}`)
+        }
+
+        const id = tripPattern.id || uuid()
+
+        const newTripPattern = await cacheSet(`trip-pattern:${id}`, {
+            ...tripPattern,
+            id,
+        })
+
+        res.status(201).json({ tripPattern: newTripPattern })
     } catch (error) {
         next(error)
     }

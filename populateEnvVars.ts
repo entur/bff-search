@@ -7,9 +7,10 @@ const { readdir, readFile, writeFile } = fsPromises
 
 const ENV = process.argv[2] || 'dev'
 const ENV_FILE = `.env.${ENV}`
+const SECRETS_FILE = `.secrets.${ENV}`
 
-async function readEnvFile(): Promise<object> {
-    const content = await readFile(ENV_FILE, 'utf-8')
+async function readEnvFile(filePath: string): Promise<object> {
+    const content = await readFile(filePath, 'utf-8')
     const lines = content.trim().split('\n')
 
     const envMap = lines.reduce((map, line) => {
@@ -55,7 +56,8 @@ async function findAndReplaceInFile(filePath: string, replacePatterns: ReplacePa
 }
 
 async function replaceEnvVariables(): Promise<void> {
-    const config = await readEnvFile()
+    const [envConfig, secretsConfig] = await Promise.all([readEnvFile(ENV_FILE), readEnvFile(SECRETS_FILE)])
+    const config = { ...envConfig, ...secretsConfig }
     const filePaths = await getFiles('dist')
     const patterns: ReplacePattern[] = Object.entries(config).map(([name, value]) => [
         new RegExp(`process.env.${name}(\\W)`, 'g'),
