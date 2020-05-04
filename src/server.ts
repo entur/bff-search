@@ -17,7 +17,11 @@ const PORT = process.env.PORT || 9000
 const app = express()
 
 app.use(cors())
-app.use(bodyParser.json())
+app.use(
+    bodyParser.json({
+        limit: '10mb',
+    }),
+)
 app.use(reqResLoggerMiddleware)
 
 app.get('/_ah/warmup', (_req, res) => {
