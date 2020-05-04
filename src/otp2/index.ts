@@ -67,9 +67,7 @@ router.post('/v1/transit', async (req, res, next) => {
 
         const nextCursor = generateCursor(params, metadata, tripPatterns)
 
-        tripPatterns.forEach((tripPattern) => {
-            cacheSet(`trip-pattern:${tripPattern.id}`, tripPattern)
-        })
+        await Promise.all(tripPatterns.map((tripPattern) => cacheSet(`trip-pattern:${tripPattern.id}`, tripPattern)))
 
         res.json({
             tripPatterns,

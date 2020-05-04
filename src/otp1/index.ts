@@ -90,9 +90,9 @@ router.post('/v1/transit', async (req, res, next) => {
                   }))
         stopTrace()
 
-        tripPatterns.forEach((tripPattern) => {
-            cacheSet(`trip-pattern:${tripPattern.id}`, tripPattern)
-        })
+        stopTrace = trace('cache')
+        await Promise.all(tripPatterns.map((tripPattern) => cacheSet(`trip-pattern:${tripPattern.id}`, tripPattern)))
+        stopTrace()
 
         res.json({
             tripPatterns,
