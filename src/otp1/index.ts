@@ -136,10 +136,12 @@ router.post('/v1/trip-patterns', verifyPartnerToken, async (req, res, next) => {
 
         const id = tripPattern.id || uuid()
 
-        const newTripPattern = await cacheSet(`trip-pattern:${id}`, {
+        const newTripPattern = {
             ...tripPattern,
             id,
-        })
+        }
+
+        await cacheSet(`trip-pattern:${id}`, newTripPattern)
 
         res.status(201).json({ tripPattern: newTripPattern })
     } catch (error) {
