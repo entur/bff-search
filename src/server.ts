@@ -7,7 +7,8 @@ import express from 'express'
 
 import './cache'
 import { reqResLoggerMiddleware, errorLoggerMiddleware } from './logger'
-import { NotFoundError } from './errors'
+import { NotFoundError, InvalidArgumentError } from './errors'
+import { unauthorizedError } from './auth'
 
 import otp1Router from './otp1'
 import otp2Router from './otp2'
@@ -33,11 +34,15 @@ app.all('*', (_, res) => {
 
 app.use(errorLoggerMiddleware)
 
+app.use(unauthorizedError)
+
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 app.use((error: Error, _1: express.Request, res: express.Response, _2: express.NextFunction) => {
     let statusCode = 500
     if (error instanceof NotFoundError) {
         statusCode = 404
+    } else if (error instanceof InvalidArgumentError) {
+        statusCode = 400
     }
     res.status(statusCode).json({ error: error.message, stack: error.stack })
 })
