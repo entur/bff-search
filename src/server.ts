@@ -6,7 +6,7 @@ import cors from 'cors'
 import express from 'express'
 
 import './cache'
-import { reqResLoggerMiddleware, errorLoggerMiddleware } from './logger'
+import { logError, reqResLoggerMiddleware } from './logger'
 import { NotFoundError, InvalidArgumentError } from './errors'
 import { unauthorizedError } from './auth'
 
@@ -17,7 +17,11 @@ const PORT = process.env.PORT || 9000
 const app = express()
 
 app.use(cors())
-app.use(bodyParser.json())
+app.use(
+    bodyParser.json({
+        limit: '10mb',
+    }),
+)
 app.use(reqResLoggerMiddleware)
 
 app.get('/_ah/warmup', (_req, res) => {
@@ -32,18 +36,20 @@ app.all('*', (_, res) => {
     res.status(404).json({ error: '404 Not Found' })
 })
 
-app.use(errorLoggerMiddleware)
-
 app.use(unauthorizedError)
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-app.use((error: Error, _1: express.Request, res: express.Response, _2: express.NextFunction) => {
+app.use((error: Error, req: express.Request, res: express.Response, _2: express.NextFunction) => {
     let statusCode = 500
     if (error instanceof NotFoundError) {
         statusCode = 404
     } else if (error instanceof InvalidArgumentError) {
         statusCode = 400
     }
+
+    const level = statusCode >= 500 ? 'error' : 'warn'
+    logError(error, level, req)
+
     res.status(statusCode).json({ error: error.message, stack: error.stack })
 })
 

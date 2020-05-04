@@ -13,7 +13,7 @@ const transportsProd = [loggingWinston]
 const transports = process.env.NODE_ENV === 'production' ? transportsProd : transportsDev
 
 const logger = winston.createLogger({
-    level: 'info',
+    level: 'debug',
     transports,
 })
 
@@ -35,7 +35,14 @@ function reqHeadersMapper(req: Request): { [key: string]: string } {
     return clean({
         'X-Correlation-Id': req.get('X-Correlation-Id'),
         'ET-Client-Name': req.get('ET-Client-Name'),
+        'Content-Length': req.get('Content-Length'),
     })
+}
+
+export function getTraceInfo(): object {
+    return {
+        [LoggingWinston.LOGGING_TRACE_KEY]: getCurrentTraceFromAgent(),
+    }
 }
 
 export function reqResLoggerMiddleware(req: Request, res: Response, next: NextFunction): void {
@@ -55,22 +62,23 @@ export function reqResLoggerMiddleware(req: Request, res: Response, next: NextFu
             req: {
                 headers: reqHeadersMapper(req),
             },
-            [LoggingWinston.LOGGING_TRACE_KEY]: getCurrentTraceFromAgent(),
+            ...getTraceInfo(),
         })
     }
     next()
 }
 
-export function errorLoggerMiddleware(error: Error, req: Request, _res: Response, next: NextFunction): void {
-    logger.error(error.message, {
+export function logError(error: Error, level: 'warn' | 'error', req: Request): void {
+    logger.log({
+        level,
+        message: error.message,
         stack: error.stack,
         req: {
             body: reqBodyMapper(req),
             headers: reqHeadersMapper(req),
         },
-        [LoggingWinston.LOGGING_TRACE_KEY]: getCurrentTraceFromAgent(),
+        ...getTraceInfo(),
     })
-    next(error)
 }
 
 // From: https://github.com/googleapis/nodejs-logging-winston/blob/master/src/common.ts#L57
