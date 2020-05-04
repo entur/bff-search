@@ -18,6 +18,7 @@ const expire = promisify(client.expire).bind(client)
 const DEFAULT_EXPIRE = 30 * 60 // 30 minutes
 
 export async function set(key: string, value: any, expireInSeconds: number = DEFAULT_EXPIRE): Promise<void> {
+    logger.debug(`Cache set ${key}`)
     await hset(key, 'data', JSON.stringify(value))
     await expire(key, expireInSeconds)
 }
