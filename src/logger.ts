@@ -45,10 +45,12 @@ export function getTraceInfo(): object {
     }
 }
 
+// Some inspiration taken from the express-winston library by bithavoc: https://github.com/bithavoc/express-winston/blob/master/index.js
 export function reqResLoggerMiddleware(req: Request, res: Response, next: NextFunction): void {
     logger.info(`Request ${req.method} ${req.url}`, {
         body: reqBodyMapper(req),
         headers: reqHeadersMapper(req),
+        correlationId: req.get('X-Correlation-Id'),
         [LoggingWinston.LOGGING_TRACE_KEY]: getCurrentTraceFromAgent(),
     })
 
@@ -59,9 +61,15 @@ export function reqResLoggerMiddleware(req: Request, res: Response, next: NextFu
         res.end = originalResEnd
 
         let level = 'info'
+        let response = undefined
 
         if (res.statusCode >= 400) {
             level = 'warn'
+
+            response = chunk && chunk.toString()
+            if (`${res.getHeader('content-type')}`.includes('json')) {
+                response = JSON.parse(response)
+            }
         }
 
         if (res.statusCode >= 500) {
@@ -74,23 +82,12 @@ export function reqResLoggerMiddleware(req: Request, res: Response, next: NextFu
             req: {
                 headers: reqHeadersMapper(req),
             },
+            res: response,
+            correlationId: req.get('X-Correlation-Id'),
             ...getTraceInfo(),
         })
     }
     next()
-}
-
-export function logError(error: Error, level: 'warn' | 'error', req: Request): void {
-    logger.log({
-        level,
-        message: error.message,
-        stack: error.stack,
-        req: {
-            body: reqBodyMapper(req),
-            headers: reqHeadersMapper(req),
-        },
-        ...getTraceInfo(),
-    })
 }
 
 // From: https://github.com/googleapis/nodejs-logging-winston/blob/master/src/common.ts#L57

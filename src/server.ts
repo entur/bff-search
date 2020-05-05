@@ -6,7 +6,7 @@ import cors from 'cors'
 import express from 'express'
 
 import './cache'
-import { logError, reqResLoggerMiddleware } from './logger'
+import { reqResLoggerMiddleware } from './logger'
 import { NotFoundError, InvalidArgumentError } from './errors'
 import { unauthorizedError } from './auth'
 
@@ -39,16 +39,13 @@ app.all('*', (_, res) => {
 app.use(unauthorizedError)
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-app.use((error: Error, req: express.Request, res: express.Response, _2: express.NextFunction) => {
+app.use((error: Error, _req: express.Request, res: express.Response, _2: express.NextFunction) => {
     let statusCode = 500
     if (error instanceof NotFoundError) {
         statusCode = 404
     } else if (error instanceof InvalidArgumentError) {
         statusCode = 400
     }
-
-    const level = statusCode >= 500 ? 'error' : 'warn'
-    logError(error, level, req)
 
     res.status(statusCode).json({ error: error.message, stack: error.stack })
 })
