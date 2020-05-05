@@ -58,7 +58,19 @@ export function reqResLoggerMiddleware(req: Request, res: Response, next: NextFu
         originalResEnd.call(res, chunk, ...rest)
         res.end = originalResEnd
 
-        logger.info(`Response ${req.method} ${req.url}`, {
+        let level = 'info'
+
+        if (res.statusCode >= 400) {
+            level = 'warn'
+        }
+
+        if (res.statusCode >= 500) {
+            level = 'error'
+        }
+
+        logger.log({
+            level,
+            message: `Response ${res.statusCode} ${req.method} ${req.url}`,
             req: {
                 headers: reqHeadersMapper(req),
             },
