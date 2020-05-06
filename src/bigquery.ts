@@ -3,16 +3,32 @@ import { parseJSON } from 'date-fns'
 
 import { SearchParams } from '../types'
 
+import { sleep } from './utils/promise'
 import logger from './logger'
 
 const ENV = process.env.ENVIRONMENT
 const projectId = ENV === 'prod' ? 'entur-prod' : ENV
 const bigQuery = new BigQuery({ projectId })
 
-export function logTransitAnalytics(params: SearchParams, headers: { [key: string]: string }): void {
+const MAX_RETRIES = 3
+
+async function queryWithRetries(query: string, retriesLeft = MAX_RETRIES): Promise<void> {
+    try {
+        await bigQuery.query({ query, useLegacySql: false })
+        logger.debug(`logTransitAnalytics success, retriesLeft: ${retriesLeft}`)
+    } catch (error) {
+        if (error.message.includes('Exceeded rate limits') && retriesLeft > 0) {
+            const sleepDuration = 2 ** (MAX_RETRIES - retriesLeft) * 1000 * Math.random()
+            await sleep(sleepDuration)
+            return queryWithRetries(query, retriesLeft - 1)
+        }
+        throw error
+    }
+}
+
+export async function logTransitAnalytics(params: SearchParams, headers: { [key: string]: string }): Promise<void> {
     const client = headers['ET-Client-Name'] || ''
     const table = getTableForClient(client)
-    const errorMessage = `Failed storing analytics for transit search from: <${client}>`
 
     if (!table) return
 
@@ -29,6 +45,7 @@ export function logTransitAnalytics(params: SearchParams, headers: { [key: strin
         } = params
         const searchDateParsed = searchDate ? `"${parseJSON(searchDate).toISOString()}"` : ''
         const createdAt = new Date().toISOString()
+
         const query = `INSERT INTO \`${table}\` (
             fromName, fromPlace, toName, toPlace, searchDate, searchFilter,
             arriveBy, walkSpeed, minimumTransferTime, useFlex, createdAt
@@ -37,11 +54,10 @@ export function logTransitAnalytics(params: SearchParams, headers: { [key: strin
             "${searchFilter.join()}", ${arriveBy}, ${walkSpeed}, ${minimumTransferTime}, ${useFlex},
             "${createdAt}"
         )`
-        bigQuery.query({ query, useLegacySql: false }).catch((error) => {
-            logger.error(errorMessage, { client, error })
-        })
+
+        await queryWithRetries(query)
     } catch (error) {
-        logger.error(errorMessage, { client, error })
+        logger.error(`logTransitAnalytics: ${error.message}`, { client, error })
     }
 }
 
