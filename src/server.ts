@@ -16,13 +16,14 @@ import otp2Router from './otp2'
 const PORT = process.env.PORT || 9000
 const app = express()
 
-app.use(cors())
 app.use(
     bodyParser.json({
         limit: '10mb',
     }),
 )
+
 app.use(reqResLoggerMiddleware)
+app.use(cors())
 
 app.get('/_ah/warmup', (_req, res) => {
     import('./cache')

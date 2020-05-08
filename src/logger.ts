@@ -83,7 +83,7 @@ export function reqResLoggerMiddleware(req: Request, res: Response, next: NextFu
         let message = `Response ${res.statusCode} ${req.method} ${req.url}`
 
         if (res.statusCode >= 400) {
-            level = 'warn'
+            level = 'warning'
 
             response = chunk && chunk.toString()
             if (`${res.getHeader('content-type')}`.includes('json')) {
