@@ -5,7 +5,22 @@ import { get as getTracerAgent } from '@google-cloud/trace-agent'
 
 import { clean } from './utils/object'
 
-const loggingWinston = new LoggingWinston()
+// StackDriver logger levels
+// https://github.com/googleapis/nodejs-logging-winston/blob/afde0075e506fd38f9afee29a5277afa1f40a8b0/src/common.ts#L56
+const LEVELS = {
+    emergency: 0,
+    alert: 1,
+    critical: 2,
+    error: 3,
+    warning: 4,
+    notice: 5,
+    info: 6,
+    debug: 7,
+}
+
+const loggingWinston = new LoggingWinston({
+    levels: LEVELS,
+})
 
 const transportsDev = [new winston.transports.Console()]
 const transportsProd = [loggingWinston]
@@ -14,6 +29,7 @@ const transports = process.env.NODE_ENV === 'production' ? transportsProd : tran
 
 const logger = winston.createLogger({
     level: 'debug',
+    levels: LEVELS,
     transports,
 })
 
@@ -35,6 +51,8 @@ function reqHeadersMapper(req: Request): { [key: string]: string } {
     return clean({
         'X-Correlation-Id': req.get('X-Correlation-Id'),
         'ET-Client-Name': req.get('ET-Client-Name'),
+        'ET-Client-Version': req.get('ET-Client-Version'),
+        'ET-Client-Platform': req.get('ET-Client-Platform'),
         'Content-Length': req.get('Content-Length'),
     })
 }
@@ -62,6 +80,7 @@ export function reqResLoggerMiddleware(req: Request, res: Response, next: NextFu
 
         let level = 'info'
         let response = undefined
+        let message = `Response ${res.statusCode} ${req.method} ${req.url}`
 
         if (res.statusCode >= 400) {
             level = 'warn'
@@ -69,6 +88,10 @@ export function reqResLoggerMiddleware(req: Request, res: Response, next: NextFu
             response = chunk && chunk.toString()
             if (`${res.getHeader('content-type')}`.includes('json')) {
                 response = JSON.parse(response)
+
+                if (response?.message) {
+                    message = `Response ${res.statusCode} ${req.method} ${req.url} – ${response?.message || ''}`
+                }
             }
         }
 
@@ -78,7 +101,7 @@ export function reqResLoggerMiddleware(req: Request, res: Response, next: NextFu
 
         logger.log({
             level,
-            message: `Response ${res.statusCode} ${req.method} ${req.url}`,
+            message,
             req: {
                 headers: reqHeadersMapper(req),
             },
