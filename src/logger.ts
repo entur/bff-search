@@ -87,7 +87,11 @@ export function reqResLoggerMiddleware(req: Request, res: Response, next: NextFu
 
             response = chunk && chunk.toString()
             if (`${res.getHeader('content-type')}`.includes('json')) {
-                response = JSON.parse(response)
+                try {
+                    response = JSON.parse(response)
+                } catch (error) {
+                    logger.warning(error)
+                }
 
                 if (response?.message) {
                     message = `Response ${res.statusCode} ${req.method} ${req.url} – ${response?.message || ''}`
@@ -106,6 +110,7 @@ export function reqResLoggerMiddleware(req: Request, res: Response, next: NextFu
                 headers: reqHeadersMapper(req),
             },
             res: response,
+            status: res.statusCode,
             correlationId: req.get('X-Correlation-Id'),
             ...getTraceInfo(),
         })
