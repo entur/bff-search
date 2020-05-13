@@ -10,17 +10,19 @@ const ENV = process.env.ENVIRONMENT
 const projectId = ENV === 'prod' ? 'entur-prod' : ENV
 const bigQuery = new BigQuery({ projectId })
 
-const MAX_RETRIES = 3
+const MAX_RETRIES = 5
 
-async function queryWithRetries(query: string, retriesLeft = MAX_RETRIES): Promise<void> {
+async function queryWithRetries(query: string, retriesDone = 0): Promise<void> {
     try {
         await bigQuery.query({ query, useLegacySql: false })
-        logger.debug(`logTransitAnalytics success, retriesLeft: ${retriesLeft}`)
+        logger.debug(`logTransitAnalytics success, retries done: ${retriesDone}`)
     } catch (error) {
-        if (error.message.includes('Exceeded rate limits') && retriesLeft > 0) {
-            const sleepDuration = 2 ** (MAX_RETRIES - retriesLeft) * 1000 * Math.random()
+        if (error.message.includes('Exceeded rate limits') && retriesDone < MAX_RETRIES) {
+            const retryNumber = retriesDone + 1
+            const minDelay = 100 * retryNumber
+            const sleepDuration = minDelay + 2 ** retryNumber * 1000 * Math.random()
             await sleep(sleepDuration)
-            return queryWithRetries(query, retriesLeft - 1)
+            return queryWithRetries(query, retryNumber)
         }
         throw error
     }
