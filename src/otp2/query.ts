@@ -199,6 +199,8 @@ fragment stopPlaceFields on StopPlace {
     id
     description
     name
+    latitude
+    longitude
     tariffZones {
         id
     }
@@ -240,12 +242,19 @@ fragment serviceJourneyFields on ServiceJourney {
         ...noticeFields
     }
     publicCode
+    privateCode
     transportSubmode
 }
 
 fragment interchangeFields on Interchange {
     guaranteed
     staySeated
+    FromServiceJourney {
+        id
+    }
+    ToServiceJourney {
+        id
+    }
 }
 
 fragment pointsOnLinkFields on PointsOnLink {
