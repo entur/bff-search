@@ -65,6 +65,8 @@ export function getTraceInfo(): object {
 
 // Some inspiration taken from the express-winston library by bithavoc: https://github.com/bithavoc/express-winston/blob/master/index.js
 export function reqResLoggerMiddleware(req: Request, res: Response, next: NextFunction): void {
+    const startTime = new Date()
+
     logger.info(`Request ${req.method} ${req.url}`, {
         body: reqBodyMapper(req),
         headers: reqHeadersMapper(req),
@@ -77,6 +79,8 @@ export function reqResLoggerMiddleware(req: Request, res: Response, next: NextFu
         // @ts-ignore
         originalResEnd.call(res, chunk, ...rest)
         res.end = originalResEnd
+
+        const responseTime = new Date().getTime() - startTime.getTime()
 
         let level = 'info'
         let response = undefined
@@ -111,6 +115,7 @@ export function reqResLoggerMiddleware(req: Request, res: Response, next: NextFu
             },
             res: response,
             status: res.statusCode,
+            responseTime,
             correlationId: req.get('X-Correlation-Id'),
             ...getTraceInfo(),
         })
