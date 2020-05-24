@@ -1,6 +1,5 @@
 import createEnturService, { getTripPatternsQuery, LegMode, TripPattern, QueryMode, Leg } from '@entur/sdk'
 import { set, addHours, subHours, differenceInHours } from 'date-fns'
-import { convertToTimeZone } from 'date-fns-timezone'
 
 import { SearchParams, TransitTripPatterns, NonTransitTripPatterns, GraphqlQuery } from '../../types'
 
@@ -15,6 +14,7 @@ import {
     parseTripPattern,
 } from '../utils/tripPattern'
 import { sortBy } from '../utils/array'
+import { convertToTimeZone } from '../utils/time'
 
 const sdkTransit = createEnturService({
     clientName: 'entur-search',

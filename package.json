@@ -31,12 +31,12 @@
     "body-parser": "^1.19.0",
     "cors": "^2.8.5",
     "date-fns": "^2.12.0",
-    "date-fns-timezone": "^0.1.4",
     "express": "^4.17.1",
     "express-jwt": "^5.3.3",
     "jwks-rsa": "^1.8.0",
     "lz-string": "^1.4.4",
     "redis": "^3.0.2",
+    "timezone-support": "^2.0.2",
     "uuid": "^7.0.3",
     "winston": "^3.2.1"
   },
