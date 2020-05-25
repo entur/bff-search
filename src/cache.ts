@@ -4,9 +4,10 @@ import { promisify } from 'util'
 import logger from './logger'
 import { REDIS_HOST, REDIS_PORT } from './config'
 
-const DEV = process.env.NODE_ENV === 'development'
-const host = DEV ? 'localhost' : REDIS_HOST
-const port = DEV ? 6379 : Number(REDIS_PORT)
+const PROD = process.env.NODE_ENV === 'production'
+
+const host = PROD ? REDIS_HOST : 'localhost'
+const port = PROD ? Number(REDIS_PORT) : 6379
 
 const client = redis.createClient(port, host)
 
