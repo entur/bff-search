@@ -32,11 +32,17 @@ export interface GraphqlQuery {
     variables?: object
 }
 
+export interface Metadata {
+    searchWindowUsed: number
+    nextDateTime: string
+    prevDateTime: string
+}
+
 export interface TransitTripPatterns {
     tripPatterns: TripPattern[]
     hasFlexibleTripPattern: boolean
-    isSameDaySearch?: boolean
     queries: GraphqlQuery[]
+    metadata?: Metadata
 }
 
 export interface NonTransitTripPatterns {

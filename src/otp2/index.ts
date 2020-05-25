@@ -32,7 +32,7 @@ function getHeadersFromClient(req: Request): ExtraHeaders {
     })
 }
 
-function generateShamashLink({ query, variables }: GraphqlQuery): string {
+export function generateShamashLink({ query, variables }: GraphqlQuery): string {
     const host =
         ENVIRONMENT === 'prod'
             ? 'https://api.entur.io/graphql-explorer/journey-planner-v3'
