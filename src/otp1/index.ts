@@ -1,5 +1,5 @@
 import { Router, Request } from 'express'
-import { parseJSON, parseISO, addSeconds, differenceInMinutes } from 'date-fns'
+import { parseJSON } from 'date-fns'
 import { v4 as uuid } from 'uuid'
 
 import { TripPattern } from '@entur/sdk'
