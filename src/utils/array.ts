@@ -33,3 +33,11 @@ export function uniq<T>(list: T[]): T[] {
 function bestBy<T>(list: T[], isBetter: (x: T, y: T) => boolean): T {
     return list.reduce((best, next) => (isBetter(next, best) ? next : best))
 }
+
+export function first<T>(list: T[]): T | undefined {
+    return list[0]
+}
+
+export function last<T>(list: T[]): T | undefined {
+    return list[list.length - 1]
+}

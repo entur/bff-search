@@ -1,6 +1,8 @@
 import { Router, Request } from 'express'
-import { parseJSON } from 'date-fns'
+import { parseJSON, parseISO, addSeconds, differenceInMinutes } from 'date-fns'
 import { v4 as uuid } from 'uuid'
+
+import { TripPattern } from '@entur/sdk'
 
 import trace from '../tracer'
 import { set as cacheSet, get as cacheGet } from '../cache'
@@ -10,6 +12,7 @@ import { verifyPartnerToken } from '../auth'
 import { RawSearchParams, SearchParams, GraphqlQuery } from '../../types'
 
 import { searchTransitWithTaxi, searchTransit, searchNonTransit } from './controller'
+import { updateTripPattern, getExpires } from './updateTrip'
 
 import { parseCursor, generateCursor } from './cursor'
 import { filterModesAndSubModes } from '../utils/modes'
@@ -109,14 +112,21 @@ router.post('/v1/transit', async (req, res, next) => {
 router.get('/v1/trip-patterns/:id', async (req, res, next) => {
     try {
         const { id } = req.params
+        const { update } = req.query
 
-        const tripPattern = await cacheGet(`trip-pattern:${id}`)
+        const tripPattern = await cacheGet<TripPattern>(`trip-pattern:${id}`)
 
         if (!tripPattern) {
             throw new NotFoundError(`Found no trip pattern with id ${id}. Maybe cache entry expired?`)
         }
 
-        res.json({ tripPattern })
+        if (update) {
+            const updatedTripPattern = await updateTripPattern(tripPattern)
+            const expires = getExpires(updatedTripPattern)
+            res.json({ tripPattern: updatedTripPattern, expires })
+        } else {
+            res.json({ tripPattern })
+        }
     } catch (error) {
         next(error)
     }
