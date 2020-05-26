@@ -1,4 +1,4 @@
-import { parseISO, addSeconds, subSeconds, differenceInSeconds, differenceInMinutes } from 'date-fns'
+import { parseISO, addSeconds, addMinutes, subSeconds, differenceInSeconds, differenceInMinutes } from 'date-fns'
 import createEnturService, { TripPattern, Leg, EstimatedCall } from '@entur/sdk'
 
 import { first, last } from '../utils/array'
@@ -237,8 +237,16 @@ export async function updateTripPattern(tripPattern: TripPattern): Promise<TripP
     }
 }
 
-export function getExpires(tripPattern: TripPattern): Date {
+export function getExpires(tripPattern: TripPattern): Date | undefined {
     const now = new Date()
     const startTime = parseISO(tripPattern.startTime)
-    return differenceInMinutes(startTime, now) > 60 ? addSeconds(now, 30) : startTime
+    const endTime = parseISO(tripPattern.endTime)
+
+    // trip has ended
+    if (endTime < now) return
+
+    const minutesToStart = differenceInMinutes(startTime, now)
+    if (minutesToStart < 10) return addSeconds(now, 30)
+    if (minutesToStart < 60) return addMinutes(now, 2)
+    if (minutesToStart < 120) return addMinutes(now, 10)
 }
