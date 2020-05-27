@@ -19,6 +19,7 @@ import { filterModesAndSubModes } from '../utils/modes'
 import { buildShamashLink } from '../utils/graphql'
 import { clean } from '../utils/object'
 
+import { ENVIRONMENT } from '../config'
 import { logTransitAnalytics } from '../bigquery'
 
 const router = Router()
@@ -38,9 +39,9 @@ function getHeadersFromClient(req: Request): ExtraHeaders {
 
 function generateShamashLink({ query, variables }: GraphqlQuery): string {
     const host =
-        process.env.ENVIRONMENT === 'prod'
+        ENVIRONMENT === 'prod'
             ? 'https://api.entur.io/journey-planner/v2/ide/'
-            : `https://api.${process.env.ENVIRONMENT}.entur.io/journey-planner/v2/ide/`
+            : `https://api.${ENVIRONMENT}.entur.io/journey-planner/v2/ide/`
 
     return buildShamashLink(host, query, variables)
 }
@@ -85,7 +86,7 @@ router.post('/v1/transit', async (req, res, next) => {
 
         stopTrace = trace('generateShamashLinks')
         const mappedQueries =
-            process.env.ENVIRONMENT === 'prod'
+            ENVIRONMENT === 'prod'
                 ? undefined
                 : queries.map((q) => ({
                       ...q,

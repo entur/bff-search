@@ -2,8 +2,7 @@ import jwt from 'express-jwt'
 import jwksRsa from 'jwks-rsa'
 import { Request, Response, NextFunction } from 'express'
 
-const PARTNER_AUDIENDE = process.env.PARTNER_AUDIENCE
-const PARTNER_HOST = process.env.PARTNER_HOST
+import { PARTNER_AUDIENCE, PARTNER_HOST } from './config'
 
 export const verifyPartnerToken = jwt({
     secret: jwksRsa.expressJwtSecret({
@@ -12,7 +11,7 @@ export const verifyPartnerToken = jwt({
         jwksRequestsPerMinute: 5,
         jwksUri: `${PARTNER_HOST}/.well-known/jwks.json`,
     }),
-    audience: [PARTNER_AUDIENDE],
+    audience: [PARTNER_AUDIENCE],
     issuer: `${PARTNER_HOST}/`,
     algorithms: ['RS256'],
 })

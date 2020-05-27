@@ -16,17 +16,19 @@ import {
 import { sortBy } from '../utils/array'
 import { convertToTimeZone } from '../utils/time'
 
+import { TRANSIT_HOST, NON_TRANSIT_HOST } from '../config'
+
 const sdkTransit = createEnturService({
     clientName: 'entur-search',
     hosts: {
-        journeyPlanner: process.env.TRANSIT_HOST,
+        journeyPlanner: TRANSIT_HOST,
     },
 })
 
 const sdkNonTransit = createEnturService({
     clientName: 'entur-search',
     hosts: {
-        journeyPlanner: process.env.NON_TRANSIT_HOST,
+        journeyPlanner: NON_TRANSIT_HOST,
     },
 })
 

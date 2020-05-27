@@ -5,10 +5,12 @@ import { first, last } from '../utils/array'
 import { isFlexibleLeg, isTransitLeg } from '../utils/leg'
 import { toISOString } from '../utils/time'
 
+import { TRANSIT_HOST } from '../config'
+
 const sdk = createEnturService({
     clientName: 'entur-search',
     hosts: {
-        journeyPlanner: process.env.TRANSIT_HOST,
+        journeyPlanner: TRANSIT_HOST,
     },
 })
 

@@ -16,12 +16,14 @@ import { isFlexibleAlternative, isValidTransitAlternative } from '../utils/tripP
 
 import { parseLeg } from '../utils/leg'
 import { isTransportMode } from '../utils/modes'
+
+import { TRANSIT_HOST_OTP2 } from '../config'
 import JOURNEY_PLANNER_QUERY from './query'
 
 const sdk = createEnturService({
     clientName: 'entur-search',
     hosts: {
-        journeyPlanner: process.env.TRANSIT_HOST_OTP2,
+        journeyPlanner: TRANSIT_HOST_OTP2,
     },
 })
 
