@@ -68,7 +68,6 @@ export async function searchTransit(
 
     const getTripPatternsParams = {
         ...searchParams,
-        useFlex: true,
         maxPreTransitWalkDistance: 2000,
     }
 

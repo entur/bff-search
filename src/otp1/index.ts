@@ -57,6 +57,7 @@ function getParams(params: RawSearchParams): SearchParams {
         transportSubmodes: subModesFilter,
         banned,
         whiteListed,
+        useFlex: true,
     }
 }
 
@@ -68,6 +69,11 @@ router.post('/v1/transit', async (req, res, next) => {
 
         const params = cursorData?.params || getParams(req.body)
         const extraHeaders = getHeadersFromClient(req)
+
+        if (cursorData) {
+            // Restrict flex results only to the initial search
+            params.useFlex = false
+        }
 
         stopTrace = trace(cursorData ? 'searchTransit' : 'searchTransitWithTaxi')
         const { tripPatterns, hasFlexibleTripPattern, isSameDaySearch, queries } = cursorData
