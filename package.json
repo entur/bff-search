@@ -2,7 +2,6 @@
   "name": "@entur/bff-search",
   "version": "1.0.0",
   "description": "A backend that handles travel search for Entur clients.",
-  "main": "dist/server.js",
   "author": "Entur AS",
   "license": "EUPL-1.2",
   "private": true,
@@ -10,18 +9,20 @@
     "node": ">=10"
   },
   "scripts": {
-    "start": "node .",
+    "start": "node dist/server.js",
     "test": "jest",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
-    "dev": "nodemon --watch src -e ts,js,json --exec 'npm run build:dev && node' .",
-    "staging": "nodemon --watch src -e ts,js,json --exec 'npm run build:staging && node' .",
-    "prod": "nodemon --watch src -e ts,js,json --exec 'npm run build:prod && node' .",
+    "debug": "./scripts/debug.sh",
+    "dev": "npm run debug dev",
+    "staging": "npm run debug staging",
+    "prod": "npm run debug prod",
     "build:dev": "tsc && npm run populate-env-vars dev",
     "build:staging": "tsc && npm run populate-env-vars staging",
     "build:prod": "tsc && npm run populate-env-vars prod",
     "deploy": "./scripts/deploy.sh",
     "apigee": "./scripts/deploy-apigee.sh",
-    "populate-env-vars": "ts-node ./populateEnvVars.ts"
+    "transpile": "tsc",
+    "populate-env-vars": "ts-node ./scripts/environment.ts"
   },
   "dependencies": {
     "@entur/sdk": "^1.5.2",
