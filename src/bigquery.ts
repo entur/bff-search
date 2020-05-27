@@ -5,9 +5,9 @@ import { SearchParams } from '../types'
 
 import { sleep } from './utils/promise'
 import logger from './logger'
+import { ENVIRONMENT } from './config'
 
-const ENV = process.env.ENVIRONMENT
-const projectId = ENV === 'prod' ? 'entur-prod' : ENV
+const projectId = ENVIRONMENT === 'prod' ? 'entur-prod' : ENVIRONMENT
 const bigQuery = new BigQuery({ projectId })
 
 const MAX_RETRIES = 5
@@ -64,7 +64,7 @@ export async function logTransitAnalytics(params: SearchParams, headers: { [key:
 }
 
 function getTableForClient(client: string): string | undefined {
-    if (ENV !== 'prod') return
+    if (ENVIRONMENT !== 'prod') return
     if (client.startsWith('entur-client-app')) return 'entur-prod.analytics_app.transit_search'
     if (client.startsWith('entur-client-web')) return 'entur-prod.analytics_web.transit_search'
 }

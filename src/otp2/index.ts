@@ -15,6 +15,8 @@ import { filterModesAndSubModes } from '../utils/modes'
 import { buildShamashLink } from '../utils/graphql'
 import { clean } from '../utils/object'
 
+import { ENVIRONMENT } from '../config'
+
 const router = Router()
 
 interface ExtraHeaders {
@@ -32,9 +34,9 @@ function getHeadersFromClient(req: Request): ExtraHeaders {
 
 function generateShamashLink({ query, variables }: GraphqlQuery): string {
     const host =
-        process.env.ENVIRONMENT === 'prod'
+        ENVIRONMENT === 'prod'
             ? 'https://api.entur.io/graphql-explorer/journey-planner-v3'
-            : `https://api.${process.env.ENVIRONMENT}.entur.io/graphql-explorer/journey-planner-v3`
+            : `https://api.${ENVIRONMENT}.entur.io/graphql-explorer/journey-planner-v3`
 
     return buildShamashLink(host, query, variables)
 }
@@ -62,7 +64,7 @@ router.post('/v1/transit', async (req, res, next) => {
         const { tripPatterns, hasFlexibleTripPattern, queries, metadata } = await searchTransit(params, extraHeaders)
 
         const queriesWithLinks =
-            process.env.ENVIRONMENT === 'prod'
+            ENVIRONMENT === 'prod'
                 ? undefined
                 : queries.map((query) => ({
                       ...query,
@@ -114,7 +116,7 @@ router.post('/v1/non-transit', async (req, res, next) => {
 
         let queriesWithLinks = undefined
 
-        if (process.env.ENVIRONMENT !== 'prod') {
+        if (ENVIRONMENT !== 'prod') {
             const modes = Object.keys(queries) as NonTransitMode[]
             queriesWithLinks = modes.reduce((acc, mode) => {
                 const q = queries[mode]

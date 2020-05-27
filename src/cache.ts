@@ -2,12 +2,13 @@ import redis from 'redis'
 import { promisify } from 'util'
 
 import logger from './logger'
+import { REDIS_HOST, REDIS_PORT } from './config'
 
 const DEV = process.env.NODE_ENV === 'development'
-const REDIS_HOST = DEV ? 'localhost' : process.env.REDIS_HOST
-const REDIS_PORT = DEV ? 6379 : Number(process.env.REDIS_PORT)
+const host = DEV ? 'localhost' : REDIS_HOST
+const port = DEV ? 6379 : Number(REDIS_PORT)
 
-const client = redis.createClient(REDIS_PORT, REDIS_HOST)
+const client = redis.createClient(port, host)
 
 client.on('error', (err) => logger.error('REDIS ERROR:', err))
 
