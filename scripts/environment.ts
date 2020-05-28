@@ -4,10 +4,10 @@ import fs from 'fs'
 
 const readFile = promisify(fs.readFile)
 const writeFile = promisify(fs.writeFile)
+const mkdir = promisify(fs.mkdir)
 
 const [, , ENV = 'dev', ...args] = process.argv
 const ENV_FILE = join(__dirname, `../.env.${ENV}`)
-const SECRETS_FILE = join(__dirname, `../.secrets.${ENV}`)
 
 createConfigFile()
 
@@ -37,27 +37,29 @@ async function readEnvFile(filePath: string): Promise<Record<string, string>> {
 }
 
 async function createTypeDefinition(): Promise<void> {
-    const [envConfig, secretsConfig] = await Promise.all([readEnvFile(ENV_FILE), readEnvFile(SECRETS_FILE)])
+    const envConfig = await readEnvFile(ENV_FILE)
     const format = (key: string): string => `export const ${key}: string`
 
-    const content = `${Object.keys({ ...envConfig, ...secretsConfig })
-        .map(format)
-        .join('\n')}
+    const content = `${Object.keys(envConfig).map(format).join('\n')}
 `
 
     return writeFile(join(__dirname, '../src/config.d.ts'), content)
 }
 
 async function createConfigFile(): Promise<void> {
-    const [envConfig, secretsConfig] = await Promise.all([readEnvFile(ENV_FILE), readEnvFile(SECRETS_FILE)])
-    const format = ([key, value]: [string, string]): string => `exports.${key} = "${value}";`
+    try {
+        const envConfig = await readEnvFile(ENV_FILE)
+        const format = ([key, value]: [string, string]): string => `exports.${key} = "${value}";`
 
-    const content = `"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
+        const content = `"use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
 
-${Object.entries({ ...envConfig, ...secretsConfig })
-    .map(format)
-    .join('\n')}
-`
-    return writeFile(join(__dirname, '../dist/config.js'), content)
+    ${Object.entries(envConfig).map(format).join('\n')}
+    `
+        await mkdir(join(__dirname, '..', 'dist'), { recursive: true })
+        await writeFile(join(__dirname, '../dist/config.js'), content)
+    } catch (error) {
+        console.error(error)
+        process.exit(1)
+    }
 }
