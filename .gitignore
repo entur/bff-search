@@ -4,3 +4,4 @@
 node_modules
 dist
 search-endpoints.txt
+dump.rdb
