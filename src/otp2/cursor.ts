@@ -5,8 +5,7 @@ import { TripPattern } from '@entur/sdk'
 
 import { isTransitAlternative, isFlexibleAlternative } from '../utils/tripPattern'
 
-import { CursorData, SearchParams } from '../../types'
-import { Metadata } from './controller'
+import { CursorData, SearchParams, Metadata } from '../../types'
 
 export function parseCursor(cursor?: string): CursorData | undefined {
     if (!cursor?.length) return undefined

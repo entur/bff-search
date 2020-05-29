@@ -11,16 +11,21 @@ import { verifyPartnerToken } from '../auth'
 
 import { RawSearchParams, SearchParams, GraphqlQuery } from '../../types'
 
+import { generateShamashLink as generateShamashLinkOtp2 } from '../otp2'
+import { searchTransit as searchTransitOtp2 } from '../otp2/controller'
+import { generateCursor as generateCursorOtp2 } from '../otp2/cursor'
 import { searchTransitWithTaxi, searchTransit, searchNonTransit } from './controller'
 import { updateTripPattern, getExpires } from './updateTrip'
 
-import { parseCursor, generateCursor } from './cursor'
+import logger from '../logger'
 import { filterModesAndSubModes } from '../utils/modes'
 import { buildShamashLink } from '../utils/graphql'
 import { clean } from '../utils/object'
 
 import { ENVIRONMENT } from '../config'
 import { logTransitAnalytics } from '../bigquery'
+
+import { parseCursor, generateCursor } from './cursor'
 
 const router = Router()
 
@@ -62,6 +67,11 @@ function getParams(params: RawSearchParams): SearchParams {
     }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function shouldUseOtp2(_params: SearchParams): boolean {
+    return false
+}
+
 router.post('/v1/transit', async (req, res, next) => {
     try {
         let stopTrace = trace('parseCursor')
@@ -76,10 +86,19 @@ router.post('/v1/transit', async (req, res, next) => {
             params.useFlex = false
         }
 
+        let searchMethod = cursorData ? searchTransit : searchTransitWithTaxi
+        const useOtp2 = shouldUseOtp2(params)
+        if (useOtp2) {
+            searchMethod = searchTransitOtp2
+        }
+
+        logger.info(`Using OTP2 ${useOtp2}`, {
+            useOtp2,
+            correlationId: req.get('X-Correlation-Id'),
+        })
+
         stopTrace = trace(cursorData ? 'searchTransit' : 'searchTransitWithTaxi')
-        const { tripPatterns, hasFlexibleTripPattern, isSameDaySearch, queries } = cursorData
-            ? await searchTransit(params, extraHeaders)
-            : await searchTransitWithTaxi(params, extraHeaders)
+        const { tripPatterns, metadata, hasFlexibleTripPattern, queries } = await searchMethod(params, extraHeaders)
         stopTrace()
 
         stopTrace = trace('logTransitAnalytics')
@@ -87,7 +106,9 @@ router.post('/v1/transit', async (req, res, next) => {
         stopTrace()
 
         stopTrace = trace('generateCursor')
-        const nextCursor = generateCursor(params, tripPatterns)
+        const nextCursor = useOtp2
+            ? generateCursorOtp2(params, metadata, tripPatterns)
+            : generateCursor(params, tripPatterns)
         stopTrace()
 
         stopTrace = trace('generateShamashLinks')
@@ -96,7 +117,7 @@ router.post('/v1/transit', async (req, res, next) => {
                 ? undefined
                 : queries.map((q) => ({
                       ...q,
-                      shamash: generateShamashLink(q),
+                      shamash: useOtp2 ? generateShamashLinkOtp2(q) : generateShamashLink(q),
                   }))
         stopTrace()
 
@@ -107,7 +128,7 @@ router.post('/v1/transit', async (req, res, next) => {
         res.json({
             tripPatterns,
             hasFlexibleTripPattern,
-            isSameDaySearch,
+            isSameDaySearch: true, // TODO 2020-03-09: Deprecated! For compatibility with v5.2.0 and older app versions we need to keep returning isSameDaySearch for a while. See https://bitbucket.org/enturas/entur-clients/pull-requests/4167
             nextCursor,
             queries: mappedQueries,
         })

@@ -2,7 +2,7 @@ import { PluginTypes, start as startTracer } from '@google-cloud/trace-agent'
 
 let tracer: PluginTypes.Tracer
 
-if (startTracer) {
+if (startTracer && process.env.NODE_ENV === 'production') {
     tracer = startTracer()
 }
 

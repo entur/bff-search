@@ -10,7 +10,7 @@ import createEnturService, {
 import { differenceInHours } from 'date-fns'
 import { v4 as uuid } from 'uuid'
 
-import { SearchParams, NonTransitTripPatterns, GraphqlQuery } from '../../types'
+import { SearchParams, NonTransitTripPatterns, GraphqlQuery, Metadata } from '../../types'
 
 import { isFlexibleAlternative, isValidTransitAlternative } from '../utils/tripPattern'
 
@@ -38,6 +38,7 @@ interface TransitTripPatterns {
     tripPatterns: Otp2TripPattern[]
     hasFlexibleTripPattern: boolean
     queries: GraphqlQuery[]
+    metadata?: Metadata
 }
 
 function parseTripPattern(rawTripPattern: any): Otp2TripPattern {
@@ -150,12 +151,6 @@ export function legMapper(leg: Leg): Leg {
     }
 }
 
-export interface Metadata {
-    searchWindowUsed: number
-    nextDateTime: string
-    prevDateTime: string
-}
-
 async function getTripPatterns(params: any): Promise<[Otp2TripPattern[], Metadata | undefined]> {
     const res = await sdk.queryJourneyPlanner<{
         trip: { metadata: Metadata; tripPatterns: any[] }
@@ -176,7 +171,7 @@ export async function searchTransit(
     params: SearchParams,
     extraHeaders: { [key: string]: string },
     prevQueries?: GraphqlQuery[],
-): Promise<TransitTripPatterns & { metadata?: Metadata }> {
+): Promise<TransitTripPatterns> {
     const { initialSearchDate, searchFilter, ...searchParams } = params
     const { searchDate } = searchParams
 
