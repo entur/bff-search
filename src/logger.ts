@@ -66,11 +66,15 @@ export function getTraceInfo(): object {
 // Some inspiration taken from the express-winston library by bithavoc: https://github.com/bithavoc/express-winston/blob/master/index.js
 export function reqResLoggerMiddleware(req: Request, res: Response, next: NextFunction): void {
     const startTime = new Date()
+    const { method, url, route } = req
 
     logger.info(`Request ${req.method} ${req.url}`, {
         body: reqBodyMapper(req),
         headers: reqHeadersMapper(req),
         correlationId: req.get('X-Correlation-Id'),
+        method,
+        url,
+        route: route.path,
         [LoggingWinston.LOGGING_TRACE_KEY]: getCurrentTraceFromAgent(),
     })
 
@@ -116,6 +120,9 @@ export function reqResLoggerMiddleware(req: Request, res: Response, next: NextFu
             res: response,
             status: res.statusCode,
             responseTime,
+            method,
+            url,
+            route: route.path,
             correlationId: req.get('X-Correlation-Id'),
             ...getTraceInfo(),
         })
