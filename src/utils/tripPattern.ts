@@ -44,6 +44,19 @@ export function isValidNonTransitDistance(
     )
 }
 
+export function createParseTripPattern(): (rawTripPattern: any) => TripPattern {
+    let i = 0
+    const sharedId = uuid()
+    const baseId = sharedId.substring(0, 23)
+    const iterator = parseInt(sharedId.substring(24), 16)
+
+    return (rawTripPattern: any): TripPattern => {
+        i++
+        const id = `${baseId}-${(iterator + i).toString(16).slice(-12)}`
+        return parseTripPattern({ id, ...rawTripPattern })
+    }
+}
+
 export function parseTripPattern(rawTripPattern: any): TripPattern {
     return {
         ...rawTripPattern,
