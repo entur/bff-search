@@ -83,7 +83,7 @@ function isFlexibleTripsInCombination({ legs }: TripPattern): boolean {
     return transitLegs.length === 1 && isFlexibleLeg(transitLegs[0])
 }
 
-function isCarAlternative({ legs }: TripPattern): boolean {
+export function isCarAlternative({ legs }: TripPattern): boolean {
     return (legs || []).some(({ mode }) => isCar(mode))
 }
 

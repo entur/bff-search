@@ -3,15 +3,14 @@ import { set, addHours, subHours, differenceInHours } from 'date-fns'
 
 import { SearchParams, TransitTripPatterns, NonTransitTripPatterns, GraphqlQuery } from '../../types'
 
-import { TAXI_LIMITS } from '../constants'
 import {
-    hoursBetweenDateAndTripPattern,
     isBikeRentalAlternative,
     isFlexibleAlternative,
     isValidTransitAlternative,
     isValidTaxiAlternative,
     isValidNonTransitDistance,
     parseTripPattern,
+    isCarAlternative,
 } from '../utils/tripPattern'
 import { sortBy } from '../utils/array'
 import { convertToTimeZone } from '../utils/time'
@@ -42,20 +41,28 @@ export async function searchTransitWithTaxi(
     params: SearchParams,
     extraHeaders: { [key: string]: string },
 ): Promise<TransitTripPatterns> {
-    const [transitResults, nonTransitResults] = await Promise.all([
+    const [transitResults, nonTransitResults, patternsWithTaxi] = await Promise.all([
         searchTransit(params, extraHeaders),
-        searchNonTransit(params, extraHeaders, [LegMode.FOOT, LegMode.CAR]),
+        searchNonTransit(params, extraHeaders, [LegMode.CAR]),
+        searchTaxiFrontBack(params, extraHeaders),
     ])
+
     const transitPatterns = transitResults.tripPatterns
     const carPattern = nonTransitResults.car
-    const patternsWithTaxi = shouldSearchWithTaxi(params, transitPatterns[0], nonTransitResults)
-        ? await searchTaxiFrontBack(params, carPattern, extraHeaders)
-        : []
-    const tripPatterns = sortBy<TripPattern, string>(
-        [...patternsWithTaxi, ...transitPatterns],
+
+    const validTaxiPatterns = patternsWithTaxi.filter(
+        isValidTaxiAlternative(params.initialSearchDate, carPattern, Boolean(params.arriveBy)),
+    )
+
+    let tripPatterns = sortBy<TripPattern, string>(
+        [...validTaxiPatterns, ...transitPatterns],
         (tripPattern) => tripPattern.endTime,
         params.arriveBy ? 'desc' : 'asc',
     )
+
+    const firstNonTaxiIndex = tripPatterns.findIndex((pattern) => !isCarAlternative(pattern))
+
+    tripPatterns = tripPatterns.filter((pattern, index) => index <= firstNonTaxiIndex || !isCarAlternative(pattern))
 
     return { ...transitResults, tripPatterns }
 }
@@ -147,13 +154,12 @@ export async function searchNonTransit(
 
 async function searchTaxiFrontBack(
     params: SearchParams,
-    carPattern?: TripPattern,
     extraHeaders?: { [key: string]: string },
 ): Promise<TripPattern[]> {
     const { initialSearchDate, modes: initialModes = [], ...searchParams } = params
     const modes: QueryMode[] = ['car_pickup', 'car_dropoff']
 
-    const [pickup, dropoff] = await Promise.all(
+    const [pickups, dropoffs] = await Promise.all(
         modes.map(async (mode) => {
             const response = await sdkTransit.getTripPatterns(
                 {
@@ -167,13 +173,11 @@ async function searchTaxiFrontBack(
 
             if (!response?.length) return []
 
-            return response
-                .map(parseTripPattern)
-                .filter(isValidTaxiAlternative(initialSearchDate, carPattern, Boolean(params.arriveBy)))
+            return response.map(parseTripPattern)
         }),
     )
 
-    return [...pickup, ...dropoff]
+    return [...pickups, ...dropoffs]
 }
 
 function getNextSearchParams(params: SearchParams): SearchParams {
@@ -207,19 +211,4 @@ function getNextSearchDate(arriveBy: boolean, initialDate: Date, searchDate: Dat
 
     const tzOffset = differenceInHours(norwegianDate, nextSearchDate)
     return subHours(next, tzOffset)
-}
-
-function shouldSearchWithTaxi(
-    params: SearchParams,
-    tripPattern: TripPattern | undefined,
-    { foot, car }: NonTransitTripPatterns,
-): boolean {
-    if (!tripPattern) return true
-    if (foot && foot.duration < TAXI_LIMITS.FOOT_ALTERNATIVE_MIN_SECONDS) return false
-    if (car && car.duration < TAXI_LIMITS.CAR_ALTERNATIVE_MIN_SECONDS) return false
-
-    const { initialSearchDate, arriveBy } = params
-    const hoursBetween = hoursBetweenDateAndTripPattern(initialSearchDate, tripPattern, Boolean(arriveBy))
-
-    return hoursBetween >= TAXI_LIMITS.DURATION_MAX_HOURS
 }
