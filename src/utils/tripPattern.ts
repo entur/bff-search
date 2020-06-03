@@ -1,6 +1,6 @@
 import { isCar, LegMode, TripPattern } from '@entur/sdk'
 import { v4 as uuid } from 'uuid'
-import { differenceInHours, parseJSON } from 'date-fns'
+import { differenceInHours, parseISO } from 'date-fns'
 
 import { NON_TRANSIT_DISTANCE_LIMITS, TAXI_LIMITS } from '../constants'
 
@@ -67,7 +67,7 @@ export function parseTripPattern(rawTripPattern: any): TripPattern {
 }
 
 export function hoursBetweenDateAndTripPattern(date: Date, tripPattern: TripPattern, arriveBy: boolean): number {
-    const tripPatternDate = parseJSON(arriveBy ? tripPattern.endTime : tripPattern.startTime)
+    const tripPatternDate = parseISO(arriveBy ? tripPattern.endTime : tripPattern.startTime)
 
     return Math.abs(differenceInHours(tripPatternDate, date))
 }
