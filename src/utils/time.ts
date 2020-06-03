@@ -20,9 +20,14 @@ interface Options {
 export function toISOString(date: Date, options: Options): string {
     if (!options.timeZone) return date.toISOString()
     const timeZone = findTimeZone(options.timeZone)
-    const { year, month, day, hours, minutes, seconds, zone } = getZonedTime(date, timeZone)
+    const { year, month, day, hours, minutes, seconds, zone } = getZonedTime(
+        date,
+        timeZone,
+    )
     const offset = zone?.offset
-    return `${year}-${pad(month)}-${pad(day)}T${pad(hours)}:${pad(minutes)}:${pad(seconds)}${formatOffset(offset)}`
+    return `${year}-${pad(month)}-${pad(day)}T${pad(hours)}:${pad(
+        minutes,
+    )}:${pad(seconds)}${formatOffset(offset)}`
 }
 
 // Lifted from date-fns-timezone

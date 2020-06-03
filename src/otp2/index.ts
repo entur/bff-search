@@ -32,7 +32,10 @@ function getHeadersFromClient(req: Request): ExtraHeaders {
     })
 }
 
-export function generateShamashLink({ query, variables }: GraphqlQuery): string {
+export function generateShamashLink({
+    query,
+    variables,
+}: GraphqlQuery): string {
     const host =
         ENVIRONMENT === 'prod'
             ? 'https://api.entur.io/graphql-explorer/journey-planner-v3'
@@ -42,8 +45,15 @@ export function generateShamashLink({ query, variables }: GraphqlQuery): string 
 }
 
 function getParams(params: RawSearchParams): SearchParams {
-    const searchDate = params.searchDate ? parseJSON(params.searchDate) : new Date()
-    const { filteredModes, subModesFilter, banned, whiteListed } = filterModesAndSubModes(params.searchFilter)
+    const searchDate = params.searchDate
+        ? parseJSON(params.searchDate)
+        : new Date()
+    const {
+        filteredModes,
+        subModesFilter,
+        banned,
+        whiteListed,
+    } = filterModesAndSubModes(params.searchFilter)
 
     return {
         ...params,
@@ -61,7 +71,12 @@ router.post('/v1/transit', async (req, res, next) => {
         const cursorData = parseCursor(req.body?.cursor)
         const params = cursorData?.params || getParams(req.body)
         const extraHeaders = getHeadersFromClient(req)
-        const { tripPatterns, hasFlexibleTripPattern, queries, metadata } = await searchTransit(params, extraHeaders)
+        const {
+            tripPatterns,
+            hasFlexibleTripPattern,
+            queries,
+            metadata,
+        } = await searchTransit(params, extraHeaders)
 
         const queriesWithLinks =
             ENVIRONMENT === 'prod'
@@ -73,7 +88,11 @@ router.post('/v1/transit', async (req, res, next) => {
 
         const nextCursor = generateCursor(params, metadata, tripPatterns)
 
-        await Promise.all(tripPatterns.map((tripPattern) => cacheSet(`trip-pattern:${tripPattern.id}`, tripPattern)))
+        await Promise.all(
+            tripPatterns.map((tripPattern) =>
+                cacheSet(`trip-pattern:${tripPattern.id}`, tripPattern),
+            ),
+        )
 
         res.json({
             tripPatterns,
@@ -94,7 +113,9 @@ router.get('/v1/trip-patterns/:id', async (req, res, next) => {
         const tripPattern = await cacheGet<TripPattern>(`trip-pattern:${id}`)
 
         if (!tripPattern) {
-            throw new NotFoundError(`Found no trip pattern with id ${id}. Maybe cache entry expired?`)
+            throw new NotFoundError(
+                `Found no trip pattern with id ${id}. Maybe cache entry expired?`,
+            )
         }
 
         if (update) {

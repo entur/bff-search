@@ -1,5 +1,11 @@
 import fetch from 'node-fetch'
-import { getTripPatternsQuery, TripPattern, Leg, LegMode, QueryMode } from '@entur/sdk'
+import {
+    getTripPatternsQuery,
+    TripPattern,
+    Leg,
+    LegMode,
+    QueryMode,
+} from '@entur/sdk'
 
 import { SearchParams } from '../../types'
 import { TRANSIT_HOST } from '../config'
@@ -33,7 +39,8 @@ interface SearchLimits {
 function getSearchLimits(tripPattern: TripPattern, leg: Leg): SearchLimits {
     const transitLegs = tripPattern.legs.filter(isTransitLeg)
     const hasMultipleLegs = transitLegs.length > 1
-    const isFirstOfMultipleLegs = transitLegs.indexOf(leg) === 0 && hasMultipleLegs
+    const isFirstOfMultipleLegs =
+        transitLegs.indexOf(leg) === 0 && hasMultipleLegs
 
     if (isFirstOfMultipleLegs) {
         return {
@@ -42,7 +49,8 @@ function getSearchLimits(tripPattern: TripPattern, leg: Leg): SearchLimits {
         }
     }
 
-    const isLastOfMultipleLegs = transitLegs.indexOf(leg) === transitLegs.length - 1 && hasMultipleLegs
+    const isLastOfMultipleLegs =
+        transitLegs.indexOf(leg) === transitLegs.length - 1 && hasMultipleLegs
 
     if (isLastOfMultipleLegs) {
         return {
@@ -69,9 +77,14 @@ function fuzzyFindLeg(leg: Leg, legs: Leg[] = []): Leg | undefined {
 
     return legs.find((currentLeg, index) => {
         const { interchangeTo, fromPlace, toPlace } = currentLeg
-        const nextToPlace = interchangeTo?.staySeated ? legs[index + 1]?.toPlace : undefined
+        const nextToPlace = interchangeTo?.staySeated
+            ? legs[index + 1]?.toPlace
+            : undefined
 
-        return fromPlace.name === fromPlaceName && (toPlace.name === toPlaceName || nextToPlace?.name === toPlaceName)
+        return (
+            fromPlace.name === fromPlaceName &&
+            (toPlace.name === toPlaceName || nextToPlace?.name === toPlaceName)
+        )
     })
 }
 
@@ -80,7 +93,10 @@ function getLegId({ mode, serviceJourney, aimedStartTime }: Leg): string {
     return `${id}:${aimedStartTime}`
 }
 
-function uniqTripPatterns(tripPatterns: TripPattern[], legToReplace: Leg): TripPattern[] {
+function uniqTripPatterns(
+    tripPatterns: TripPattern[],
+    legToReplace: Leg,
+): TripPattern[] {
     const seen: string[] = []
     return tripPatterns.filter(({ legs }) => {
         const matchingLeg = fuzzyFindLeg(legToReplace, legs)
@@ -119,19 +135,30 @@ export async function getAlternativeTripPatterns(
 ): Promise<TripPattern[]> {
     const url = `${TRANSIT_HOST}/trip-patterns/replace-leg`
 
-    const legToReplace = findLeg(originalTripPattern.legs, replaceLegServiceJourneyId)
+    const legToReplace = findLeg(
+        originalTripPattern.legs,
+        replaceLegServiceJourneyId,
+    )
     if (!legToReplace) {
-        throw new InvalidArgumentError(`Found no legs with service journey id ${replaceLegServiceJourneyId}`)
+        throw new InvalidArgumentError(
+            `Found no legs with service journey id ${replaceLegServiceJourneyId}`,
+        )
     }
 
-    const modes: QueryMode[] = uniq(['foot', ...originalTripPattern.legs.map((l) => toQueryMode(l.mode))])
+    const modes: QueryMode[] = uniq([
+        'foot',
+        ...originalTripPattern.legs.map((l) => toQueryMode(l.mode)),
+    ])
 
     const originalRequest = getTripPatternsQuery({
         ...searchParams,
         modes,
     })
 
-    const { numEarlierTripPatterns, numLaterTripPatterns } = getSearchLimits(originalTripPattern, legToReplace)
+    const { numEarlierTripPatterns, numLaterTripPatterns } = getSearchLimits(
+        originalTripPattern,
+        legToReplace,
+    )
 
     const { data, errors } = await post<ReplaceLegResponse>(url, {
         originalRequest,
@@ -148,11 +175,15 @@ export async function getAlternativeTripPatterns(
 
     const { trip } = data
     const parseTripPattern = createParseTripPattern()
-    const tripPatterns = [originalTripPattern, ...trip.tripPatterns].map(parseTripPattern)
+    const tripPatterns = [originalTripPattern, ...trip.tripPatterns].map(
+        parseTripPattern,
+    )
     const filteredTripPatterns = uniqTripPatterns(tripPatterns, legToReplace)
 
     return sortBy(filteredTripPatterns, ({ legs }) => {
         const matchingLeg = fuzzyFindLeg(legToReplace, legs)
-        return matchingLeg?.expectedStartTime || matchingLeg?.aimedStartTime || '_'
+        return (
+            matchingLeg?.expectedStartTime || matchingLeg?.aimedStartTime || '_'
+        )
     })
 }

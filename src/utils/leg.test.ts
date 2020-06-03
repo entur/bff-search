@@ -28,7 +28,9 @@ describe('parseLeg', () => {
 describe('isFlexibleLeg', () => {
     it('should check if the leg has a flexible line type', () => {
         const nonFlexibleLeg = { line: { flexibleLineType: undefined } } as Leg
-        const flexibleLeg = { line: { flexibleLineType: 'flexibleAreasOnly' } } as Leg
+        const flexibleLeg = {
+            line: { flexibleLineType: 'flexibleAreasOnly' },
+        } as Leg
 
         expect(isFlexibleLeg(nonFlexibleLeg)).toBeFalsy()
         expect(isFlexibleLeg(flexibleLeg)).toBeTruthy()
@@ -49,10 +51,27 @@ describe('isTransitLeg', () => {
 describe('isBikeRentalLeg', () => {
     it("should check if the leg's from- and to-places are bike rental stations", () => {
         const bikeStation = ({ bikeRentalStation: true } as unknown) as Place
-        const nonBikeStation = ({ bikeRentalStation: false } as unknown) as Place
+        const nonBikeStation = ({
+            bikeRentalStation: false,
+        } as unknown) as Place
 
-        expect(isBikeRentalLeg({ fromPlace: nonBikeStation, toPlace: bikeStation } as Leg)).toBeFalsy()
-        expect(isBikeRentalLeg({ fromPlace: bikeStation, toPlace: nonBikeStation } as Leg)).toBeFalsy()
-        expect(isBikeRentalLeg({ fromPlace: bikeStation, toPlace: bikeStation } as Leg)).toBeTruthy()
+        expect(
+            isBikeRentalLeg({
+                fromPlace: nonBikeStation,
+                toPlace: bikeStation,
+            } as Leg),
+        ).toBeFalsy()
+        expect(
+            isBikeRentalLeg({
+                fromPlace: bikeStation,
+                toPlace: nonBikeStation,
+            } as Leg),
+        ).toBeFalsy()
+        expect(
+            isBikeRentalLeg({
+                fromPlace: bikeStation,
+                toPlace: bikeStation,
+            } as Leg),
+        ).toBeTruthy()
     })
 })

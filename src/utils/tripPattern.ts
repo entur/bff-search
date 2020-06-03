@@ -19,7 +19,9 @@ export function isFlexibleAlternative({ legs }: TripPattern): boolean {
 }
 
 export function isValidTransitAlternative(pattern: TripPattern): boolean {
-    return isTransitAlternative(pattern) && isFlexibleTripsInCombination(pattern)
+    return (
+        isTransitAlternative(pattern) && isFlexibleTripsInCombination(pattern)
+    )
 }
 
 export function isValidTaxiAlternative(
@@ -31,7 +33,8 @@ export function isValidTaxiAlternative(
         isTaxiAlternative(taxiPattern) &&
         isFlexibleTripsInCombination(taxiPattern) &&
         isTaxiAlternativeBetterThanCarAlternative(taxiPattern, carPattern) &&
-        hoursBetweenDateAndTripPattern(searchDate, taxiPattern, arriveBy) < TAXI_LIMITS.DURATION_MAX_HOURS
+        hoursBetweenDateAndTripPattern(searchDate, taxiPattern, arriveBy) <
+            TAXI_LIMITS.DURATION_MAX_HOURS
 }
 
 export function isValidNonTransitDistance(
@@ -62,17 +65,28 @@ export function parseTripPattern(rawTripPattern: any): TripPattern {
         ...rawTripPattern,
         id: rawTripPattern.id || uuid(),
         legs: rawTripPattern.legs.map(parseLeg),
-        genId: `${new Date().getTime()}:${Math.random().toString(36).slice(2, 12)}`,
+        genId: `${new Date().getTime()}:${Math.random()
+            .toString(36)
+            .slice(2, 12)}`,
     }
 }
 
-export function hoursBetweenDateAndTripPattern(date: Date, tripPattern: TripPattern, arriveBy: boolean): number {
-    const tripPatternDate = parseISO(arriveBy ? tripPattern.endTime : tripPattern.startTime)
+export function hoursBetweenDateAndTripPattern(
+    date: Date,
+    tripPattern: TripPattern,
+    arriveBy: boolean,
+): number {
+    const tripPatternDate = parseISO(
+        arriveBy ? tripPattern.endTime : tripPattern.startTime,
+    )
 
     return Math.abs(differenceInHours(tripPatternDate, date))
 }
 
-function isTaxiAlternativeBetterThanCarAlternative({ legs }: TripPattern, carPattern?: TripPattern): boolean {
+function isTaxiAlternativeBetterThanCarAlternative(
+    { legs }: TripPattern,
+    carPattern?: TripPattern,
+): boolean {
     const taxiLeg = legs.find(({ mode }) => mode === LegMode.CAR)
 
     if (!taxiLeg || typeof taxiLeg.duration !== 'number') return true
@@ -80,7 +94,8 @@ function isTaxiAlternativeBetterThanCarAlternative({ legs }: TripPattern, carPat
     const taxiDuration = taxiLeg.duration || 0
 
     return (
-        taxiDuration > TAXI_LIMITS.DURATION_MIN_SECONDS && (!carPattern?.duration || taxiDuration < carPattern.duration)
+        taxiDuration > TAXI_LIMITS.DURATION_MIN_SECONDS &&
+        (!carPattern?.duration || taxiDuration < carPattern.duration)
     )
 }
 

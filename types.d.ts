@@ -59,4 +59,12 @@ export interface FilteredModesAndSubModes {
     whiteListed?: InputWhiteListed
 }
 
-export type SearchFilterType = 'bus' | 'rail' | 'tram' | 'metro' | 'air' | 'water' | 'flytog' | 'flybuss'
+export type SearchFilterType =
+    | 'bus'
+    | 'rail'
+    | 'tram'
+    | 'metro'
+    | 'air'
+    | 'water'
+    | 'flytog'
+    | 'flybuss'

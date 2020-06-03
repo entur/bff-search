@@ -1,7 +1,18 @@
-import createEnturService, { getTripPatternsQuery, LegMode, TripPattern, QueryMode, Leg } from '@entur/sdk'
+import createEnturService, {
+    getTripPatternsQuery,
+    LegMode,
+    TripPattern,
+    QueryMode,
+    Leg,
+} from '@entur/sdk'
 import { set, addHours, subHours, differenceInHours } from 'date-fns'
 
-import { SearchParams, TransitTripPatterns, NonTransitTripPatterns, GraphqlQuery } from '../../types'
+import {
+    SearchParams,
+    TransitTripPatterns,
+    NonTransitTripPatterns,
+    GraphqlQuery,
+} from '../../types'
 
 import {
     isBikeRentalAlternative,
@@ -42,7 +53,11 @@ export async function searchTransitWithTaxi(
     params: SearchParams,
     extraHeaders: { [key: string]: string },
 ): Promise<TransitTripPatterns> {
-    const [transitResults, nonTransitResults, patternsWithTaxi] = await Promise.all([
+    const [
+        transitResults,
+        nonTransitResults,
+        patternsWithTaxi,
+    ] = await Promise.all([
         searchTransit(params, extraHeaders),
         searchNonTransit(params, extraHeaders, [LegMode.CAR]),
         searchTaxiFrontBack(params, extraHeaders),
@@ -52,7 +67,11 @@ export async function searchTransitWithTaxi(
     const carPattern = nonTransitResults.car
 
     const validTaxiPatterns = patternsWithTaxi.filter(
-        isValidTaxiAlternative(params.initialSearchDate, carPattern, Boolean(params.arriveBy)),
+        isValidTaxiAlternative(
+            params.initialSearchDate,
+            carPattern,
+            Boolean(params.arriveBy),
+        ),
     )
 
     let tripPatterns = sortBy<TripPattern, string>(
@@ -61,10 +80,16 @@ export async function searchTransitWithTaxi(
         params.arriveBy ? 'desc' : 'asc',
     )
 
-    const firstNonTaxi = tripPatterns.find((pattern) => !isCarAlternative(pattern))
+    const firstNonTaxi = tripPatterns.find(
+        (pattern) => !isCarAlternative(pattern),
+    )
 
     const hoursUntilFirstNonTaxi = firstNonTaxi
-        ? hoursBetweenDateAndTripPattern(params.initialSearchDate, firstNonTaxi, Boolean(params.arriveBy))
+        ? hoursBetweenDateAndTripPattern(
+              params.initialSearchDate,
+              firstNonTaxi,
+              Boolean(params.arriveBy),
+          )
         : Infinity
 
     tripPatterns = tripPatterns.filter((pattern) => {
@@ -94,13 +119,18 @@ export async function searchTransit(
         maxPreTransitWalkDistance: 2000,
     }
 
-    const response = await sdkTransit.getTripPatterns(getTripPatternsParams, { headers: extraHeaders })
+    const response = await sdkTransit.getTripPatterns(getTripPatternsParams, {
+        headers: extraHeaders,
+    })
 
     const query = getTripPatternsQuery(getTripPatternsParams)
     const queries = [...(prevQueries || []), query]
     const parseTripPattern = createParseTripPattern()
 
-    const tripPatterns = response.map(parseTripPattern).filter(isValidTransitAlternative)
+    const tripPatterns = response
+        .map(parseTripPattern)
+        .filter(isValidTransitAlternative)
+
     const isSameDaySearch = isSameNorwegianDate(searchDate, initialSearchDate)
 
     if (!tripPatterns.length && isSameDaySearch) {
@@ -120,7 +150,12 @@ type NonTransitMode = 'foot' | 'bicycle' | 'car' | 'bicycle_rent'
 export async function searchNonTransit(
     params: SearchParams,
     extraHeaders: { [key: string]: string },
-    modes: NonTransitMode[] = [LegMode.FOOT, LegMode.BICYCLE, LegMode.CAR, 'bicycle_rent'],
+    modes: NonTransitMode[] = [
+        LegMode.FOOT,
+        LegMode.BICYCLE,
+        LegMode.CAR,
+        'bicycle_rent',
+    ],
 ): Promise<NonTransitTripPatterns> {
     const parseTripPattern = createParseTripPattern()
 
@@ -130,7 +165,10 @@ export async function searchNonTransit(
                 {
                     ...params,
                     limit: mode === 'bicycle_rent' ? 3 : 1,
-                    modes: mode === 'bicycle_rent' ? [LegMode.FOOT, LegMode.BICYCLE] : [mode],
+                    modes:
+                        mode === 'bicycle_rent'
+                            ? [LegMode.FOOT, LegMode.BICYCLE]
+                            : [mode],
                     maxPreTransitWalkDistance: 2000,
                     allowBikeRental: mode === 'bicycle_rent',
                 },
@@ -138,13 +176,18 @@ export async function searchNonTransit(
             )
 
             const candidate = result.find(({ legs }) => {
-                const modeToCheck = mode === 'bicycle_rent' ? LegMode.BICYCLE : mode
+                const modeToCheck =
+                    mode === 'bicycle_rent' ? LegMode.BICYCLE : mode
 
                 const matchesMode = (leg: Leg): boolean =>
-                    leg.mode === modeToCheck && leg.rentedBike === (mode === 'bicycle_rent')
+                    leg.mode === modeToCheck &&
+                    leg.rentedBike === (mode === 'bicycle_rent')
 
                 const matchesModes =
-                    legs.some(matchesMode) && legs.every((leg) => leg.mode === LegMode.FOOT || matchesMode(leg))
+                    legs.some(matchesMode) &&
+                    legs.every(
+                        (leg) => leg.mode === LegMode.FOOT || matchesMode(leg),
+                    )
 
                 return matchesModes
             })
@@ -173,7 +216,11 @@ async function searchTaxiFrontBack(
     params: SearchParams,
     extraHeaders?: { [key: string]: string },
 ): Promise<TripPattern[]> {
-    const { initialSearchDate, modes: initialModes = [], ...searchParams } = params
+    const {
+        initialSearchDate,
+        modes: initialModes = [],
+        ...searchParams
+    } = params
     const modes: QueryMode[] = ['car_pickup', 'car_dropoff']
     const parseTripPattern = createParseTripPattern()
 
@@ -200,22 +247,37 @@ async function searchTaxiFrontBack(
 
 function getNextSearchParams(params: SearchParams): SearchParams {
     const { arriveBy, initialSearchDate, searchDate } = params
-    const nextDate = getNextSearchDate(Boolean(arriveBy), initialSearchDate, searchDate)
+    const nextDate = getNextSearchDate(
+        Boolean(arriveBy),
+        initialSearchDate,
+        searchDate,
+    )
 
     return { ...params, searchDate: nextDate }
 }
 
-function getNextSearchDate(arriveBy: boolean, initialDate: Date, searchDate: Date): Date {
-    const hoursSinceInitialSearch = Math.abs(differenceInHours(initialDate, searchDate))
+function getNextSearchDate(
+    arriveBy: boolean,
+    initialDate: Date,
+    searchDate: Date,
+): Date {
+    const hoursSinceInitialSearch = Math.abs(
+        differenceInHours(initialDate, searchDate),
+    )
     const sign = arriveBy ? -1 : 1
-    const searchDateOffset = hoursSinceInitialSearch === 0 ? sign * 2 : sign * hoursSinceInitialSearch * 3
+    const searchDateOffset =
+        hoursSinceInitialSearch === 0
+            ? sign * 2
+            : sign * hoursSinceInitialSearch * 3
     const nextSearchDate = addHours(initialDate, searchDateOffset)
 
     if (isSameNorwegianDate(nextSearchDate, initialDate)) {
         return nextSearchDate
     }
 
-    const norwegianDate = convertToTimeZone(nextSearchDate, { timeZone: 'Europe/Oslo' })
+    const norwegianDate = convertToTimeZone(nextSearchDate, {
+        timeZone: 'Europe/Oslo',
+    })
 
     const next = set(nextSearchDate, {
         year: norwegianDate.getFullYear(),

@@ -16,7 +16,12 @@ export const verifyPartnerToken = jwt({
     algorithms: ['RS256'],
 })
 
-export function unauthorizedError(error: Error, _req: Request, res: Response, next: NextFunction): void {
+export function unauthorizedError(
+    error: Error,
+    _req: Request,
+    res: Response,
+    next: NextFunction,
+): void {
     if (error.name === 'UnauthorizedError') {
         res.status(401).send(error.message)
         return

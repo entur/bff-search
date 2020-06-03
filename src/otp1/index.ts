@@ -15,7 +15,11 @@ import { RawSearchParams, SearchParams, GraphqlQuery } from '../../types'
 import { generateShamashLink as generateShamashLinkOtp2 } from '../otp2'
 import { searchTransit as searchTransitOtp2 } from '../otp2/controller'
 import { generateCursor as generateCursorOtp2 } from '../otp2/cursor'
-import { searchTransitWithTaxi, searchTransit, searchNonTransit } from './controller'
+import {
+    searchTransitWithTaxi,
+    searchTransit,
+    searchNonTransit,
+} from './controller'
 import { updateTripPattern, getExpires } from './updateTrip'
 
 import logger from '../logger'
@@ -58,8 +62,15 @@ function generateShamashLink({ query, variables }: GraphqlQuery): string {
 }
 
 function getParams(params: RawSearchParams): SearchParams {
-    const searchDate = params.searchDate ? parseJSON(params.searchDate) : new Date()
-    const { filteredModes, subModesFilter, banned, whiteListed } = filterModesAndSubModes(params.searchFilter)
+    const searchDate = params.searchDate
+        ? parseJSON(params.searchDate)
+        : new Date()
+    const {
+        filteredModes,
+        subModesFilter,
+        banned,
+        whiteListed,
+    } = filterModesAndSubModes(params.searchFilter)
 
     return {
         ...params,
@@ -113,8 +124,15 @@ router.post('/v1/transit', async (req, res, next) => {
             correlationId: req.get('X-Correlation-Id'),
         })
 
-        stopTrace = trace(cursorData ? 'searchTransit' : 'searchTransitWithTaxi')
-        const { tripPatterns, metadata, hasFlexibleTripPattern, queries } = await searchMethod(params, extraHeaders)
+        stopTrace = trace(
+            cursorData ? 'searchTransit' : 'searchTransitWithTaxi',
+        )
+        const {
+            tripPatterns,
+            metadata,
+            hasFlexibleTripPattern,
+            queries,
+        } = await searchMethod(params, extraHeaders)
         stopTrace()
 
         stopTrace = trace('logTransitAnalytics')
@@ -133,16 +151,26 @@ router.post('/v1/transit', async (req, res, next) => {
                 ? undefined
                 : queries.map((q) => ({
                       ...q,
-                      shamash: useOtp2 ? generateShamashLinkOtp2(q) : generateShamashLink(q),
+                      shamash: useOtp2
+                          ? generateShamashLinkOtp2(q)
+                          : generateShamashLink(q),
                   }))
         stopTrace()
 
         stopTrace = trace('cache')
-        const searchParamsIds = uniq(tripPatterns.map(({ id = '' }) => deriveSearchParamsId(id)))
+        const searchParamsIds = uniq(
+            tripPatterns.map(({ id = '' }) => deriveSearchParamsId(id)),
+        )
         await Promise.all([
-            ...tripPatterns.map((tripPattern) => cacheSet(`trip-pattern:${tripPattern.id}`, tripPattern)),
+            ...tripPatterns.map((tripPattern) =>
+                cacheSet(`trip-pattern:${tripPattern.id}`, tripPattern),
+            ),
             ...searchParamsIds.map((searchParamsId) =>
-                cacheSet(`search-params:${searchParamsId}`, params, SEARCH_PARAMS_EXPIRE_IN_SECONDS),
+                cacheSet(
+                    `search-params:${searchParamsId}`,
+                    params,
+                    SEARCH_PARAMS_EXPIRE_IN_SECONDS,
+                ),
             ),
         ])
         stopTrace()
@@ -170,7 +198,9 @@ router.get('/v1/trip-patterns/:id', async (req, res, next) => {
         ])
 
         if (!tripPattern) {
-            throw new NotFoundError(`Found no trip pattern with id ${id}. Maybe cache entry expired?`)
+            throw new NotFoundError(
+                `Found no trip pattern with id ${id}. Maybe cache entry expired?`,
+            )
         }
 
         if (update) {
@@ -190,11 +220,15 @@ router.post('/v1/trip-patterns', verifyPartnerToken, async (req, res, next) => {
         const { tripPattern, searchParams } = req.body
 
         if (!tripPattern) {
-            throw new InvalidArgumentError('Found no `tripPattern` key in body.')
+            throw new InvalidArgumentError(
+                'Found no `tripPattern` key in body.',
+            )
         }
 
         if (typeof tripPattern !== 'object') {
-            throw new InvalidArgumentError(`\`tripPattern\` is invalid. Expected an object, got ${typeof tripPattern}`)
+            throw new InvalidArgumentError(
+                `\`tripPattern\` is invalid. Expected an object, got ${typeof tripPattern}`,
+            )
         }
 
         const tripPatternId = tripPattern.id || uuid()
@@ -207,7 +241,12 @@ router.post('/v1/trip-patterns', verifyPartnerToken, async (req, res, next) => {
 
         await Promise.all([
             cacheSet(`trip-pattern:${tripPatternId}`, newTripPattern),
-            searchParams && cacheSet(`search-params:${searchParamsId}`, searchParams, SEARCH_PARAMS_EXPIRE_IN_SECONDS),
+            searchParams &&
+                cacheSet(
+                    `search-params:${searchParamsId}`,
+                    searchParams,
+                    SEARCH_PARAMS_EXPIRE_IN_SECONDS,
+                ),
         ])
 
         res.status(201).json({ tripPattern: newTripPattern })
@@ -229,25 +268,41 @@ router.post('/v1/trip-patterns/:id/replace-leg', async (req, res, next) => {
         stopTrace()
 
         if (!tripPattern) {
-            throw new NotFoundError(`Found no trip pattern with id ${id}. Maybe cache entry expired?`)
+            throw new NotFoundError(
+                `Found no trip pattern with id ${id}. Maybe cache entry expired?`,
+            )
         }
         if (!searchParams) {
-            throw new NotFoundError(`Found no search params id ${id}. Maybe cache entry expired?`)
+            throw new NotFoundError(
+                `Found no search params id ${id}. Maybe cache entry expired?`,
+            )
         }
 
         stopTrace = trace('getAlternativeTripPatterns')
         const params = getParams(searchParams)
-        const tripPatterns = await getAlternativeTripPatterns(tripPattern, replaceLegServiceJourneyId, params)
+        const tripPatterns = await getAlternativeTripPatterns(
+            tripPattern,
+            replaceLegServiceJourneyId,
+            params,
+        )
         stopTrace()
 
         stopTrace = trace('populating cache')
         const searchParamsIds = uniq(
-            tripPatterns.map(({ id: tripPatternId = '' }) => deriveSearchParamsId(tripPatternId)),
+            tripPatterns.map(({ id: tripPatternId = '' }) =>
+                deriveSearchParamsId(tripPatternId),
+            ),
         )
         await Promise.all([
-            ...tripPatterns.map((trip) => cacheSet(`trip-pattern:${trip.id}`, trip)),
+            ...tripPatterns.map((trip) =>
+                cacheSet(`trip-pattern:${trip.id}`, trip),
+            ),
             ...searchParamsIds.map((searchParamsId) =>
-                cacheSet(`search-params:${searchParamsId}`, params, SEARCH_PARAMS_EXPIRE_IN_SECONDS),
+                cacheSet(
+                    `search-params:${searchParamsId}`,
+                    params,
+                    SEARCH_PARAMS_EXPIRE_IN_SECONDS,
+                ),
             ),
         ])
         stopTrace()
@@ -276,7 +331,9 @@ router.post('/v1/bike-rental', async (req, res, next) => {
     try {
         const params = getParams(req.body)
         const extraHeaders = getHeadersFromClient(req)
-        const tripPattern = await searchNonTransit(params, extraHeaders, ['bicycle_rent'])
+        const tripPattern = await searchNonTransit(params, extraHeaders, [
+            'bicycle_rent',
+        ])
 
         res.json({ tripPattern })
     } catch (error) {

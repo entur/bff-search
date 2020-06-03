@@ -26,7 +26,9 @@ export function isTransitLeg({ mode }: Leg): boolean {
 }
 
 export function isBikeRentalLeg(leg: Leg): boolean {
-    return Boolean(leg.fromPlace?.bikeRentalStation && leg.toPlace?.bikeRentalStation)
+    return Boolean(
+        leg.fromPlace?.bikeRentalStation && leg.toPlace?.bikeRentalStation,
+    )
 }
 
 // Replaces `leg.mode` from the OTP result from `coach` to `bus`.
