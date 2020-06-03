@@ -177,6 +177,10 @@ fragment situationFields on PtSituationElement {
         language
         value
     }
+    advice {
+        language
+        value
+    }
     detail {
         language
         value
