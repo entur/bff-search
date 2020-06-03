@@ -3,6 +3,7 @@ import { getTripPatternsQuery, TripPattern, Leg, LegMode, QueryMode } from '@ent
 
 import { SearchParams } from '../../types'
 import { TRANSIT_HOST } from '../config'
+import { InvalidArgumentError, JourneyPlannerError } from '../errors'
 import { uniq, sortBy } from '../utils/array'
 import { createParseTripPattern } from '../utils/tripPattern'
 import { isTransitLeg } from '../utils/leg'
@@ -19,7 +20,7 @@ async function post<T>(url: string, params: object): Promise<T> {
 
     if (!response.ok) {
         const data = await response.json()
-        throw new Error(data.message)
+        throw new JourneyPlannerError(data.message)
     }
 
     return response.json()
@@ -41,7 +42,9 @@ function getSearchLimits(tripPattern: TripPattern, leg: Leg): SearchLimits {
         }
     }
 
-    if (!isFirstOfMultipleLegs && hasMultipleLegs) {
+    const isLastOfMultipleLegs = transitLegs.indexOf(leg) === transitLegs.length - 1 && hasMultipleLegs
+
+    if (isLastOfMultipleLegs) {
         return {
             numEarlierTripPatterns: 2,
             numLaterTripPatterns: 8,
@@ -107,7 +110,7 @@ interface ReplaceLegResponse {
             tripPatterns: TripPattern[]
         }
     }
-    errors: QueryError[]
+    errors?: QueryError[]
 }
 export async function getAlternativeTripPatterns(
     originalTripPattern: TripPattern,
@@ -118,7 +121,7 @@ export async function getAlternativeTripPatterns(
 
     const legToReplace = findLeg(originalTripPattern.legs, replaceLegServiceJourneyId)
     if (!legToReplace) {
-        throw new Error('blæ')
+        throw new InvalidArgumentError(`Found no legs with service journey id ${replaceLegServiceJourneyId}`)
     }
 
     const modes: QueryMode[] = uniq(['foot', ...originalTripPattern.legs.map((l) => toQueryMode(l.mode))])
@@ -140,7 +143,7 @@ export async function getAlternativeTripPatterns(
 
     if (errors?.[0]) {
         const { errorType, message } = errors[0]
-        throw new Error(`${errorType}: ${message}`)
+        throw new JourneyPlannerError(`${errorType}: ${message}`)
     }
 
     const { trip } = data
