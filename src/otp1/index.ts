@@ -1,8 +1,9 @@
 import { Router, Request } from 'express'
 import { parseJSON } from 'date-fns'
 import { v4 as uuid } from 'uuid'
+import distance from 'haversine-distance'
 
-import { TripPattern } from '@entur/sdk'
+import { TripPattern, QueryMode } from '@entur/sdk'
 
 import trace from '../tracer'
 import { set as cacheSet, get as cacheGet } from '../cache'
@@ -72,9 +73,19 @@ function getParams(params: RawSearchParams): SearchParams {
     }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function shouldUseOtp2(_params: SearchParams): boolean {
-    return false
+function shouldUseOtp2(params: SearchParams): boolean {
+    if (ENVIRONMENT === 'prod') return false
+
+    const { from, to } = params
+    if (!from.coordinates || !to.coordinates) return false
+
+    const blacklistedModes: QueryMode[] = ['air', 'water', 'rail']
+    if (blacklistedModes.some((mode) => params.modes?.includes(mode))) {
+        return false
+    }
+
+    const distanceBetweenFromAndTo = distance(from.coordinates, to.coordinates)
+    return distanceBetweenFromAndTo >= 100000
 }
 
 router.post('/v1/transit', async (req, res, next) => {
