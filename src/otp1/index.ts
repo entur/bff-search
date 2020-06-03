@@ -210,10 +210,12 @@ router.post('/v1/trip-patterns/:id/replace-leg', async (req, res, next) => {
         const { id } = req.params
         const { replaceLegServiceJourneyId } = req.body
 
+        let stopTrace = trace('retrieve from cache')
         const [tripPattern, searchParams] = await Promise.all([
             cacheGet<TripPattern>(`trip-pattern:${id}`),
             cacheGet<SearchParams>(`search-params:${deriveSearchParamsId(id)}`),
         ])
+        stopTrace()
 
         if (!tripPattern) {
             throw new NotFoundError(`Found no trip pattern with id ${id}. Maybe cache entry expired?`)
@@ -222,9 +224,12 @@ router.post('/v1/trip-patterns/:id/replace-leg', async (req, res, next) => {
             throw new NotFoundError(`Found no search params id ${id}. Maybe cache entry expired?`)
         }
 
+        stopTrace = trace('getAlternativeTripPatterns')
         const params = getParams(searchParams)
         const tripPatterns = await getAlternativeTripPatterns(tripPattern, replaceLegServiceJourneyId, params)
+        stopTrace()
 
+        stopTrace = trace('populating cache')
         const searchParamsIds = uniq(
             tripPatterns.map(({ id: tripPatternId = '' }) => deriveSearchParamsId(tripPatternId)),
         )
@@ -234,6 +239,7 @@ router.post('/v1/trip-patterns/:id/replace-leg', async (req, res, next) => {
                 cacheSet(`search-params:${searchParamsId}`, params, SEARCH_PARAMS_EXPIRE_IN_SECONDS),
             ),
         ])
+        stopTrace()
 
         res.json({ tripPatterns })
     } catch (error) {
