@@ -181,10 +181,6 @@ fragment situationFields on PtSituationElement {
         language
         value
     }
-    detail {
-        language
-        value
-    }
     lines {
         ...lineFields
     }
