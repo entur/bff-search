@@ -41,6 +41,7 @@ app.use(unauthorizedError)
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 app.use((error: Error, _req: express.Request, res: express.Response, _2: express.NextFunction) => {
+    const name = error.constructor?.name || 'Error'
     let statusCode = 500
     if (error instanceof NotFoundError) {
         statusCode = 404
@@ -48,7 +49,7 @@ app.use((error: Error, _req: express.Request, res: express.Response, _2: express
         statusCode = 400
     }
 
-    res.status(statusCode).json({ error: error.message, stack: error.stack })
+    res.status(statusCode).json({ error: error.message, stack: error.stack, name })
 })
 
 app.listen(PORT, () => {

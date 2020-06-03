@@ -9,8 +9,8 @@ import {
     isValidTransitAlternative,
     isValidTaxiAlternative,
     isValidNonTransitDistance,
-    parseTripPattern,
     isCarAlternative,
+    createParseTripPattern,
 } from '../utils/tripPattern'
 import { sortBy } from '../utils/array'
 import { convertToTimeZone } from '../utils/time'
@@ -84,6 +84,7 @@ export async function searchTransit(
 
     const query = getTripPatternsQuery(getTripPatternsParams)
     const queries = [...(prevQueries || []), query]
+    const parseTripPattern = createParseTripPattern()
 
     const tripPatterns = response.map(parseTripPattern).filter(isValidTransitAlternative)
     const isSameDaySearch = isSameNorwegianDate(searchDate, initialSearchDate)
@@ -107,6 +108,8 @@ export async function searchNonTransit(
     extraHeaders: { [key: string]: string },
     modes: NonTransitMode[] = [LegMode.FOOT, LegMode.BICYCLE, LegMode.CAR, 'bicycle_rent'],
 ): Promise<NonTransitTripPatterns> {
+    const parseTripPattern = createParseTripPattern()
+
     const results = await Promise.all(
         modes.map(async (mode) => {
             const result = await sdkNonTransit.getTripPatterns(
@@ -158,6 +161,7 @@ async function searchTaxiFrontBack(
 ): Promise<TripPattern[]> {
     const { initialSearchDate, modes: initialModes = [], ...searchParams } = params
     const modes: QueryMode[] = ['car_pickup', 'car_dropoff']
+    const parseTripPattern = createParseTripPattern()
 
     const [pickups, dropoffs] = await Promise.all(
         modes.map(async (mode) => {
