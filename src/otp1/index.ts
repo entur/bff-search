@@ -1,8 +1,9 @@
 import { Router, Request } from 'express'
 import { parseJSON } from 'date-fns'
 import { v4 as uuid } from 'uuid'
+import distance from 'haversine-distance'
 
-import { TripPattern } from '@entur/sdk'
+import { TripPattern, QueryMode } from '@entur/sdk'
 
 import trace from '../tracer'
 import { set as cacheSet, get as cacheGet } from '../cache'
@@ -19,6 +20,8 @@ import { updateTripPattern, getExpires } from './updateTrip'
 
 import logger from '../logger'
 import { filterModesAndSubModes } from '../utils/modes'
+import { uniq } from '../utils/array'
+import { deriveSearchParamsId } from '../utils/searchParams'
 import { buildShamashLink } from '../utils/graphql'
 import { clean } from '../utils/object'
 
@@ -26,6 +29,9 @@ import { ENVIRONMENT } from '../config'
 import { logTransitAnalytics } from '../bigquery'
 
 import { parseCursor, generateCursor } from './cursor'
+import { getAlternativeTripPatterns } from './replaceLeg'
+
+const SEARCH_PARAMS_EXPIRE_IN_SECONDS = 2 * 60 * 60 // two hours
 
 const router = Router()
 
@@ -67,9 +73,19 @@ function getParams(params: RawSearchParams): SearchParams {
     }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function shouldUseOtp2(_params: SearchParams): boolean {
-    return false
+function shouldUseOtp2(params: SearchParams): boolean {
+    if (ENVIRONMENT === 'prod') return false
+
+    const { from, to } = params
+    if (!from.coordinates || !to.coordinates) return false
+
+    const blacklistedModes: QueryMode[] = ['air', 'water', 'rail']
+    if (blacklistedModes.some((mode) => params.modes?.includes(mode))) {
+        return false
+    }
+
+    const distanceBetweenFromAndTo = distance(from.coordinates, to.coordinates)
+    return distanceBetweenFromAndTo >= 100000
 }
 
 router.post('/v1/transit', async (req, res, next) => {
@@ -122,7 +138,13 @@ router.post('/v1/transit', async (req, res, next) => {
         stopTrace()
 
         stopTrace = trace('cache')
-        await Promise.all(tripPatterns.map((tripPattern) => cacheSet(`trip-pattern:${tripPattern.id}`, tripPattern)))
+        const searchParamsIds = uniq(tripPatterns.map(({ id = '' }) => deriveSearchParamsId(id)))
+        await Promise.all([
+            ...tripPatterns.map((tripPattern) => cacheSet(`trip-pattern:${tripPattern.id}`, tripPattern)),
+            ...searchParamsIds.map((searchParamsId) =>
+                cacheSet(`search-params:${searchParamsId}`, params, SEARCH_PARAMS_EXPIRE_IN_SECONDS),
+            ),
+        ])
         stopTrace()
 
         res.json({
@@ -142,7 +164,10 @@ router.get('/v1/trip-patterns/:id', async (req, res, next) => {
         const { id } = req.params
         const { update } = req.query
 
-        const tripPattern = await cacheGet<TripPattern>(`trip-pattern:${id}`)
+        const [tripPattern, searchParams] = await Promise.all([
+            cacheGet<TripPattern>(`trip-pattern:${id}`),
+            cacheGet<SearchParams>(`search-params:${deriveSearchParamsId(id)}`),
+        ])
 
         if (!tripPattern) {
             throw new NotFoundError(`Found no trip pattern with id ${id}. Maybe cache entry expired?`)
@@ -151,9 +176,9 @@ router.get('/v1/trip-patterns/:id', async (req, res, next) => {
         if (update) {
             const updatedTripPattern = await updateTripPattern(tripPattern)
             const expires = getExpires(updatedTripPattern)
-            res.json({ tripPattern: updatedTripPattern, expires })
+            res.json({ tripPattern: updatedTripPattern, searchParams, expires })
         } else {
-            res.json({ tripPattern })
+            res.json({ tripPattern, searchParams })
         }
     } catch (error) {
         next(error)
@@ -162,7 +187,7 @@ router.get('/v1/trip-patterns/:id', async (req, res, next) => {
 
 router.post('/v1/trip-patterns', verifyPartnerToken, async (req, res, next) => {
     try {
-        const { tripPattern } = req.body
+        const { tripPattern, searchParams } = req.body
 
         if (!tripPattern) {
             throw new InvalidArgumentError('Found no `tripPattern` key in body.')
@@ -172,16 +197,62 @@ router.post('/v1/trip-patterns', verifyPartnerToken, async (req, res, next) => {
             throw new InvalidArgumentError(`\`tripPattern\` is invalid. Expected an object, got ${typeof tripPattern}`)
         }
 
-        const id = tripPattern.id || uuid()
+        const tripPatternId = tripPattern.id || uuid()
+        const searchParamsId = deriveSearchParamsId(tripPatternId)
 
         const newTripPattern = {
             ...tripPattern,
-            id,
+            id: tripPatternId,
         }
 
-        await cacheSet(`trip-pattern:${id}`, newTripPattern)
+        await Promise.all([
+            cacheSet(`trip-pattern:${tripPatternId}`, newTripPattern),
+            searchParams && cacheSet(`search-params:${searchParamsId}`, searchParams, SEARCH_PARAMS_EXPIRE_IN_SECONDS),
+        ])
 
         res.status(201).json({ tripPattern: newTripPattern })
+    } catch (error) {
+        next(error)
+    }
+})
+
+router.post('/v1/trip-patterns/:id/replace-leg', async (req, res, next) => {
+    try {
+        const { id } = req.params
+        const { replaceLegServiceJourneyId } = req.body
+
+        let stopTrace = trace('retrieve from cache')
+        const [tripPattern, searchParams] = await Promise.all([
+            cacheGet<TripPattern>(`trip-pattern:${id}`),
+            cacheGet<SearchParams>(`search-params:${deriveSearchParamsId(id)}`),
+        ])
+        stopTrace()
+
+        if (!tripPattern) {
+            throw new NotFoundError(`Found no trip pattern with id ${id}. Maybe cache entry expired?`)
+        }
+        if (!searchParams) {
+            throw new NotFoundError(`Found no search params id ${id}. Maybe cache entry expired?`)
+        }
+
+        stopTrace = trace('getAlternativeTripPatterns')
+        const params = getParams(searchParams)
+        const tripPatterns = await getAlternativeTripPatterns(tripPattern, replaceLegServiceJourneyId, params)
+        stopTrace()
+
+        stopTrace = trace('populating cache')
+        const searchParamsIds = uniq(
+            tripPatterns.map(({ id: tripPatternId = '' }) => deriveSearchParamsId(tripPatternId)),
+        )
+        await Promise.all([
+            ...tripPatterns.map((trip) => cacheSet(`trip-pattern:${trip.id}`, trip)),
+            ...searchParamsIds.map((searchParamsId) =>
+                cacheSet(`search-params:${searchParamsId}`, params, SEARCH_PARAMS_EXPIRE_IN_SECONDS),
+            ),
+        ])
+        stopTrace()
+
+        res.json({ tripPatterns })
     } catch (error) {
         next(error)
     }

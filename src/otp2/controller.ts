@@ -41,6 +41,19 @@ interface TransitTripPatterns {
     metadata?: Metadata
 }
 
+export function createParseTripPattern(): (rawTripPattern: any) => Otp2TripPattern {
+    let i = 0
+    const sharedId = uuid()
+    const baseId = sharedId.substring(0, 23)
+    const iterator = parseInt(sharedId.substring(24), 16)
+
+    return (rawTripPattern: any) => {
+        i++
+        const id = `${baseId}-${(iterator + i).toString(16).slice(-12)}`
+        return parseTripPattern({ id, ...rawTripPattern })
+    }
+}
+
 function parseTripPattern(rawTripPattern: any): Otp2TripPattern {
     return {
         ...rawTripPattern,
@@ -191,7 +204,8 @@ export async function searchTransit(
     const query = getTripPatternsQuery(getTripPatternsParams)
     const queries = [...(prevQueries || []), query]
 
-    const tripPatterns = response.map(parseTripPattern).filter(isValidTransitAlternative)
+    const parse = createParseTripPattern()
+    const tripPatterns = response.map(parse).filter(isValidTransitAlternative)
 
     const searchTimeWithinRange = differenceInHours(searchDate, initialSearchDate) < 12
 
@@ -217,6 +231,7 @@ export async function searchNonTransit(
     tripPatterns: NonTransitTripPatterns
     queries: { [key in NonTransitMode]?: GraphqlQuery }
 }> {
+    const parse = createParseTripPattern()
     const results = await Promise.all(
         modes.map(async (mode) => {
             const getTripPatternsParams = {
@@ -236,7 +251,7 @@ export async function searchNonTransit(
 
             const candidate = result[0]
 
-            const tripPattern = candidate && parseTripPattern(candidate)
+            const tripPattern = candidate && parse(candidate)
 
             return { mode, tripPattern, query }
         }),
