@@ -224,6 +224,17 @@ router.post('/v1/trip-patterns/:id/replace-leg', async (req, res, next) => {
 
         const params = getParams(searchParams)
         const tripPatterns = await getAlternativeTripPatterns(tripPattern, replaceLegServiceJourneyId, params)
+
+        const searchParamsIds = uniq(
+            tripPatterns.map(({ id: tripPatternId = '' }) => deriveSearchParamsId(tripPatternId)),
+        )
+        await Promise.all([
+            ...tripPatterns.map((trip) => cacheSet(`trip-pattern:${trip.id}`, trip)),
+            ...searchParamsIds.map((searchParamsId) =>
+                cacheSet(`search-params:${searchParamsId}`, params, SEARCH_PARAMS_EXPIRE_IN_SECONDS),
+            ),
+        ])
+
         res.json({ tripPatterns })
     } catch (error) {
         next(error)
