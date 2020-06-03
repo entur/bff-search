@@ -10,6 +10,7 @@ import {
     isValidTaxiAlternative,
     isValidNonTransitDistance,
     isCarAlternative,
+    hoursBetweenDateAndTripPattern,
     createParseTripPattern,
 } from '../utils/tripPattern'
 import { sortBy } from '../utils/array'
@@ -60,9 +61,22 @@ export async function searchTransitWithTaxi(
         params.arriveBy ? 'desc' : 'asc',
     )
 
-    const firstNonTaxiIndex = tripPatterns.findIndex((pattern) => !isCarAlternative(pattern))
+    const firstNonTaxi = tripPatterns.find((pattern) => !isCarAlternative(pattern))
 
-    tripPatterns = tripPatterns.filter((pattern, index) => index <= firstNonTaxiIndex || !isCarAlternative(pattern))
+    const hoursUntilFirstNonTaxi = firstNonTaxi
+        ? hoursBetweenDateAndTripPattern(params.initialSearchDate, firstNonTaxi, Boolean(params.arriveBy))
+        : Infinity
+
+    tripPatterns = tripPatterns.filter((pattern) => {
+        if (!firstNonTaxi || !isCarAlternative(pattern)) return true
+        if (hoursUntilFirstNonTaxi < 4) return false
+
+        const isBetterThanFirstNonTaxi = params.arriveBy
+            ? pattern.endTime > firstNonTaxi.endTime
+            : pattern.endTime < firstNonTaxi.endTime
+
+        return isBetterThanFirstNonTaxi
+    })
 
     return { ...transitResults, tripPatterns }
 }
