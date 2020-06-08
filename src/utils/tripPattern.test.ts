@@ -4,7 +4,11 @@ import { Leg, LegMode, TripPattern } from '@entur/sdk'
 
 import { NON_TRANSIT_DISTANCE_LIMITS } from '../constants'
 
-import { isValidTaxiAlternative, isValidNonTransitDistance, hoursBetweenDateAndTripPattern } from './tripPattern'
+import {
+    isValidTaxiAlternative,
+    isValidNonTransitDistance,
+    hoursBetweenDateAndTripPattern,
+} from './tripPattern'
 
 const now = new Date()
 
@@ -24,10 +28,22 @@ describe('isValidTaxiAlternative', () => {
     const isValidTaxi = isValidTaxiAlternative(now, carPattern, false)
 
     it('should be false unless the given pattern has at least one CAR leg, and one non-CAR leg', () => {
-        const onlyMetro = mockPattern({ legs: [mockLeg({ mode: LegMode.METRO })] })
-        const metroTaxi = mockPattern({ legs: [mockLeg({ mode: LegMode.METRO }), mockLeg({ mode: LegMode.BUS })] })
+        const onlyMetro = mockPattern({
+            legs: [mockLeg({ mode: LegMode.METRO })],
+        })
+        const metroTaxi = mockPattern({
+            legs: [
+                mockLeg({ mode: LegMode.METRO }),
+                mockLeg({ mode: LegMode.BUS }),
+            ],
+        })
         const onlyTaxi = mockPattern({ legs: [mockLeg({ mode: LegMode.CAR })] })
-        const taxiTaxi = mockPattern({ legs: [mockLeg({ mode: LegMode.CAR }), mockLeg({ mode: LegMode.CAR })] })
+        const taxiTaxi = mockPattern({
+            legs: [
+                mockLeg({ mode: LegMode.CAR }),
+                mockLeg({ mode: LegMode.CAR }),
+            ],
+        })
 
         expect(isValidTaxi(onlyMetro)).toEqual(false)
         expect(isValidTaxi(metroTaxi)).toEqual(false)
@@ -56,10 +72,16 @@ describe('isValidTaxiAlternative', () => {
 
     it('should be false unless the taxi leg exceeds the min duration limit, but still shorter than the given car pattern', () => {
         const tooShortDuration = mockPattern({
-            legs: [mockLeg({ mode: LegMode.METRO }), mockLeg({ mode: LegMode.CAR })],
+            legs: [
+                mockLeg({ mode: LegMode.METRO }),
+                mockLeg({ mode: LegMode.CAR }),
+            ],
         })
         const tooLongDuration = mockPattern({
-            legs: [mockLeg({ mode: LegMode.METRO }), mockLeg({ mode: LegMode.CAR, duration: 1337 })],
+            legs: [
+                mockLeg({ mode: LegMode.METRO }),
+                mockLeg({ mode: LegMode.CAR, duration: 1337 }),
+            ],
         })
 
         expect(isValidTaxi(tooShortDuration)).toEqual(false)
@@ -67,50 +89,91 @@ describe('isValidTaxiAlternative', () => {
     })
 
     it('should be true only if the hours since search date is within the max limit for given timepicker mode', () => {
-        const isValidTaxiForArriveBy = isValidTaxiAlternative(now, carPattern, true)
-        const isValidTaxiForDepartAfter = isValidTaxiAlternative(now, carPattern, false)
+        const isValidTaxiForArriveBy = isValidTaxiAlternative(
+            now,
+            carPattern,
+            true,
+        )
+        const isValidTaxiForDepartAfter = isValidTaxiAlternative(
+            now,
+            carPattern,
+            false,
+        )
 
         const validArriveByAlternative = mockPattern({
             endTime: subHours(now, 3),
-            legs: [mockLeg({ mode: LegMode.METRO }), mockLeg({ mode: LegMode.CAR, duration: 420 })],
+            legs: [
+                mockLeg({ mode: LegMode.METRO }),
+                mockLeg({ mode: LegMode.CAR, duration: 420 }),
+            ],
         })
         const invalidArriveByAlternative = mockPattern({
             startTime: subHours(now, 4),
-            legs: [mockLeg({ mode: LegMode.METRO }), mockLeg({ mode: LegMode.CAR, duration: 420 })],
+            legs: [
+                mockLeg({ mode: LegMode.METRO }),
+                mockLeg({ mode: LegMode.CAR, duration: 420 }),
+            ],
         })
         const validDepartAfterAlternative = mockPattern({
             startTime: addHours(now, 3),
-            legs: [mockLeg({ mode: LegMode.METRO }), mockLeg({ mode: LegMode.CAR, duration: 420 })],
+            legs: [
+                mockLeg({ mode: LegMode.METRO }),
+                mockLeg({ mode: LegMode.CAR, duration: 420 }),
+            ],
         })
         const invalidDepartAfterAlternative = mockPattern({
             startTime: addHours(now, 4),
-            legs: [mockLeg({ mode: LegMode.METRO }), mockLeg({ mode: LegMode.CAR, duration: 420 })],
+            legs: [
+                mockLeg({ mode: LegMode.METRO }),
+                mockLeg({ mode: LegMode.CAR, duration: 420 }),
+            ],
         })
 
         expect(isValidTaxiForArriveBy(validArriveByAlternative)).toEqual(true)
-        expect(isValidTaxiForArriveBy(invalidArriveByAlternative)).toEqual(false)
-        expect(isValidTaxiForDepartAfter(validDepartAfterAlternative)).toEqual(true)
-        expect(isValidTaxiForDepartAfter(invalidDepartAfterAlternative)).toEqual(false)
+        expect(isValidTaxiForArriveBy(invalidArriveByAlternative)).toEqual(
+            false,
+        )
+        expect(isValidTaxiForDepartAfter(validDepartAfterAlternative)).toEqual(
+            true,
+        )
+        expect(
+            isValidTaxiForDepartAfter(invalidDepartAfterAlternative),
+        ).toEqual(false)
     })
 })
 
 describe('isValidNonTransitDistance', () => {
-    function mockPattern(mode: 'foot' | 'bicycle' | 'car', distanceDelta = 0): TripPattern {
+    function mockPattern(
+        mode: 'foot' | 'bicycle' | 'car',
+        distanceDelta = 0,
+    ): TripPattern {
         return {
             distance: NON_TRANSIT_DISTANCE_LIMITS.UPPER[mode] + distanceDelta,
         } as TripPattern
     }
 
     it('should be true if the given trip has a distance within the limits of the given mode', () => {
-        expect(isValidNonTransitDistance(mockPattern('car'), 'car')).toEqual(true)
-        expect(isValidNonTransitDistance(mockPattern('foot'), 'foot')).toEqual(true)
-        expect(isValidNonTransitDistance(mockPattern('bicycle'), 'bicycle')).toEqual(true)
+        expect(isValidNonTransitDistance(mockPattern('car'), 'car')).toEqual(
+            true,
+        )
+        expect(isValidNonTransitDistance(mockPattern('foot'), 'foot')).toEqual(
+            true,
+        )
+        expect(
+            isValidNonTransitDistance(mockPattern('bicycle'), 'bicycle'),
+        ).toEqual(true)
     })
 
     it('should be false if the given trip has a distance outside the limits of the given mode', () => {
-        expect(isValidNonTransitDistance(mockPattern('car', 1337), 'car')).toEqual(false)
-        expect(isValidNonTransitDistance(mockPattern('foot', 404), 'foot')).toEqual(false)
-        expect(isValidNonTransitDistance(mockPattern('bicycle', 42), 'bicycle')).toEqual(false)
+        expect(
+            isValidNonTransitDistance(mockPattern('car', 1337), 'car'),
+        ).toEqual(false)
+        expect(
+            isValidNonTransitDistance(mockPattern('foot', 404), 'foot'),
+        ).toEqual(false)
+        expect(
+            isValidNonTransitDistance(mockPattern('bicycle', 42), 'bicycle'),
+        ).toEqual(false)
     })
 })
 
@@ -120,18 +183,34 @@ describe('hoursBetweenDateAndTripPattern', () => {
     }
 
     it('should count the hours between the given date and the start of the trip if `arriveBy` is `false`', () => {
-        const startsInEightHours = mockPattern({ startTime: addHours(now, 8).toISOString() })
-        const startedTwoHoursAgo = mockPattern({ startTime: subHours(now, 2).toISOString() })
+        const startsInEightHours = mockPattern({
+            startTime: addHours(now, 8).toISOString(),
+        })
+        const startedTwoHoursAgo = mockPattern({
+            startTime: subHours(now, 2).toISOString(),
+        })
 
-        expect(hoursBetweenDateAndTripPattern(now, startsInEightHours, false)).toEqual(8)
-        expect(hoursBetweenDateAndTripPattern(now, startedTwoHoursAgo, false)).toEqual(2)
+        expect(
+            hoursBetweenDateAndTripPattern(now, startsInEightHours, false),
+        ).toEqual(8)
+        expect(
+            hoursBetweenDateAndTripPattern(now, startedTwoHoursAgo, false),
+        ).toEqual(2)
     })
 
     it('should count the hours between the given date and the end of the trip if `arriveBy` is `true`', () => {
-        const endsInElevenHours = mockPattern({ endTime: addHours(now, 11).toISOString() })
-        const endedFourHoursAgo = mockPattern({ endTime: subHours(now, 4).toISOString() })
+        const endsInElevenHours = mockPattern({
+            endTime: addHours(now, 11).toISOString(),
+        })
+        const endedFourHoursAgo = mockPattern({
+            endTime: subHours(now, 4).toISOString(),
+        })
 
-        expect(hoursBetweenDateAndTripPattern(now, endsInElevenHours, true)).toEqual(11)
-        expect(hoursBetweenDateAndTripPattern(now, endedFourHoursAgo, true)).toEqual(4)
+        expect(
+            hoursBetweenDateAndTripPattern(now, endsInElevenHours, true),
+        ).toEqual(11)
+        expect(
+            hoursBetweenDateAndTripPattern(now, endedFourHoursAgo, true),
+        ).toEqual(4)
     })
 })

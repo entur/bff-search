@@ -1,10 +1,16 @@
-import { compressToEncodedURIComponent, decompressFromEncodedURIComponent } from 'lz-string'
+import {
+    compressToEncodedURIComponent,
+    decompressFromEncodedURIComponent,
+} from 'lz-string'
 import { addMinutes, subMinutes, parseJSON } from 'date-fns'
 
 import { TripPattern } from '@entur/sdk'
 
 import { maxBy, minBy } from '../utils/array'
-import { isTransitAlternative, isFlexibleAlternative } from '../utils/tripPattern'
+import {
+    isTransitAlternative,
+    isFlexibleAlternative,
+} from '../utils/tripPattern'
 
 import { CursorData, SearchParams } from '../../types'
 
@@ -27,7 +33,10 @@ export function parseCursor(cursor?: string): CursorData | undefined {
     }
 }
 
-export function generateCursor(params: SearchParams, tripPatterns: TripPattern[] = []): string | undefined {
+export function generateCursor(
+    params: SearchParams,
+    tripPatterns: TripPattern[] = [],
+): string | undefined {
     const { arriveBy } = params
     const hasTransitPatterns = tripPatterns.some(isTransitAlternative)
     const hasFlexiblePatterns = tripPatterns.some(isFlexibleAlternative)
@@ -40,7 +49,11 @@ export function generateCursor(params: SearchParams, tripPatterns: TripPattern[]
 
     const cursorData = {
         v: 1,
-        params: { ...params, searchDate: nextDate, useFlex: hasFlexiblePatterns },
+        params: {
+            ...params,
+            searchDate: nextDate,
+            useFlex: hasFlexiblePatterns,
+        },
     }
 
     return compressToEncodedURIComponent(JSON.stringify(cursorData))

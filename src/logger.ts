@@ -25,7 +25,8 @@ const loggingWinston = new LoggingWinston({
 const transportsDev = [new winston.transports.Console()]
 const transportsProd = [loggingWinston]
 
-const transports = process.env.NODE_ENV === 'production' ? transportsProd : transportsDev
+const transports =
+    process.env.NODE_ENV === 'production' ? transportsProd : transportsDev
 
 const logger = winston.createLogger({
     level: 'debug',
@@ -64,7 +65,11 @@ export function getTraceInfo(): object {
 }
 
 // Some inspiration taken from the express-winston library by bithavoc: https://github.com/bithavoc/express-winston/blob/master/index.js
-export function reqResLoggerMiddleware(req: Request, res: Response, next: NextFunction): void {
+export function reqResLoggerMiddleware(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+): void {
     const startTime = new Date()
     const { method, url } = req
 
@@ -101,7 +106,7 @@ export function reqResLoggerMiddleware(req: Request, res: Response, next: NextFu
                 }
 
                 if (response?.message) {
-                    message = `Response ${res.statusCode} ${req.method} ${req.url} – ${response?.message || ''}`
+                    message += ` – ${response?.message || ''}`
                 }
             }
         }

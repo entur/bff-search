@@ -1,4 +1,11 @@
-import { parseISO, addSeconds, addMinutes, subSeconds, differenceInSeconds, differenceInMinutes } from 'date-fns'
+import {
+    parseISO,
+    addSeconds,
+    addMinutes,
+    subSeconds,
+    differenceInSeconds,
+    differenceInMinutes,
+} from 'date-fns'
 import createEnturService, { TripPattern, Leg, EstimatedCall } from '@entur/sdk'
 
 import { first, last } from '../utils/array'
@@ -35,7 +42,10 @@ interface ServiceJourneyResponse {
         estimatedCalls?: UpdatedEstimatedCall[]
     }
 }
-async function getCallsForServiceJourney(id: string, date: string): Promise<UpdatedEstimatedCall[]> {
+async function getCallsForServiceJourney(
+    id: string,
+    date: string,
+): Promise<UpdatedEstimatedCall[]> {
     const query = `
     query($id:String!,$date:Date!) {
         serviceJourney(id:$id) {
@@ -61,7 +71,10 @@ async function getCallsForServiceJourney(id: string, date: string): Promise<Upda
     }
     `.trim()
 
-    const data = await sdk.queryJourneyPlanner<ServiceJourneyResponse>(query, { id, date })
+    const data = await sdk.queryJourneyPlanner<ServiceJourneyResponse>(query, {
+        id,
+        date,
+    })
 
     if (!data || !data.serviceJourney || !data.serviceJourney.estimatedCalls) {
         return Promise.reject('No service journey found')
@@ -70,10 +83,15 @@ async function getCallsForServiceJourney(id: string, date: string): Promise<Upda
     return data.serviceJourney.estimatedCalls
 }
 
-function isSameCall(estimatedCall: UpdatedEstimatedCall, quayId: string, destinationFrontText?: string): boolean {
+function isSameCall(
+    estimatedCall: UpdatedEstimatedCall,
+    quayId: string,
+    destinationFrontText?: string,
+): boolean {
     const { quay, destinationDisplay } = estimatedCall
     return destinationFrontText
-        ? quay.id === quayId && destinationDisplay.frontText === destinationFrontText
+        ? quay.id === quayId &&
+              destinationDisplay.frontText === destinationFrontText
         : quay.id === quayId
 }
 
@@ -82,7 +100,9 @@ function findCallByQuayId(
     quayId: string,
     destinationFrontText?: string,
 ): UpdatedEstimatedCall | undefined {
-    return estimatedCalls.find((call) => isSameCall(call, quayId, destinationFrontText))
+    return estimatedCalls.find((call) =>
+        isSameCall(call, quayId, destinationFrontText),
+    )
 }
 
 function findCallIndexByQuayId(
@@ -90,10 +110,15 @@ function findCallIndexByQuayId(
     quayId: string,
     destinationFrontText?: string,
 ): number {
-    return estimatedCalls.findIndex((call) => isSameCall(call, quayId, destinationFrontText))
+    return estimatedCalls.findIndex((call) =>
+        isSameCall(call, quayId, destinationFrontText),
+    )
 }
 
-function updateEstimatedCall(call: EstimatedCall, updatedCall?: UpdatedEstimatedCall): EstimatedCall {
+function updateEstimatedCall(
+    call: EstimatedCall,
+    updatedCall?: UpdatedEstimatedCall,
+): EstimatedCall {
     if (!updatedCall) return call
 
     const { aimedDepartureTime, expectedDepartureTime } = updatedCall
@@ -116,26 +141,44 @@ interface LegWithUpdate {
     updatedCalls?: UpdatedCalls
 }
 async function updateLeg(leg: Leg): Promise<LegWithUpdate> {
-    if (!leg.serviceJourney?.id || !leg.fromEstimatedCall?.date || !leg.toEstimatedCall) {
+    if (
+        !leg.serviceJourney?.id ||
+        !leg.fromEstimatedCall?.date ||
+        !leg.toEstimatedCall
+    ) {
         return { leg }
     }
 
     const { serviceJourney, fromEstimatedCall, toEstimatedCall } = leg
-    const updatedEstimatedCalls = await getCallsForServiceJourney(serviceJourney.id, fromEstimatedCall.date)
+    const updatedEstimatedCalls = await getCallsForServiceJourney(
+        serviceJourney.id,
+        fromEstimatedCall.date,
+    )
 
     const fromFrontText = fromEstimatedCall.destinationDisplay?.frontText
     const fromQuayId = fromEstimatedCall.quay?.id || ''
-    const fromIndex = findCallIndexByQuayId(updatedEstimatedCalls, fromQuayId, fromFrontText)
+    const fromIndex = findCallIndexByQuayId(
+        updatedEstimatedCalls,
+        fromQuayId,
+        fromFrontText,
+    )
     const fromCall = updatedEstimatedCalls[fromIndex]
     if (!fromCall) return { leg }
 
     const toFrontText = toEstimatedCall.destinationDisplay?.frontText
     const toQuayId = toEstimatedCall.quay?.id || ''
-    const toIndex = findCallIndexByQuayId(updatedEstimatedCalls, toQuayId, toFrontText)
+    const toIndex = findCallIndexByQuayId(
+        updatedEstimatedCalls,
+        toQuayId,
+        toFrontText,
+    )
     const toCall = updatedEstimatedCalls[toIndex]
     if (!toCall) return { leg }
 
-    const intermediateCalls = updatedEstimatedCalls.slice(fromIndex + 1, toIndex - 1)
+    const intermediateCalls = updatedEstimatedCalls.slice(
+        fromIndex + 1,
+        toIndex - 1,
+    )
 
     return {
         leg,
@@ -145,25 +188,43 @@ async function updateLeg(leg: Leg): Promise<LegWithUpdate> {
 
 function updateTransitLeg(leg: Leg, updatedCalls: UpdatedCalls): Leg {
     if (!updatedCalls) return leg
-    const { fromEstimatedCall, toEstimatedCall, intermediateEstimatedCalls } = leg
+    const {
+        fromEstimatedCall,
+        toEstimatedCall,
+        intermediateEstimatedCalls,
+    } = leg
 
     const { fromCall, toCall, intermediateCalls } = updatedCalls
 
     const { expectedDepartureTime: expectedStartTime } = fromCall
     const { expectedArrivalTime: expectedEndTime } = toCall
-    const duration = differenceInSeconds(parseISO(expectedEndTime), parseISO(expectedStartTime))
-    const realtime = fromCall.realtime && toCall.realtime && intermediateCalls.every((call) => call.realtime)
+    const duration = differenceInSeconds(
+        parseISO(expectedEndTime),
+        parseISO(expectedStartTime),
+    )
+    const realtime =
+        fromCall.realtime &&
+        toCall.realtime &&
+        intermediateCalls.every((call) => call.realtime)
 
-    const updatedFromEstimatedCall = fromEstimatedCall && updateEstimatedCall(fromEstimatedCall, fromCall)
-    const updatedToEstimatedCall = toEstimatedCall && updateEstimatedCall(toEstimatedCall, toCall)
+    const updatedFromEstimatedCall =
+        fromEstimatedCall && updateEstimatedCall(fromEstimatedCall, fromCall)
+    const updatedToEstimatedCall =
+        toEstimatedCall && updateEstimatedCall(toEstimatedCall, toCall)
 
-    const updatedIntermediateEstimatedCalls = intermediateEstimatedCalls.map((call) => {
-        if (!call.quay || !call.quay.id) return call
-        const frontText = call.destinationDisplay?.frontText
-        const quayId = call.quay.id
-        const updatedCall = findCallByQuayId(intermediateCalls, quayId, frontText)
-        return updateEstimatedCall(call, updatedCall)
-    })
+    const updatedIntermediateEstimatedCalls = intermediateEstimatedCalls.map(
+        (call) => {
+            if (!call.quay || !call.quay.id) return call
+            const frontText = call.destinationDisplay?.frontText
+            const quayId = call.quay.id
+            const updatedCall = findCallByQuayId(
+                intermediateCalls,
+                quayId,
+                frontText,
+            )
+            return updateEstimatedCall(call, updatedCall)
+        },
+    )
 
     return {
         ...leg,
@@ -177,7 +238,11 @@ function updateTransitLeg(leg: Leg, updatedCalls: UpdatedCalls): Leg {
     }
 }
 
-function updateNonTransitLeg(leg: Leg, next?: LegWithUpdate, prev?: LegWithUpdate): Leg {
+function updateNonTransitLeg(
+    leg: Leg,
+    next?: LegWithUpdate,
+    prev?: LegWithUpdate,
+): Leg {
     const { duration = 0 } = leg
 
     if (next) {
@@ -188,7 +253,10 @@ function updateNonTransitLeg(leg: Leg, next?: LegWithUpdate, prev?: LegWithUpdat
         const { expectedArrivalTime: expectedEndTime, quay } = fromCall
         const { timezone: timeZone } = quay
 
-        const expectedStartTime = toISOString(subSeconds(parseISO(expectedEndTime), duration), { timeZone })
+        const expectedStartTime = toISOString(
+            subSeconds(parseISO(expectedEndTime), duration),
+            { timeZone },
+        )
         return { ...leg, expectedStartTime, expectedEndTime }
     } else if (prev) {
         const { updatedCalls } = prev
@@ -198,7 +266,10 @@ function updateNonTransitLeg(leg: Leg, next?: LegWithUpdate, prev?: LegWithUpdat
         const { expectedDepartureTime: expectedStartTime, quay } = toCall
         const { timezone: timeZone } = quay
 
-        const expectedEndTime = toISOString(addSeconds(parseISO(expectedStartTime), duration), { timeZone })
+        const expectedEndTime = toISOString(
+            addSeconds(parseISO(expectedStartTime), duration),
+            { timeZone },
+        )
         return { ...leg, expectedStartTime, expectedEndTime }
     }
 
@@ -217,18 +288,26 @@ function mergeLegsWithUpdateInfo(legsWithUpdate: LegWithUpdate[]): Leg[] {
     })
 }
 
-export async function updateTripPattern(tripPattern: TripPattern): Promise<TripPattern> {
+export async function updateTripPattern(
+    tripPattern: TripPattern,
+): Promise<TripPattern> {
     if (tripPattern.legs.some(isFlexibleLeg)) return tripPattern
 
     const { legs, startTime, endTime, duration } = tripPattern
 
-    const legsWithUpdateInfo = await Promise.all(legs.map((leg) => updateLeg(leg).catch(() => ({ leg }))))
+    const legsWithUpdateInfo = await Promise.all(
+        legs.map((leg) => updateLeg(leg).catch(() => ({ leg }))),
+    )
     const updatedLegs = mergeLegsWithUpdateInfo(legsWithUpdateInfo)
 
-    const { expectedStartTime: updatedStartTime = startTime } = first(updatedLegs) || {}
-    const { expectedEndTime: updatedEndTime = endTime } = last(updatedLegs) || {}
+    const { expectedStartTime: updatedStartTime = startTime } =
+        first(updatedLegs) || {}
+    const { expectedEndTime: updatedEndTime = endTime } =
+        last(updatedLegs) || {}
     const updatedDuration =
-        updatedStartTime && updatedEndTime ? differenceInSeconds(parseISO(endTime), parseISO(startTime)) : duration
+        updatedStartTime && updatedEndTime
+            ? differenceInSeconds(parseISO(endTime), parseISO(startTime))
+            : duration
 
     return {
         ...tripPattern,

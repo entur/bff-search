@@ -10,9 +10,17 @@ import createEnturService, {
 import { differenceInHours } from 'date-fns'
 import { v4 as uuid } from 'uuid'
 
-import { SearchParams, NonTransitTripPatterns, GraphqlQuery, Metadata } from '../../types'
+import {
+    SearchParams,
+    NonTransitTripPatterns,
+    GraphqlQuery,
+    Metadata,
+} from '../../types'
 
-import { isFlexibleAlternative, isValidTransitAlternative } from '../utils/tripPattern'
+import {
+    isFlexibleAlternative,
+    isValidTransitAlternative,
+} from '../utils/tripPattern'
 
 import { parseLeg } from '../utils/leg'
 import { isTransportMode } from '../utils/modes'
@@ -41,7 +49,9 @@ interface TransitTripPatterns {
     metadata?: Metadata
 }
 
-export function createParseTripPattern(): (rawTripPattern: any) => Otp2TripPattern {
+export function createParseTripPattern(): (
+    rawTripPattern: any,
+) => Otp2TripPattern {
     let i = 0
     const sharedId = uuid()
     const baseId = sharedId.substring(0, 23)
@@ -59,11 +69,21 @@ function parseTripPattern(rawTripPattern: any): Otp2TripPattern {
         ...rawTripPattern,
         id: rawTripPattern.id || uuid(),
         legs: rawTripPattern.legs.map(parseLeg),
-        genId: `${new Date().getTime()}:${Math.random().toString(36).slice(2, 12)}`,
+        genId: `${new Date().getTime()}:${Math.random()
+            .toString(36)
+            .slice(2, 12)}`,
     }
 }
 
-type StreetMode = 'foot' | 'bicycle' | 'bike_park' | 'bike_rental' | 'car' | 'car_park' | 'taxi' | 'car_rental'
+type StreetMode =
+    | 'foot'
+    | 'bicycle'
+    | 'bike_park'
+    | 'bike_rental'
+    | 'car'
+    | 'car_park'
+    | 'taxi'
+    | 'car_rental'
 
 interface Modes {
     accessMode: StreetMode
@@ -127,14 +147,20 @@ function uniqBy<T, K>(arr: T[], getKey: (arg: T) => K): T[] {
     ]
 }
 
-function getNoticesFromIntermediateEstimatedCalls(estimatedCalls: IntermediateEstimatedCall[]): Notice[] {
+function getNoticesFromIntermediateEstimatedCalls(
+    estimatedCalls: IntermediateEstimatedCall[],
+): Notice[] {
     if (!estimatedCalls?.length) return []
-    return estimatedCalls.map(({ notices }) => notices || []).reduce((a, b) => [...a, ...b], [])
+    return estimatedCalls
+        .map(({ notices }) => notices || [])
+        .reduce((a, b) => [...a, ...b], [])
 }
 
 function getNotices(leg: Leg): Notice[] {
     const notices = [
-        ...getNoticesFromIntermediateEstimatedCalls(leg.intermediateEstimatedCalls),
+        ...getNoticesFromIntermediateEstimatedCalls(
+            leg.intermediateEstimatedCalls,
+        ),
         ...(leg.serviceJourney?.notices || []),
         ...(leg.serviceJourney?.journeyPattern?.notices || []),
         ...(leg.serviceJourney?.journeyPattern?.line?.notices || []),
@@ -164,7 +190,9 @@ export function legMapper(leg: Leg): Leg {
     }
 }
 
-async function getTripPatterns(params: any): Promise<[Otp2TripPattern[], Metadata | undefined]> {
+async function getTripPatterns(
+    params: any,
+): Promise<[Otp2TripPattern[], Metadata | undefined]> {
     const res = await sdk.queryJourneyPlanner<{
         trip: { metadata: Metadata; tripPatterns: any[] }
     }>(JOURNEY_PLANNER_QUERY, getTripPatternsVariables(params))
@@ -207,10 +235,14 @@ export async function searchTransit(
     const parse = createParseTripPattern()
     const tripPatterns = response.map(parse).filter(isValidTransitAlternative)
 
-    const searchTimeWithinRange = differenceInHours(searchDate, initialSearchDate) < 12
+    const searchTimeWithinRange =
+        differenceInHours(searchDate, initialSearchDate) < 12
 
     if (!tripPatterns.length && searchTimeWithinRange && metadata) {
-        const nextSearchParams = { ...params, searchDate: new Date(metadata.nextDateTime) }
+        const nextSearchParams = {
+            ...params,
+            searchDate: new Date(metadata.nextDateTime),
+        }
         return searchTransit(nextSearchParams, extraHeaders, queries)
     }
 
@@ -226,7 +258,12 @@ export type NonTransitMode = 'foot' | 'bicycle' | 'car' | 'bike_rental'
 
 export async function searchNonTransit(
     params: SearchParams,
-    modes: NonTransitMode[] = [LegMode.FOOT, LegMode.BICYCLE, LegMode.CAR, 'bike_rental'],
+    modes: NonTransitMode[] = [
+        LegMode.FOOT,
+        LegMode.BICYCLE,
+        LegMode.CAR,
+        'bike_rental',
+    ],
 ): Promise<{
     tripPatterns: NonTransitTripPatterns
     queries: { [key in NonTransitMode]?: GraphqlQuery }

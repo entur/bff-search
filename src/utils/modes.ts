@@ -1,8 +1,17 @@
-import { LegMode, QueryMode, TransportSubmode, TransportSubmodeParam } from '@entur/sdk'
+import {
+    LegMode,
+    QueryMode,
+    TransportSubmode,
+    TransportSubmodeParam,
+} from '@entur/sdk'
 
 import { FilteredModesAndSubModes, SearchFilterType } from '../../types'
 
-import { ALL_BUS_SUBMODES, ALL_RAIL_SUBMODES, DEFAULT_QUERY_MODES } from '../constants'
+import {
+    ALL_BUS_SUBMODES,
+    ALL_RAIL_SUBMODES,
+    DEFAULT_QUERY_MODES,
+} from '../constants'
 
 import { difference, intersection, uniq } from './array'
 
@@ -10,8 +19,11 @@ const flybuss = 'flybuss'
 const flytog = 'flytog'
 const flytogWhitelist = { authorities: ['FLT:Authority:FLT'] }
 
-export function filterModesAndSubModes(modes?: SearchFilterType[]): FilteredModesAndSubModes {
-    if (!modes) return { filteredModes: DEFAULT_QUERY_MODES, subModesFilter: [] }
+export function filterModesAndSubModes(
+    modes?: SearchFilterType[],
+): FilteredModesAndSubModes {
+    if (!modes)
+        return { filteredModes: DEFAULT_QUERY_MODES, subModesFilter: [] }
 
     let filteredModes: QueryMode[] = convertSearchFiltersToMode(modes)
     let subModesFilter: TransportSubmodeParam[] = []
@@ -21,8 +33,14 @@ export function filterModesAndSubModes(modes?: SearchFilterType[]): FilteredMode
      * or flytog-related sub mode, instead of a bus-related sub mode.
      */
     const filtersForReplacementBus = filterModesForRailReplacementBus(modes)
-    filteredModes = [...filteredModes, ...filtersForReplacementBus.filteredModes]
-    subModesFilter = [...subModesFilter, ...filtersForReplacementBus.subModesFilter]
+    filteredModes = [
+        ...filteredModes,
+        ...filtersForReplacementBus.filteredModes,
+    ]
+    subModesFilter = [
+        ...subModesFilter,
+        ...filtersForReplacementBus.subModesFilter,
+    ]
 
     /*
      * Handle the 'flytog' mode as the 'airportLinkRail' sub mode.
@@ -31,18 +49,36 @@ export function filterModesAndSubModes(modes?: SearchFilterType[]): FilteredMode
     const filtersForAirportLinkRail = filterModesForAirportLinkRail(modes)
     const banned = filtersForAirportLinkRail.banned
     const whiteListed = filtersForAirportLinkRail.whiteListed
-    filteredModes = [...filteredModes, ...filtersForAirportLinkRail.filteredModes]
-    subModesFilter = [...subModesFilter, ...filtersForAirportLinkRail.subModesFilter]
+    filteredModes = [
+        ...filteredModes,
+        ...filtersForAirportLinkRail.filteredModes,
+    ]
+    subModesFilter = [
+        ...subModesFilter,
+        ...filtersForAirportLinkRail.subModesFilter,
+    ]
 
     /*
      * Handle the 'flybuss' mode as the 'airportLinkBus' sub mode.
      * Merge bus-related sub modes with existing bus-related sub modes.
      */
-    const prevBusSubModes = subModesFilter.find(isBusSubModesFilter)?.transportSubmodes || []
-    const prevOtherSubModeFilters = subModesFilter.filter((transportFilter) => !isBusSubModesFilter(transportFilter))
-    const filtersForAirportLinkBus = filterModesForAirportLinkBus(modes, prevBusSubModes)
-    filteredModes = [...filteredModes, ...filtersForAirportLinkBus.filteredModes]
-    subModesFilter = [...prevOtherSubModeFilters, ...filtersForAirportLinkBus.subModesFilter]
+    const prevBusSubModes =
+        subModesFilter.find(isBusSubModesFilter)?.transportSubmodes || []
+    const prevOtherSubModeFilters = subModesFilter.filter(
+        (transportFilter) => !isBusSubModesFilter(transportFilter),
+    )
+    const filtersForAirportLinkBus = filterModesForAirportLinkBus(
+        modes,
+        prevBusSubModes,
+    )
+    filteredModes = [
+        ...filteredModes,
+        ...filtersForAirportLinkBus.filteredModes,
+    ]
+    subModesFilter = [
+        ...prevOtherSubModeFilters,
+        ...filtersForAirportLinkBus.subModesFilter,
+    ]
 
     return {
         filteredModes,
@@ -52,9 +88,12 @@ export function filterModesAndSubModes(modes?: SearchFilterType[]): FilteredMode
     }
 }
 
-function filterModesForRailReplacementBus(modes: SearchFilterType[]): FilteredModesAndSubModes {
+function filterModesForRailReplacementBus(
+    modes: SearchFilterType[],
+): FilteredModesAndSubModes {
     const replacementBus = TransportSubmode.RAIL_REPLACEMENT_BUS
-    const modesIncludeRailOrFlytog = intersection(modes, [LegMode.RAIL, flytog]).length
+    const modesIncludeRailOrFlytog = intersection(modes, [LegMode.RAIL, flytog])
+        .length
 
     if (modesIncludeRailOrFlytog && !modes.includes(LegMode.BUS)) {
         return {
@@ -69,7 +108,9 @@ function filterModesForRailReplacementBus(modes: SearchFilterType[]): FilteredMo
     }
 
     if (modes.includes(LegMode.BUS) && !modesIncludeRailOrFlytog) {
-        const allOtherBusSubModes = ALL_BUS_SUBMODES.filter((mode) => mode !== replacementBus)
+        const allOtherBusSubModes = ALL_BUS_SUBMODES.filter(
+            (mode) => mode !== replacementBus,
+        )
 
         return {
             filteredModes: [],
@@ -85,7 +126,9 @@ function filterModesForRailReplacementBus(modes: SearchFilterType[]): FilteredMo
     return { filteredModes: [], subModesFilter: [] }
 }
 
-function filterModesForAirportLinkRail(modes: SearchFilterType[]): FilteredModesAndSubModes {
+function filterModesForAirportLinkRail(
+    modes: SearchFilterType[],
+): FilteredModesAndSubModes {
     const airportRail = TransportSubmode.AIRPORT_LINK_RAIL
     const onlyFootAndFlytog = !difference(modes, [LegMode.FOOT, flytog]).length
 
@@ -103,7 +146,9 @@ function filterModesForAirportLinkRail(modes: SearchFilterType[]): FilteredModes
     }
 
     if (modes.includes(LegMode.RAIL) && !modes.includes(flytog)) {
-        const allOtherRailSubModes = ALL_RAIL_SUBMODES.filter((mode) => mode !== airportRail)
+        const allOtherRailSubModes = ALL_RAIL_SUBMODES.filter(
+            (mode) => mode !== airportRail,
+        )
 
         return {
             filteredModes: [],
@@ -130,18 +175,24 @@ function filterModesForAirportLinkBus(
             subModesFilter: [
                 {
                     transportMode: LegMode.BUS,
-                    transportSubmodes: [...prevBusSubModes, TransportSubmode.AIRPORT_LINK_BUS],
+                    transportSubmodes: [
+                        ...prevBusSubModes,
+                        TransportSubmode.AIRPORT_LINK_BUS,
+                    ],
                 },
             ],
         }
     }
 
     if (modes.includes(LegMode.BUS) && !modes.includes(flybuss)) {
-        const isReplacementBusIncluded = prevBusSubModes.includes(TransportSubmode.RAIL_REPLACEMENT_BUS)
+        const isReplacementBusIncluded = prevBusSubModes.includes(
+            TransportSubmode.RAIL_REPLACEMENT_BUS,
+        )
         const allOtherBusSubModes = ALL_BUS_SUBMODES.filter(
             (mode) =>
                 mode !== TransportSubmode.AIRPORT_LINK_BUS &&
-                (!isReplacementBusIncluded || mode !== TransportSubmode.RAIL_REPLACEMENT_BUS),
+                (!isReplacementBusIncluded ||
+                    mode !== TransportSubmode.RAIL_REPLACEMENT_BUS),
         )
 
         return {
@@ -167,17 +218,28 @@ function filterModesForAirportLinkBus(
     return { filteredModes: [], subModesFilter: defaultSubModesFilter }
 }
 
-function convertSearchFiltersToMode(searchFilters: SearchFilterType[]): QueryMode[] {
-    const initialModes: QueryMode[] = searchFilters.includes('bus') ? ['foot', 'coach'] : ['foot']
+function convertSearchFiltersToMode(
+    searchFilters: SearchFilterType[],
+): QueryMode[] {
+    const initialModes: QueryMode[] = searchFilters.includes('bus')
+        ? ['foot', 'coach']
+        : ['foot']
 
     return uniq(searchFilters.reduce(queryTransportModesReducer, initialModes))
 }
 
-function queryTransportModesReducer(transportModes: QueryMode[], mode: string): QueryMode[] {
-    return isQueryTransportMode(mode) ? [...transportModes, mode as QueryMode] : transportModes
+function queryTransportModesReducer(
+    transportModes: QueryMode[],
+    mode: string,
+): QueryMode[] {
+    return isQueryTransportMode(mode)
+        ? [...transportModes, mode as QueryMode]
+        : transportModes
 }
 
-function isBusSubModesFilter({ transportMode }: TransportSubmodeParam): boolean {
+function isBusSubModesFilter({
+    transportMode,
+}: TransportSubmodeParam): boolean {
     return transportMode === LegMode.BUS
 }
 

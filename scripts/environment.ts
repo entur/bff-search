@@ -49,7 +49,8 @@ async function createTypeDefinition(): Promise<void> {
 async function createConfigFile(): Promise<void> {
     try {
         const envConfig = await readEnvFile(ENV_FILE)
-        const format = ([key, value]: [string, string]): string => `exports.${key} = "${value}";`
+        const format = ([key, value]: [string, string]): string =>
+            `exports.${key} = "${value}";`
 
         const content = `"use strict";
     Object.defineProperty(exports, "__esModule", { value: true });

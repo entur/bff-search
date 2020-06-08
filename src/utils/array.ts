@@ -1,4 +1,8 @@
-export function sortBy<T, S>(list: T[], getValue: (x: T) => S, order: 'asc' | 'desc' = 'asc'): T[] {
+export function sortBy<T, S>(
+    list: T[],
+    getValue: (x: T) => S,
+    order: 'asc' | 'desc' = 'asc',
+): T[] {
     // eslint-disable-next-line fp/no-mutating-methods
     return [...list].sort((a, b) => {
         const valA = getValue(a)

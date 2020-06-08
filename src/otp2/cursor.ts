@@ -1,9 +1,15 @@
-import { compressToEncodedURIComponent, decompressFromEncodedURIComponent } from 'lz-string'
+import {
+    compressToEncodedURIComponent,
+    decompressFromEncodedURIComponent,
+} from 'lz-string'
 import { parseJSON } from 'date-fns'
 
 import { TripPattern } from '@entur/sdk'
 
-import { isTransitAlternative, isFlexibleAlternative } from '../utils/tripPattern'
+import {
+    isTransitAlternative,
+    isFlexibleAlternative,
+} from '../utils/tripPattern'
 
 import { CursorData, SearchParams, Metadata } from '../../types'
 
@@ -40,7 +46,11 @@ export function generateCursor(
 
     const cursorData = {
         v: 1,
-        params: { ...params, searchDate: nextDate, useFlex: hasFlexiblePatterns },
+        params: {
+            ...params,
+            searchDate: nextDate,
+            useFlex: hasFlexiblePatterns,
+        },
     }
 
     return compressToEncodedURIComponent(JSON.stringify(cursorData))
