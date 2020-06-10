@@ -245,6 +245,21 @@ function updateNonTransitLeg(
 ): Leg {
     const { duration = 0 } = leg
 
+    if (prev) {
+        const { updatedCalls } = prev
+        if (!updatedCalls) return leg
+
+        const { toCall } = updatedCalls
+        const { expectedDepartureTime: expectedStartTime, quay } = toCall
+        const { timezone: timeZone } = quay
+
+        const expectedEndTime = toISOString(
+            addSeconds(parseISO(expectedStartTime), duration),
+            { timeZone },
+        )
+        return { ...leg, expectedStartTime, expectedEndTime }
+    }
+
     if (next) {
         const { updatedCalls } = next
         if (!updatedCalls) return leg
@@ -255,19 +270,6 @@ function updateNonTransitLeg(
 
         const expectedStartTime = toISOString(
             subSeconds(parseISO(expectedEndTime), duration),
-            { timeZone },
-        )
-        return { ...leg, expectedStartTime, expectedEndTime }
-    } else if (prev) {
-        const { updatedCalls } = prev
-        if (!updatedCalls) return leg
-
-        const { toCall } = updatedCalls
-        const { expectedDepartureTime: expectedStartTime, quay } = toCall
-        const { timezone: timeZone } = quay
-
-        const expectedEndTime = toISOString(
-            addSeconds(parseISO(expectedStartTime), duration),
             { timeZone },
         )
         return { ...leg, expectedStartTime, expectedEndTime }
