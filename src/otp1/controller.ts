@@ -64,7 +64,7 @@ export async function searchTransitWithTaxi(
         TripPattern[],
         TransitTripPatterns | undefined,
     ] = await Promise.all([
-        tripPatterns.length ? searchTaxiFrontBack(params, extraHeaders) : [],
+        !tripPatterns.length ? searchTaxiFrontBack(params, extraHeaders) : [],
         firstTransitResults.nextSearchParams
             ? searchTransit(
                   firstTransitResults.nextSearchParams,
