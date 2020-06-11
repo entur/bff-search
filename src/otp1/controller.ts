@@ -96,11 +96,13 @@ export async function searchTransitWithTaxi(
         queries = thirdTransitResults.queries
     }
 
-    tripPatterns = sortBy<TripPattern, string>(
-        tripPatterns,
-        (tripPattern) => tripPattern.endTime,
-        params.arriveBy ? 'desc' : 'asc',
-    )
+    if (taxiResults.length) {
+        tripPatterns = sortBy<TripPattern, string>(
+            tripPatterns,
+            (tripPattern) => tripPattern.endTime,
+            params.arriveBy ? 'desc' : 'asc',
+        )
+    }
 
     logger.info('searchTransitWithTaxi returning', {
         correlationId: extraHeaders['X-Correlation-Id'],
