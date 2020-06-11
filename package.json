@@ -19,6 +19,7 @@
     "build:dev": "tsc && npm run populate-env-vars dev",
     "build:staging": "tsc && npm run populate-env-vars staging",
     "build:prod": "tsc && npm run populate-env-vars prod",
+    "build:beta": "tsc && npm run populate-env-vars beta",
     "deploy": "./scripts/deploy.sh",
     "apigee": "./scripts/deploy-apigee.sh",
     "transpile": "tsc",
