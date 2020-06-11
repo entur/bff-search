@@ -14,14 +14,12 @@ import {
     GraphqlQuery,
 } from '../../types'
 
-import { TAXI_LIMITS } from '../constants'
 import {
     isBikeRentalAlternative,
     isFlexibleAlternative,
     isValidTransitAlternative,
     isValidTaxiAlternative,
     isValidNonTransitDistance,
-    hoursBetweenDateAndTripPattern,
     createParseTripPattern,
 } from '../utils/tripPattern'
 import { sortBy } from '../utils/array'
@@ -53,32 +51,67 @@ export async function searchTransitWithTaxi(
     params: SearchParams,
     extraHeaders: { [key: string]: string },
 ): Promise<TransitTripPatterns> {
-    const [transitResults, nonTransitResults] = await Promise.all([
-        searchTransit(params, extraHeaders),
-        searchNonTransit(params, extraHeaders, [LegMode.FOOT, LegMode.CAR]),
-    ])
-    const transitPatterns = transitResults.tripPatterns
-    const carPattern = nonTransitResults.car
-    const patternsWithTaxi = shouldSearchWithTaxi(
+    const firstTransitResults = await searchTransit(
         params,
-        transitPatterns[0],
-        nonTransitResults,
+        extraHeaders,
+        undefined,
+        true,
     )
-        ? await searchTaxiFrontBack(params, carPattern, extraHeaders)
-        : []
-    const tripPatterns = sortBy<TripPattern, string>(
-        [...patternsWithTaxi, ...transitPatterns],
+
+    let { tripPatterns, queries } = firstTransitResults
+
+    const [taxiResults, secondTransitResults]: [
+        TripPattern[],
+        TransitTripPatterns | undefined,
+    ] = await Promise.all([
+        tripPatterns.length ? searchTaxiFrontBack(params, extraHeaders) : [],
+        firstTransitResults.nextSearchParams
+            ? searchTransit(
+                  firstTransitResults.nextSearchParams,
+                  extraHeaders,
+                  queries,
+                  true,
+              )
+            : undefined,
+    ])
+
+    tripPatterns = [
+        ...tripPatterns,
+        ...taxiResults,
+        ...(secondTransitResults?.tripPatterns || []),
+    ]
+
+    queries = secondTransitResults?.queries || firstTransitResults.queries
+
+    if (secondTransitResults?.nextSearchParams) {
+        const thirdTransitResults = await searchTransit(
+            secondTransitResults.nextSearchParams,
+            extraHeaders,
+            secondTransitResults.queries,
+        )
+
+        tripPatterns = [...tripPatterns, ...thirdTransitResults.tripPatterns]
+        queries = thirdTransitResults.queries
+    }
+
+    tripPatterns = sortBy<TripPattern, string>(
+        tripPatterns,
         (tripPattern) => tripPattern.endTime,
         params.arriveBy ? 'desc' : 'asc',
     )
 
-    return { ...transitResults, tripPatterns }
+    return {
+        hasFlexibleTripPattern: tripPatterns.some(isFlexibleAlternative),
+        tripPatterns,
+        queries,
+    }
 }
 
 export async function searchTransit(
     params: SearchParams,
     extraHeaders: { [key: string]: string },
     prevQueries?: GraphqlQuery[],
+    runOnce = false,
 ): Promise<TransitTripPatterns> {
     const { initialSearchDate, searchFilter, ...searchParams } = params
     const { searchDate } = searchParams
@@ -104,7 +137,15 @@ export async function searchTransit(
 
     if (!tripPatterns.length && isSameDaySearch) {
         const nextSearchParams = getNextSearchParams(params)
-        return searchTransit(nextSearchParams, extraHeaders, queries)
+        if (!runOnce) {
+            return searchTransit(nextSearchParams, extraHeaders, queries)
+        }
+        return {
+            tripPatterns,
+            hasFlexibleTripPattern: tripPatterns.some(isFlexibleAlternative),
+            queries,
+            nextSearchParams,
+        }
     }
 
     return {
@@ -183,8 +224,7 @@ export async function searchNonTransit(
 
 async function searchTaxiFrontBack(
     params: SearchParams,
-    carPattern?: TripPattern,
-    extraHeaders?: { [key: string]: string },
+    extraHeaders: { [key: string]: string },
 ): Promise<TripPattern[]> {
     const {
         initialSearchDate,
@@ -194,33 +234,34 @@ async function searchTaxiFrontBack(
     const modes: QueryMode[] = ['car_pickup', 'car_dropoff']
     const parseTripPattern = createParseTripPattern()
 
-    const [pickup, dropoff] = await Promise.all(
-        modes.map(async (mode) => {
-            const response = await sdkTransit.getTripPatterns(
-                {
-                    ...searchParams,
-                    limit: 1,
-                    maxPreTransitWalkDistance: 2000,
-                    modes: [...initialModes, mode],
-                },
-                { headers: extraHeaders },
-            )
-
-            if (!response?.length) return []
-
-            return response
-                .map(parseTripPattern)
-                .filter(
-                    isValidTaxiAlternative(
-                        initialSearchDate,
-                        carPattern,
-                        Boolean(params.arriveBy),
-                    ),
+    const [{ car }, [pickup, dropoff]] = await Promise.all([
+        searchNonTransit(params, extraHeaders, [LegMode.CAR]),
+        Promise.all(
+            modes.map(async (mode) => {
+                const response = await sdkTransit.getTripPatterns(
+                    {
+                        ...searchParams,
+                        limit: 1,
+                        maxPreTransitWalkDistance: 2000,
+                        modes: [...initialModes, mode],
+                    },
+                    { headers: extraHeaders },
                 )
-        }),
-    )
 
-    return [...pickup, ...dropoff]
+                if (!response?.length) return []
+
+                return response.map(parseTripPattern)
+            }),
+        ),
+    ])
+
+    return [...pickup, ...dropoff].filter(
+        isValidTaxiAlternative(
+            initialSearchDate,
+            car,
+            Boolean(params.arriveBy),
+        ),
+    )
 }
 
 function getNextSearchParams(params: SearchParams): SearchParams {
@@ -269,25 +310,4 @@ function getNextSearchDate(
 
     const tzOffset = differenceInHours(norwegianDate, nextSearchDate)
     return subHours(next, tzOffset)
-}
-
-function shouldSearchWithTaxi(
-    params: SearchParams,
-    tripPattern: TripPattern | undefined,
-    { foot, car }: NonTransitTripPatterns,
-): boolean {
-    if (!tripPattern) return true
-    if (foot && foot.duration < TAXI_LIMITS.FOOT_ALTERNATIVE_MIN_SECONDS)
-        return false
-    if (car && car.duration < TAXI_LIMITS.CAR_ALTERNATIVE_MIN_SECONDS)
-        return false
-
-    const { initialSearchDate, arriveBy } = params
-    const hoursBetween = hoursBetweenDateAndTripPattern(
-        initialSearchDate,
-        tripPattern,
-        Boolean(arriveBy),
-    )
-
-    return hoursBetween >= TAXI_LIMITS.DURATION_MAX_HOURS
 }
