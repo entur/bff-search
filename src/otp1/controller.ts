@@ -25,6 +25,8 @@ import {
 import { sortBy } from '../utils/array'
 import { convertToTimeZone } from '../utils/time'
 
+import logger from '../logger'
+
 import { TRANSIT_HOST, NON_TRANSIT_HOST } from '../config'
 
 const sdkTransit = createEnturService({
@@ -99,6 +101,13 @@ export async function searchTransitWithTaxi(
         (tripPattern) => tripPattern.endTime,
         params.arriveBy ? 'desc' : 'asc',
     )
+
+    logger.info('searchTransitWithTaxi returning', {
+        correlationId: extraHeaders['X-Correlation-Id'],
+        numberOfQueries: queries.length,
+        numberOfTaxiResults: taxiResults.length,
+        numberOfResults: tripPatterns.length,
+    })
 
     return {
         hasFlexibleTripPattern: tripPatterns.some(isFlexibleAlternative),
