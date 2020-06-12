@@ -43,6 +43,7 @@ export interface TransitTripPatterns {
     hasFlexibleTripPattern: boolean
     queries: GraphqlQuery[]
     metadata?: Metadata
+    nextSearchParams?: SearchParams
 }
 
 export interface NonTransitTripPatterns {

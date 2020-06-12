@@ -22,7 +22,10 @@ app.use(
     }),
 )
 
-app.use(reqResLoggerMiddleware)
+if (process.env.NODE_ENV === 'production') {
+    app.use(reqResLoggerMiddleware)
+}
+
 app.use(cors())
 
 app.get('/_ah/warmup', (_req, res) => {
