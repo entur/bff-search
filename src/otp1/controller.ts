@@ -85,7 +85,7 @@ export async function searchTransitWithTaxi(
 
     queries = secondTransitResults?.queries || queries
 
-    if (secondTransitResults?.nextSearchParams) {
+    if (!tripPatterns.length && secondTransitResults?.nextSearchParams) {
         const thirdTransitResults = await searchTransit(
             secondTransitResults.nextSearchParams,
             extraHeaders,
