@@ -135,9 +135,12 @@ router.post('/v1/transit', async (req, res, next) => {
         } = await searchMethod(params, extraHeaders)
         stopTrace()
 
-        stopTrace = trace('logTransitAnalytics')
-        if (!cursorData) logTransitAnalytics(params, extraHeaders)
-        stopTrace()
+        if (!cursorData) {
+            const stopLogTransitAnalyticsTrace = trace('logTransitAnalytics')
+            logTransitAnalytics(params, extraHeaders).then(
+                stopLogTransitAnalyticsTrace,
+            )
+        }
 
         stopTrace = trace('generateCursor')
         const nextCursor = useOtp2
