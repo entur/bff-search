@@ -37,8 +37,14 @@ function slack_message {
 
     COMMIT="$(git rev-parse --short HEAD)"
 
+    if [[ $(git diff --stat) != '' ]]; then
+        COMMIT_MSG="(\`$COMMIT\` DIRTY :poop:)"
+    else
+        COMMIT_MSG="(\`$COMMIT\`)"
+    fi
+
     curl -X POST \
-        --data-urlencode "payload={\"channel\": \"#team-app-build\", \"username\": \"BFF Search deployed to $ENV\", \"text\": \"\`$USER\` deployed *BFF Search* to :$ENV: from branch \`$BRANCH\` (\`$COMMIT\`)\", \"icon_emoji\": \":mag:\"}" \
+        --data-urlencode "payload={\"channel\": \"#team-app-build\", \"username\": \"BFF Search deployed to $ENV\", \"text\": \"\`$USER\` deployed *BFF Search* to :$ENV: from branch \`$BRANCH\` $COMMIT_MSG\", \"icon_emoji\": \":mag:\"}" \
         "$ENTUR_DEPLOY_SLACK_WEBHOOK"
 }
 
