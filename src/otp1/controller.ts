@@ -77,9 +77,13 @@ export async function searchTransitWithTaxi(
             : undefined,
     ])
 
+    const taxiPatterns = secondTransitResults?.tripPatterns?.length
+        ? []
+        : taxiResults
+
     tripPatterns = [
         ...tripPatterns,
-        ...taxiResults,
+        ...taxiPatterns,
         ...(secondTransitResults?.tripPatterns || []),
     ]
 
@@ -96,7 +100,7 @@ export async function searchTransitWithTaxi(
         queries = thirdTransitResults.queries
     }
 
-    if (taxiResults.length) {
+    if (taxiPatterns.length) {
         tripPatterns = sortBy<TripPattern, string>(
             tripPatterns,
             (tripPattern) => tripPattern.endTime,
@@ -107,7 +111,7 @@ export async function searchTransitWithTaxi(
     logger.info('searchTransitWithTaxi returning', {
         correlationId: extraHeaders['X-Correlation-Id'],
         numberOfQueries: queries.length,
-        numberOfTaxiResults: taxiResults.length,
+        numberOfTaxiResults: taxiPatterns.length,
         numberOfResults: tripPatterns.length,
     })
 
