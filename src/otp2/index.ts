@@ -15,6 +15,7 @@ import { filterModesAndSubModes } from '../utils/modes'
 import { buildShamashLink } from '../utils/graphql'
 import { clean } from '../utils/object'
 
+import logger from '../logger'
 import { ENVIRONMENT } from '../config'
 
 const router = Router()
@@ -71,6 +72,8 @@ router.post('/v1/transit', async (req, res, next) => {
         const cursorData = parseCursor(req.body?.cursor)
         const params = cursorData?.params || getParams(req.body)
         const extraHeaders = getHeadersFromClient(req)
+        const correlationId = req.get('X-Correlation-Id')
+
         const {
             tripPatterns,
             hasFlexibleTripPattern,
@@ -88,11 +91,11 @@ router.post('/v1/transit', async (req, res, next) => {
 
         const nextCursor = generateCursor(params, metadata, tripPatterns)
 
-        await Promise.all(
+        Promise.all(
             tripPatterns.map((tripPattern) =>
                 cacheSet(`trip-pattern:${tripPattern.id}`, tripPattern),
             ),
-        )
+        ).catch((error) => logger.error(error, { correlationId }))
 
         res.json({
             tripPatterns,

@@ -119,9 +119,11 @@ router.post('/v1/transit', async (req, res, next) => {
             searchMethod = searchTransitOtp2
         }
 
+        const correlationId = req.get('X-Correlation-Id')
+
         logger.info(`Using OTP2 ${useOtp2}`, {
             useOtp2,
-            correlationId: req.get('X-Correlation-Id'),
+            correlationId,
         })
 
         stopTrace = trace(
@@ -160,11 +162,12 @@ router.post('/v1/transit', async (req, res, next) => {
                   }))
         stopTrace()
 
-        stopTrace = trace('cache')
+        const stopCacheTrace = trace('cache')
         const searchParamsIds = uniq(
             tripPatterns.map(({ id = '' }) => deriveSearchParamsId(id)),
         )
-        await Promise.all([
+
+        Promise.all([
             ...tripPatterns.map((tripPattern) =>
                 cacheSet(`trip-pattern:${tripPattern.id}`, tripPattern),
             ),
@@ -176,7 +179,8 @@ router.post('/v1/transit', async (req, res, next) => {
                 ),
             ),
         ])
-        stopTrace()
+            .catch((error) => logger.error(error, { correlationId }))
+            .finally(stopCacheTrace)
 
         res.json({
             tripPatterns,
