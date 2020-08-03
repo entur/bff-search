@@ -25,7 +25,7 @@ export async function set(
     expireInSeconds: number = DEFAULT_EXPIRE,
 ): Promise<void> {
     logger.debug(`Cache set ${key}`)
-    await hset(key, 'data', JSON.stringify(value))
+    await hset([key, 'data', JSON.stringify(value)])
     await expire(key, expireInSeconds)
 }
 
