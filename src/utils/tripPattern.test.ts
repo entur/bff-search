@@ -87,59 +87,6 @@ describe('isValidTaxiAlternative', () => {
         expect(isValidTaxi(tooShortDuration)).toEqual(false)
         expect(isValidTaxi(tooLongDuration)).toEqual(false)
     })
-
-    it('should be true only if the hours since search date is within the max limit for given timepicker mode', () => {
-        const isValidTaxiForArriveBy = isValidTaxiAlternative(
-            now,
-            carPattern,
-            true,
-        )
-        const isValidTaxiForDepartAfter = isValidTaxiAlternative(
-            now,
-            carPattern,
-            false,
-        )
-
-        const validArriveByAlternative = mockPattern({
-            endTime: subHours(now, 3),
-            legs: [
-                mockLeg({ mode: LegMode.METRO }),
-                mockLeg({ mode: LegMode.CAR, duration: 420 }),
-            ],
-        })
-        const invalidArriveByAlternative = mockPattern({
-            startTime: subHours(now, 4),
-            legs: [
-                mockLeg({ mode: LegMode.METRO }),
-                mockLeg({ mode: LegMode.CAR, duration: 420 }),
-            ],
-        })
-        const validDepartAfterAlternative = mockPattern({
-            startTime: addHours(now, 3),
-            legs: [
-                mockLeg({ mode: LegMode.METRO }),
-                mockLeg({ mode: LegMode.CAR, duration: 420 }),
-            ],
-        })
-        const invalidDepartAfterAlternative = mockPattern({
-            startTime: addHours(now, 4),
-            legs: [
-                mockLeg({ mode: LegMode.METRO }),
-                mockLeg({ mode: LegMode.CAR, duration: 420 }),
-            ],
-        })
-
-        expect(isValidTaxiForArriveBy(validArriveByAlternative)).toEqual(true)
-        expect(isValidTaxiForArriveBy(invalidArriveByAlternative)).toEqual(
-            false,
-        )
-        expect(isValidTaxiForDepartAfter(validDepartAfterAlternative)).toEqual(
-            true,
-        )
-        expect(
-            isValidTaxiForDepartAfter(invalidDepartAfterAlternative),
-        ).toEqual(false)
-    })
 })
 
 describe('isValidNonTransitDistance', () => {
