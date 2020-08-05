@@ -124,7 +124,7 @@ function getTripPatternsVariables(params: any): any {
     }
 }
 
-function getTripPatternsQuery(params: object): GraphqlQuery {
+function getTripPatternsQuery(params: Record<string, unknown>): GraphqlQuery {
     return {
         query: JOURNEY_PLANNER_QUERY,
         variables: getTripPatternsVariables(params),
