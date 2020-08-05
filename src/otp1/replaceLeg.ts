@@ -14,7 +14,10 @@ import { uniq, sortBy } from '../utils/array'
 import { createParseTripPattern } from '../utils/tripPattern'
 import { isTransitLeg } from '../utils/leg'
 
-async function post<T>(url: string, params: object): Promise<T> {
+async function post<T>(
+    url: string,
+    params: Record<string, unknown>,
+): Promise<T> {
     const response = await fetch(url, {
         method: 'POST',
         body: JSON.stringify(params),

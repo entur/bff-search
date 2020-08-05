@@ -29,7 +29,7 @@ export interface SearchResults {
 
 export interface GraphqlQuery {
     query: string
-    variables?: object
+    variables?: Record<string, unknown>
 }
 
 export interface Metadata {
