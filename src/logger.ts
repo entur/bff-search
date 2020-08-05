@@ -58,7 +58,7 @@ function reqHeadersMapper(req: Request): { [key: string]: string } {
     })
 }
 
-export function getTraceInfo(): { [key: string]: string | null } {
+export function getTraceInfo(): Record<string, string | null> {
     return {
         [LoggingWinston.LOGGING_TRACE_KEY]: getCurrentTraceFromAgent(),
     }
