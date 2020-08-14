@@ -167,11 +167,13 @@ async function updateLeg(leg: Leg): Promise<LegWithUpdate> {
 
     const toFrontText = toEstimatedCall.destinationDisplay?.frontText
     const toQuayId = toEstimatedCall.quay?.id || ''
-    const toIndex = findCallIndexByQuayId(
-        updatedEstimatedCalls,
-        toQuayId,
-        toFrontText,
-    )
+
+    const remainingUpdatedCalls = updatedEstimatedCalls.slice(fromIndex + 1)
+
+    const toIndex =
+        findCallIndexByQuayId(remainingUpdatedCalls, toQuayId, toFrontText) +
+        fromIndex +
+        1
     const toCall = updatedEstimatedCalls[toIndex]
     if (!toCall) return { leg }
 
