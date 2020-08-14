@@ -252,7 +252,7 @@ function updateNonTransitLeg(
         if (!updatedCalls) return leg
 
         const { toCall } = updatedCalls
-        const { expectedDepartureTime: expectedStartTime, quay } = toCall
+        const { expectedArrivalTime: expectedStartTime, quay } = toCall
         const { timezone: timeZone } = quay
 
         const expectedEndTime = toISOString(
@@ -267,7 +267,7 @@ function updateNonTransitLeg(
         if (!updatedCalls) return leg
 
         const { fromCall } = updatedCalls
-        const { expectedArrivalTime: expectedEndTime, quay } = fromCall
+        const { expectedDepartureTime: expectedEndTime, quay } = fromCall
         const { timezone: timeZone } = quay
 
         const expectedStartTime = toISOString(
