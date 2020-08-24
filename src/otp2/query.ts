@@ -1,6 +1,6 @@
 export default `
 query (
-    $numTripPatterns: Int!,
+    $numTripPatterns: Int,
     $from: Location!,
     $to: Location!,
     $dateTime: DateTime!,
@@ -28,7 +28,7 @@ query (
             transportSubmodes: $transportSubmodes,
             maxPreTransitWalkDistance: $maxPreTransitWalkDistance,
             walkSpeed: $walkSpeed,
-            minimumTransferTime: $minimumTransferTime,
+            transferSlack: $minimumTransferTime,
             allowBikeRental: $allowBikeRental,
             useFlex: $useFlex,
             banned: $banned,
