@@ -107,7 +107,6 @@ function getTripPatternsVariables(params: any): any {
         modes = DEFAULT_MODES,
         transportSubmodes = [],
         wheelchairAccessible = false,
-        limit = 5,
         ...rest
     } = params || {}
 
@@ -120,7 +119,6 @@ function getTripPatternsVariables(params: any): any {
         modes,
         transportSubmodes,
         wheelchair: wheelchairAccessible,
-        numTripPatterns: limit,
     }
 }
 
