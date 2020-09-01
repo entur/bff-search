@@ -118,7 +118,7 @@ function getTripPatternsVariables(params: any): any {
         arriveBy,
         modes,
         transportSubmodes,
-        wheelchair: wheelchairAccessible,
+        wheelchairAccessible,
     }
 }
 
@@ -216,8 +216,6 @@ export async function searchTransit(
 
     const getTripPatternsParams = {
         ...searchParams,
-        useFlex: true,
-        maxPreTransitWalkDistance: 2000,
         modes: {
             accessMode: 'foot',
             egressMode: 'foot',
