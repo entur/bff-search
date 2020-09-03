@@ -85,8 +85,6 @@ function getParams(params: RawSearchParams): SearchParams {
 }
 
 function shouldUseOtp2(params: SearchParams): boolean {
-    if (ENVIRONMENT === 'prod') return false
-
     const { from, to } = params
     if (!from.coordinates || !to.coordinates) return false
 
