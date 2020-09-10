@@ -5,13 +5,12 @@ import { TripPattern } from '@entur/sdk'
 
 import { set as cacheSet, get as cacheGet } from '../cache'
 import { NotFoundError } from '../errors'
-import { RawSearchParams, SearchParams, GraphqlQuery } from '../../types'
+import { RawSearchParams, GraphqlQuery, SearchParams } from '../../types'
 
 import { searchTransit, searchNonTransit, NonTransitMode } from './controller'
 import { updateTripPattern, getExpires } from './updateTrip'
 
 import { parseCursor, generateCursor } from './cursor'
-import { filterModesAndSubModes } from '../utils/modes'
 import { buildShamashLink } from '../utils/graphql'
 import { clean } from '../utils/object'
 
@@ -49,21 +48,11 @@ function getParams(params: RawSearchParams): SearchParams {
     const searchDate = params.searchDate
         ? parseJSON(params.searchDate)
         : new Date()
-    const {
-        filteredModes,
-        subModesFilter,
-        banned,
-        whiteListed,
-    } = filterModesAndSubModes(params.searchFilter)
 
     return {
         ...params,
         searchDate,
         initialSearchDate: searchDate,
-        modes: filteredModes,
-        transportSubmodes: subModesFilter,
-        banned,
-        whiteListed,
     }
 }
 

@@ -5,7 +5,6 @@ import createEnturService, {
     Leg,
     Notice,
     Authority,
-    TransportMode,
 } from '@entur/sdk'
 import { differenceInHours } from 'date-fns'
 import { v4 as uuid } from 'uuid'
@@ -23,10 +22,10 @@ import {
 } from '../utils/tripPattern'
 
 import { parseLeg } from '../utils/leg'
-import { isTransportMode } from '../utils/modes'
 
 import { TRANSIT_HOST_OTP2 } from '../config'
 import JOURNEY_PLANNER_QUERY from './query'
+import { filterModesAndSubModes, Mode } from './modes'
 
 const sdk = createEnturService({
     clientName: 'entur-search',
@@ -40,6 +39,10 @@ interface Otp2TripPattern extends TripPattern {
         tag: string
         text: string
     }[]
+}
+
+export interface Otp2SearchParams extends Omit<SearchParams, 'modes'> {
+    modes: Modes
 }
 
 interface TransitTripPatterns {
@@ -89,13 +92,20 @@ interface Modes {
     accessMode: StreetMode
     egressMode: StreetMode
     directMode?: StreetMode
-    transportMode: TransportMode[]
+    transportModes: Mode[]
 }
 
 const DEFAULT_MODES: Modes = {
     accessMode: 'foot',
     egressMode: 'foot',
-    transportMode: ['bus', 'tram', 'rail', 'metro', 'water', 'air'],
+    transportModes: [
+        { transportMode: 'bus' },
+        { transportMode: 'tram' },
+        { transportMode: 'rail' },
+        { transportMode: 'metro' },
+        { transportMode: 'water' },
+        { transportMode: 'air' },
+    ],
 }
 
 function getTripPatternsVariables(params: any): any {
@@ -105,7 +115,6 @@ function getTripPatternsVariables(params: any): any {
         searchDate = new Date(),
         arriveBy = false,
         modes = DEFAULT_MODES,
-        transportSubmodes = [],
         wheelchairAccessible = false,
         ...rest
     } = params || {}
@@ -117,7 +126,6 @@ function getTripPatternsVariables(params: any): any {
         dateTime: searchDate.toISOString(),
         arriveBy,
         modes,
-        transportSubmodes,
         wheelchairAccessible,
     }
 }
@@ -214,13 +222,11 @@ export async function searchTransit(
     const { initialSearchDate, searchFilter, ...searchParams } = params
     const { searchDate } = searchParams
 
+    const filteredModes = filterModesAndSubModes(searchFilter)
+
     const getTripPatternsParams = {
         ...searchParams,
-        modes: {
-            accessMode: 'foot',
-            egressMode: 'foot',
-            transportMode: (searchParams?.modes || []).filter(isTransportMode),
-        },
+        modes: filteredModes,
     }
 
     const [response, metadata] = await getTripPatterns(getTripPatternsParams)
@@ -275,7 +281,7 @@ export async function searchNonTransit(
                     accessMode: null,
                     egressMode: null,
                     directMode: mode,
-                    transportMode: [],
+                    transportModes: [],
                 },
             }
 
