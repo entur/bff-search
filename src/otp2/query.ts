@@ -235,7 +235,6 @@ fragment serviceJourneyFields on ServiceJourney {
     }
     publicCode
     privateCode
-    transportSubmode
 }
 
 fragment interchangeFields on Interchange {
