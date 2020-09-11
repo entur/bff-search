@@ -1,7 +1,7 @@
 import { BigQuery } from '@google-cloud/bigquery'
 import { parseJSON } from 'date-fns'
 
-import { SearchParams } from '../types'
+import { SearchParams } from './types'
 
 import { sleep } from './utils/promise'
 import logger from './logger'

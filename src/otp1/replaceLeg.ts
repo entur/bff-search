@@ -7,7 +7,7 @@ import {
     QueryMode,
 } from '@entur/sdk'
 
-import { SearchParams } from '../../types'
+import { SearchParams } from '../types'
 import { TRANSIT_HOST } from '../config'
 import { InvalidArgumentError, JourneyPlannerError } from '../errors'
 import { uniq, sortBy } from '../utils/array'

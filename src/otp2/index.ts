@@ -5,7 +5,7 @@ import { TripPattern } from '@entur/sdk'
 
 import { set as cacheSet, get as cacheGet } from '../cache'
 import { NotFoundError } from '../errors'
-import { RawSearchParams, GraphqlQuery, SearchParams } from '../../types'
+import { RawSearchParams, GraphqlQuery, SearchParams } from '../types'
 
 import { searchTransit, searchNonTransit, NonTransitMode } from './controller'
 import { updateTripPattern, getExpires } from './updateTrip'
