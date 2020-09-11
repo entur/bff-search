@@ -88,7 +88,9 @@ function shouldUseOtp2(params: SearchParams): boolean {
     const { from, to } = params
     if (!from.coordinates || !to.coordinates) return false
 
-    const blacklistedModes: QueryMode[] = ['air', 'water', 'rail']
+    const blacklistedModes: QueryMode[] =
+        ENVIRONMENT === 'prod' ? ['air', 'water', 'rail'] : ['air', 'rail']
+
     if (blacklistedModes.some((mode) => params.modes?.includes(mode))) {
         return false
     }
