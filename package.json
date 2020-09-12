@@ -38,7 +38,7 @@
     "haversine-distance": "^1.2.1",
     "jwks-rsa": "^1.8.1",
     "lz-string": "^1.4.4",
-    "node-fetch": "^2.6.0",
+    "node-fetch": "^2.6.1",
     "redis": "^3.0.2",
     "timezone-support": "^2.0.2",
     "uuid": "^7.0.3",
