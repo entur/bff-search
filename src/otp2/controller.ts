@@ -14,7 +14,7 @@ import {
     NonTransitTripPatterns,
     GraphqlQuery,
     Metadata,
-} from '../../types'
+} from '../types'
 
 import {
     isFlexibleAlternative,

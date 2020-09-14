@@ -5,7 +5,7 @@ import {
     TransportSubmodeParam,
 } from '@entur/sdk'
 
-import { FilteredModesAndSubModes, SearchFilterType } from '../../types'
+import { FilteredModesAndSubModes, SearchFilter } from '../types'
 
 import {
     ALL_BUS_SUBMODES,
@@ -15,12 +15,10 @@ import {
 
 import { difference, intersection, uniq } from './array'
 
-const flybuss = 'flybuss'
-const flytog = 'flytog'
 const flytogWhitelist = { authorities: ['FLT:Authority:FLT'] }
 
 export function filterModesAndSubModes(
-    modes?: SearchFilterType[],
+    modes?: SearchFilter[],
 ): FilteredModesAndSubModes {
     if (!modes)
         return { filteredModes: DEFAULT_QUERY_MODES, subModesFilter: [] }
@@ -89,13 +87,15 @@ export function filterModesAndSubModes(
 }
 
 function filterModesForRailReplacementBus(
-    modes: SearchFilterType[],
+    modes: SearchFilter[],
 ): FilteredModesAndSubModes {
     const replacementBus = TransportSubmode.RAIL_REPLACEMENT_BUS
-    const modesIncludeRailOrFlytog = intersection(modes, [LegMode.RAIL, flytog])
-        .length
+    const modesIncludeRailOrFlytog = intersection(modes, [
+        SearchFilter.RAIL,
+        SearchFilter.FLYTOG,
+    ]).length
 
-    if (modesIncludeRailOrFlytog && !modes.includes(LegMode.BUS)) {
+    if (modesIncludeRailOrFlytog && !modes.includes(SearchFilter.BUS)) {
         return {
             filteredModes: [LegMode.BUS],
             subModesFilter: [
@@ -107,7 +107,7 @@ function filterModesForRailReplacementBus(
         }
     }
 
-    if (modes.includes(LegMode.BUS) && !modesIncludeRailOrFlytog) {
+    if (modes.includes(SearchFilter.BUS) && !modesIncludeRailOrFlytog) {
         const allOtherBusSubModes = ALL_BUS_SUBMODES.filter(
             (mode) => mode !== replacementBus,
         )
@@ -127,12 +127,18 @@ function filterModesForRailReplacementBus(
 }
 
 function filterModesForAirportLinkRail(
-    modes: SearchFilterType[],
+    modes: SearchFilter[],
 ): FilteredModesAndSubModes {
     const airportRail = TransportSubmode.AIRPORT_LINK_RAIL
-    const onlyFootAndFlytog = !difference(modes, [LegMode.FOOT, flytog]).length
+    const onlyFootAndFlytog = !difference(modes, [
+        LegMode.FOOT,
+        SearchFilter.FLYTOG,
+    ]).length
 
-    if (modes.includes(flytog) && !modes.includes(LegMode.RAIL)) {
+    if (
+        modes.includes(SearchFilter.FLYTOG) &&
+        !modes.includes(SearchFilter.RAIL)
+    ) {
         return {
             filteredModes: [LegMode.RAIL],
             subModesFilter: [
@@ -145,7 +151,10 @@ function filterModesForAirportLinkRail(
         }
     }
 
-    if (modes.includes(LegMode.RAIL) && !modes.includes(flytog)) {
+    if (
+        modes.includes(SearchFilter.RAIL) &&
+        !modes.includes(SearchFilter.FLYTOG)
+    ) {
         const allOtherRailSubModes = ALL_RAIL_SUBMODES.filter(
             (mode) => mode !== airportRail,
         )
@@ -166,10 +175,13 @@ function filterModesForAirportLinkRail(
 }
 
 function filterModesForAirportLinkBus(
-    modes: SearchFilterType[],
+    modes: SearchFilter[],
     prevBusSubModes: TransportSubmode[],
 ): FilteredModesAndSubModes {
-    if (modes.includes(flybuss) && !modes.includes(LegMode.BUS)) {
+    if (
+        modes.includes(SearchFilter.FLYBUSS) &&
+        !modes.includes(SearchFilter.BUS)
+    ) {
         return {
             filteredModes: [LegMode.BUS],
             subModesFilter: [
@@ -184,7 +196,10 @@ function filterModesForAirportLinkBus(
         }
     }
 
-    if (modes.includes(LegMode.BUS) && !modes.includes(flybuss)) {
+    if (
+        modes.includes(SearchFilter.BUS) &&
+        !modes.includes(SearchFilter.FLYBUSS)
+    ) {
         const isReplacementBusIncluded = prevBusSubModes.includes(
             TransportSubmode.RAIL_REPLACEMENT_BUS,
         )
@@ -219,9 +234,9 @@ function filterModesForAirportLinkBus(
 }
 
 function convertSearchFiltersToMode(
-    searchFilters: SearchFilterType[],
+    searchFilters: SearchFilter[],
 ): QueryMode[] {
-    const initialModes: QueryMode[] = searchFilters.includes('bus')
+    const initialModes: QueryMode[] = searchFilters.includes(SearchFilter.BUS)
         ? ['foot', 'coach']
         : ['foot']
 

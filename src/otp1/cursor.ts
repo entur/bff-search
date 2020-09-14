@@ -12,7 +12,7 @@ import {
     isFlexibleAlternative,
 } from '../utils/tripPattern'
 
-import { CursorData, SearchParams } from '../../types'
+import { CursorData, SearchParams } from '../types'
 
 export function parseCursor(cursor?: string): CursorData | undefined {
     if (!cursor?.length) return undefined
