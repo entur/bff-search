@@ -12,7 +12,7 @@ import {
     TransitTripPatterns,
     NonTransitTripPatterns,
     GraphqlQuery,
-} from '../../types'
+} from '../types'
 
 import {
     isBikeRentalAlternative,

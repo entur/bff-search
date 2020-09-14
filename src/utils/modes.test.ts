@@ -2,7 +2,7 @@ import { LegMode, TransportSubmode, TransportSubmodeParam } from '@entur/sdk'
 
 import { filterModesAndSubModes } from './modes'
 
-import { SearchFilterType } from '../../types'
+import { SearchFilter } from '../types'
 
 import { ALL_BUS_SUBMODES, ALL_RAIL_SUBMODES } from '../constants'
 
@@ -24,13 +24,13 @@ function getRailFilter(
 
 describe('filterModesAndSubModes', () => {
     it('should include coach mode if bus mode is present', () => {
-        const modesWithBusWithoutCoach: SearchFilterType[] = [
-            'rail',
-            'metro',
-            'bus',
-            'water',
+        const modesWithBusWithoutCoach: SearchFilter[] = [
+            SearchFilter.RAIL,
+            SearchFilter.METRO,
+            SearchFilter.BUS,
+            SearchFilter.WATER,
         ]
-        const modesWithBusAndCoach: any = ['foot', 'bus', 'coach']
+        const modesWithBusAndCoach: any = ['foot', SearchFilter.BUS, 'coach']
         const { filteredModes: withoutCoach } = filterModesAndSubModes(
             modesWithBusWithoutCoach,
         )
@@ -43,8 +43,19 @@ describe('filterModesAndSubModes', () => {
     })
 
     it('should add foot if not included', () => {
-        const modesWithoutFoot: any = ['bus', 'coach', 'metro', 'rail']
-        const modesWithFoot: any = ['bus', 'coach', 'foot', 'metro', 'rail']
+        const modesWithoutFoot: any = [
+            SearchFilter.BUS,
+            'coach',
+            SearchFilter.METRO,
+            SearchFilter.RAIL,
+        ]
+        const modesWithFoot: any = [
+            SearchFilter.BUS,
+            'coach',
+            'foot',
+            SearchFilter.METRO,
+            SearchFilter.RAIL,
+        ]
         const { filteredModes: withFoot } = filterModesAndSubModes(
             modesWithoutFoot,
         )
@@ -60,11 +71,11 @@ describe('filterModesAndSubModes', () => {
     })
 
     it('should include bus mode and railReplacementBus sub mode if rail mode is present', () => {
-        const modesWithRailWithoutBus: SearchFilterType[] = [
-            'rail',
-            'metro',
-            'air',
-            'water',
+        const modesWithRailWithoutBus: SearchFilter[] = [
+            SearchFilter.RAIL,
+            SearchFilter.METRO,
+            SearchFilter.AIR,
+            SearchFilter.WATER,
         ]
         const { filteredModes, subModesFilter } = filterModesAndSubModes(
             modesWithRailWithoutBus,
@@ -79,11 +90,11 @@ describe('filterModesAndSubModes', () => {
     })
 
     it('should include bus mode and railReplacementBus sub mode if flytog mode is present', () => {
-        const modesWithFlytogWithoutBus: SearchFilterType[] = [
-            'flytog',
-            'metro',
-            'air',
-            'water',
+        const modesWithFlytogWithoutBus: SearchFilter[] = [
+            SearchFilter.FLYTOG,
+            SearchFilter.METRO,
+            SearchFilter.AIR,
+            SearchFilter.WATER,
         ]
         const { filteredModes, subModesFilter } = filterModesAndSubModes(
             modesWithFlytogWithoutBus,
@@ -98,12 +109,12 @@ describe('filterModesAndSubModes', () => {
     })
 
     it('should include all sub modes except railReplacementBus if bus is present and both rail and flytog are missing', () => {
-        const modesWithoutRailWithBus: SearchFilterType[] = [
-            'bus',
-            'flybuss',
-            'tram',
-            'metro',
-            'water',
+        const modesWithoutRailWithBus: SearchFilter[] = [
+            SearchFilter.BUS,
+            SearchFilter.FLYBUSS,
+            SearchFilter.TRAM,
+            SearchFilter.METRO,
+            SearchFilter.WATER,
         ]
         const { subModesFilter } = filterModesAndSubModes(
             modesWithoutRailWithBus,
@@ -119,11 +130,11 @@ describe('filterModesAndSubModes', () => {
     })
 
     it('should include rail mode and airportLinkRail sub mode if rail is missing and flytog is present', () => {
-        const modesWithoutRailWithFlytog: SearchFilterType[] = [
-            'flytog',
-            'tram',
-            'metro',
-            'water',
+        const modesWithoutRailWithFlytog: SearchFilter[] = [
+            SearchFilter.FLYTOG,
+            SearchFilter.TRAM,
+            SearchFilter.METRO,
+            SearchFilter.WATER,
         ]
         const { filteredModes, subModesFilter } = filterModesAndSubModes(
             modesWithoutRailWithFlytog,
@@ -138,7 +149,7 @@ describe('filterModesAndSubModes', () => {
     })
 
     it('should whitelist FLT if only foot and flytog are present', () => {
-        const modesWithOnlyFootAndFlytog: any[] = ['flytog', 'foot']
+        const modesWithOnlyFootAndFlytog: any[] = [SearchFilter.FLYTOG, 'foot']
         const { banned, whiteListed } = filterModesAndSubModes(
             modesWithOnlyFootAndFlytog,
         )
@@ -148,11 +159,11 @@ describe('filterModesAndSubModes', () => {
     })
 
     it('should include all sub modes except airportLinkRail, and blacklist FLT, if rail is present and flytog is missing', () => {
-        const modesWithRailWithoutFlytog: SearchFilterType[] = [
-            'rail',
-            'tram',
-            'metro',
-            'air',
+        const modesWithRailWithoutFlytog: SearchFilter[] = [
+            SearchFilter.RAIL,
+            SearchFilter.TRAM,
+            SearchFilter.METRO,
+            SearchFilter.AIR,
         ]
         const { subModesFilter, banned } = filterModesAndSubModes(
             modesWithRailWithoutFlytog,
@@ -169,11 +180,11 @@ describe('filterModesAndSubModes', () => {
     })
 
     it('should not include any rail sub modes if both rail and flytog are present', () => {
-        const modesWithoutRailWithFlytog: SearchFilterType[] = [
-            'rail',
-            'flytog',
-            'metro',
-            'water',
+        const modesWithoutRailWithFlytog: SearchFilter[] = [
+            SearchFilter.RAIL,
+            SearchFilter.FLYTOG,
+            SearchFilter.METRO,
+            SearchFilter.WATER,
         ]
         const { filteredModes, subModesFilter } = filterModesAndSubModes(
             modesWithoutRailWithFlytog,
@@ -185,11 +196,11 @@ describe('filterModesAndSubModes', () => {
     })
 
     it('should include bus mode and airportLinkBus sub mode if bus is missing and flybuss is present', () => {
-        const modesWithoutBusWithFlybuss: SearchFilterType[] = [
-            'flybuss',
-            'tram',
-            'metro',
-            'water',
+        const modesWithoutBusWithFlybuss: SearchFilter[] = [
+            SearchFilter.FLYBUSS,
+            SearchFilter.TRAM,
+            SearchFilter.METRO,
+            SearchFilter.WATER,
         ]
         const { filteredModes, subModesFilter } = filterModesAndSubModes(
             modesWithoutBusWithFlybuss,
@@ -204,11 +215,11 @@ describe('filterModesAndSubModes', () => {
     })
 
     it('should include all sub modes except airportLinkBus if bus is present and flybuss is missing', () => {
-        const modesWithBusWithoutFlybuss: SearchFilterType[] = [
-            'bus',
-            'tram',
-            'metro',
-            'air',
+        const modesWithBusWithoutFlybuss: SearchFilter[] = [
+            SearchFilter.BUS,
+            SearchFilter.TRAM,
+            SearchFilter.METRO,
+            SearchFilter.AIR,
         ]
         const { subModesFilter } = filterModesAndSubModes(
             modesWithBusWithoutFlybuss,

@@ -3,14 +3,19 @@ import { parseJSON } from 'date-fns'
 import { v4 as uuid } from 'uuid'
 import distance from 'haversine-distance'
 
-import { TripPattern, QueryMode } from '@entur/sdk'
+import { TripPattern } from '@entur/sdk'
 
 import trace from '../tracer'
 import { set as cacheSet, get as cacheGet } from '../cache'
 import { NotFoundError, InvalidArgumentError } from '../errors'
 import { verifyPartnerToken } from '../auth'
 
-import { RawSearchParams, SearchParams, GraphqlQuery } from '../../types'
+import {
+    RawSearchParams,
+    SearchParams,
+    GraphqlQuery,
+    SearchFilter,
+} from '../types'
 
 import { generateShamashLink as generateShamashLinkOtp2 } from '../otp2'
 import { searchTransit as searchTransitOtp2 } from '../otp2/controller'
@@ -88,13 +93,23 @@ function shouldUseOtp2(params: SearchParams): boolean {
     const { from, to } = params
     if (!from.coordinates || !to.coordinates) return false
 
-    const blacklistedModes: QueryMode[] = ['air', 'water', 'rail']
-    if (blacklistedModes.some((mode) => params.modes?.includes(mode))) {
+    const isProd = ENVIRONMENT === 'prod'
+
+    const blacklistedFilters = isProd
+        ? [SearchFilter.AIR, SearchFilter.WATER, SearchFilter.RAIL]
+        : [SearchFilter.AIR, SearchFilter.RAIL]
+
+    if (
+        blacklistedFilters.some((filter) =>
+            params.searchFilter?.includes(filter),
+        )
+    ) {
         return false
     }
 
     const distanceBetweenFromAndTo = distance(from.coordinates, to.coordinates)
-    return distanceBetweenFromAndTo >= 100000
+    const distanceLimit = isProd ? 100000 : 50000
+    return distanceBetweenFromAndTo >= distanceLimit
 }
 
 router.post('/v1/transit', async (req, res, next) => {

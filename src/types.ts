@@ -9,7 +9,7 @@ import {
 
 export type RawSearchParams = GetTripPatternsParams & {
     cursor?: string
-    searchFilter?: SearchFilterType[]
+    searchFilter?: SearchFilter[]
 }
 
 export type SearchParams = RawSearchParams & {
@@ -60,12 +60,13 @@ export interface FilteredModesAndSubModes {
     whiteListed?: InputWhiteListed
 }
 
-export type SearchFilterType =
-    | 'bus'
-    | 'rail'
-    | 'tram'
-    | 'metro'
-    | 'air'
-    | 'water'
-    | 'flytog'
-    | 'flybuss'
+export enum SearchFilter {
+    BUS = 'bus',
+    RAIL = 'rail',
+    TRAM = 'tram',
+    METRO = 'metro',
+    AIR = 'air',
+    WATER = 'water',
+    FLYTOG = 'flytog',
+    FLYBUSS = 'flybuss',
+}
