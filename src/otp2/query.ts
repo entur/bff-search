@@ -1,4 +1,8 @@
-export default `
+function minify(query: string): string {
+    return query.trim().replace(/\s+/g, ' ')
+}
+
+export default minify(`
 query (
     $numTripPatterns: Int,
     $from: Location!,
@@ -282,4 +286,4 @@ fragment estimatedCallFields on EstimatedCall {
         ...situationFields
     }
 }
-`
+`)
