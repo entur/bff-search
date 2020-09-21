@@ -93,11 +93,7 @@ function shouldUseOtp2(params: SearchParams): boolean {
     const { from, to } = params
     if (!from.coordinates || !to.coordinates) return false
 
-    const isProd = ENVIRONMENT === 'prod'
-
-    const blacklistedFilters = isProd
-        ? [SearchFilter.AIR, SearchFilter.WATER, SearchFilter.RAIL]
-        : [SearchFilter.AIR, SearchFilter.RAIL]
+    const blacklistedFilters = [SearchFilter.AIR, SearchFilter.RAIL]
 
     if (
         blacklistedFilters.some((filter) =>
@@ -108,7 +104,7 @@ function shouldUseOtp2(params: SearchParams): boolean {
     }
 
     const distanceBetweenFromAndTo = distance(from.coordinates, to.coordinates)
-    const distanceLimit = isProd ? 100000 : 50000
+    const distanceLimit = 50000
     return distanceBetweenFromAndTo >= distanceLimit
 }
 
