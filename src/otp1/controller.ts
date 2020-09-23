@@ -131,11 +131,7 @@ export async function searchTransit(
     const { initialSearchDate, searchFilter, ...searchParams } = params
     const { searchDate } = searchParams
 
-    const getTripPatternsParams = {
-        ...searchParams,
-        maxPreTransitWalkDistance: 2000,
-    }
-
+    const getTripPatternsParams = searchParams
     const response = await sdkTransit.getTripPatterns(getTripPatternsParams, {
         headers: extraHeaders,
     })
@@ -194,7 +190,6 @@ export async function searchNonTransit(
                         mode === 'bicycle_rent'
                             ? [LegMode.FOOT, LegMode.BICYCLE]
                             : [mode],
-                    maxPreTransitWalkDistance: 2000,
                     allowBikeRental: mode === 'bicycle_rent',
                 },
                 { headers: extraHeaders },
@@ -257,7 +252,6 @@ async function searchTaxiFrontBack(
                     {
                         ...searchParams,
                         limit: 1,
-                        maxPreTransitWalkDistance: 2000,
                         modes: [...initialModes, mode],
                     },
                     { headers: extraHeaders },
