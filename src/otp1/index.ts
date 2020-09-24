@@ -89,7 +89,12 @@ function getParams(params: RawSearchParams): SearchParams {
     }
 }
 
-function shouldUseOtp2(params: SearchParams): boolean {
+/*
+ * OTP 2 scenario 2:
+ * Distance > 50 km
+ * Air and Rail filters turned off
+ */
+function searchQualifiesForScenario2(params: SearchParams): boolean {
     const { from, to } = params
     if (!from.coordinates || !to.coordinates) return false
 
@@ -106,6 +111,33 @@ function shouldUseOtp2(params: SearchParams): boolean {
     const distanceBetweenFromAndTo = distance(from.coordinates, to.coordinates)
     const distanceLimit = 50000
     return distanceBetweenFromAndTo >= distanceLimit
+}
+
+/*
+ * OTP 2 scenario 3:
+ * Scenario 2 or
+ * From and to are north of latitude 67.5
+ * Air filter disabled
+ */
+function searchQualifiesForScenario3(params: SearchParams): boolean {
+    const { from, to } = params
+    if (!from.coordinates || !to.coordinates) return false
+
+    if (
+        from.coordinates.latitude > 67.5 &&
+        to.coordinates.latitude > 67.5 &&
+        !params.searchFilter?.includes(SearchFilter.AIR)
+    ) {
+        return true
+    }
+
+    return searchQualifiesForScenario2(params)
+}
+
+function shouldUseOtp2(params: SearchParams): boolean {
+    return ENVIRONMENT === 'prod'
+        ? searchQualifiesForScenario2(params)
+        : searchQualifiesForScenario3(params)
 }
 
 router.post('/v1/transit', async (req, res, next) => {
