@@ -196,6 +196,7 @@ router.post('/v1/transit', async (req, res, next) => {
                 ? undefined
                 : queries.map((q) => ({
                       ...q,
+                      algorithm: useOtp2 ? 'OTP2' : 'OTP1',
                       shamash: useOtp2
                           ? generateShamashLinkOtp2(q)
                           : generateShamashLink(q),
