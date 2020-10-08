@@ -186,7 +186,7 @@ router.post('/v1/transit', async (req, res, next) => {
 
         stopTrace = trace('generateCursor')
         const nextCursor = useOtp2
-            ? generateCursorOtp2(params, metadata, tripPatterns)
+            ? generateCursorOtp2(params, metadata)
             : generateCursor(params, tripPatterns)
         stopTrace()
 

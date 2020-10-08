@@ -4,13 +4,6 @@ import {
 } from 'lz-string'
 import { parseJSON } from 'date-fns'
 
-import { TripPattern } from '@entur/sdk'
-
-import {
-    isTransitAlternative,
-    isFlexibleAlternative,
-} from '../utils/tripPattern'
-
 import { CursorData, SearchParams, Metadata } from '../types'
 
 export function parseCursor(cursor?: string): CursorData | undefined {
@@ -35,12 +28,8 @@ export function parseCursor(cursor?: string): CursorData | undefined {
 export function generateCursor(
     params: SearchParams,
     metadata: Metadata | undefined,
-    tripPatterns: TripPattern[] = [],
 ): string | undefined {
-    const hasTransitPatterns = tripPatterns.some(isTransitAlternative)
-    const hasFlexiblePatterns = tripPatterns.some(isFlexibleAlternative)
-
-    if (!metadata || !tripPatterns.length || !hasTransitPatterns) return
+    if (!metadata) return
 
     const nextDate = new Date(metadata.nextDateTime)
 
@@ -49,7 +38,7 @@ export function generateCursor(
         params: {
             ...params,
             searchDate: nextDate,
-            useFlex: hasFlexiblePatterns,
+            useFlex: false,
         },
     }
 
