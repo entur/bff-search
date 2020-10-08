@@ -79,7 +79,7 @@ router.post('/v1/transit', async (req, res, next) => {
                       shamash: generateShamashLink(query),
                   }))
 
-        const nextCursor = generateCursor(params, metadata, tripPatterns)
+        const nextCursor = generateCursor(params, metadata)
 
         Promise.all(
             tripPatterns.map((tripPattern) =>
