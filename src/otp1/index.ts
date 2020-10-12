@@ -179,9 +179,15 @@ router.post('/v1/transit', async (req, res, next) => {
 
         if (!cursorData) {
             const stopLogTransitAnalyticsTrace = trace('logTransitAnalytics')
-            logTransitAnalytics(params, extraHeaders).then(
-                stopLogTransitAnalyticsTrace,
-            )
+            logTransitAnalytics(params, extraHeaders)
+                .then(stopLogTransitAnalyticsTrace)
+                .catch((error) => {
+                    logger.error('Failed to log transit analytics', {
+                        error: error.message,
+                        stack: error.stack,
+                        correlationId,
+                    })
+                })
         }
 
         stopTrace = trace('generateCursor')

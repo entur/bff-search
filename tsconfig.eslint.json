@@ -1,0 +1,11 @@
+{
+    "compilerOptions": {
+        "strict": true
+    },
+    "include": [
+        ".eslintrc.js",
+        "./*.js",
+        "./src/**/*.ts",
+        "./scripts/**/*.ts",
+    ]
+  }

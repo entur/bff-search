@@ -9,16 +9,18 @@ const mkdir = promisify(fs.mkdir)
 const [, , ENV = 'dev', ...args] = process.argv
 const ENV_FILE = join(__dirname, `../.env.${ENV}`)
 
-createConfigFile()
+void createConfigFile()
 
 if (args.includes('--with-types')) {
-    createTypeDefinition()
+    createTypeDefinition().catch((error) => {
+        console.error('Failed creating type definition', error)
+    })
 }
 
 if (args.includes('--watch')) {
     // eslint-disable-next-line fp/no-mutating-methods
     fs.watch(ENV_FILE, () => {
-        createConfigFile()
+        void createConfigFile()
     })
 }
 

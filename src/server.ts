@@ -6,7 +6,7 @@ import cors from 'cors'
 import express from 'express'
 
 import './cache'
-import { reqResLoggerMiddleware } from './logger'
+import logger, { reqResLoggerMiddleware } from './logger'
 import { NotFoundError, InvalidArgumentError } from './errors'
 import { unauthorizedError } from './auth'
 
@@ -29,7 +29,9 @@ if (process.env.NODE_ENV === 'production') {
 app.use(cors())
 
 app.get('/_ah/warmup', (_req, res) => {
-    import('./cache')
+    import('./cache').catch((error) =>
+        logger.error('Failed to import cache in warmup handler', error),
+    )
     res.end()
 })
 

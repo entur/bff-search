@@ -10,6 +10,7 @@ module.exports = {
     parserOptions: {
         ecmaVersion: 6,
         sourceType: 'module',
+        project: './tsconfig.eslint.json',
     },
     plugins: ['@typescript-eslint', 'fp', 'prettier'],
     settings: {
@@ -38,6 +39,7 @@ module.exports = {
         '@typescript-eslint/no-empty-function': 'error',
         '@typescript-eslint/no-empty-interface': 'error',
         '@typescript-eslint/no-explicit-any': 'off',
+        '@typescript-eslint/no-floating-promises': 'error',
         '@typescript-eslint/no-misused-new': 'error',
         '@typescript-eslint/no-namespace': 'error',
         '@typescript-eslint/no-parameter-properties': 'off',
