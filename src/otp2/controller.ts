@@ -6,7 +6,6 @@ import createEnturService, {
     Notice,
     Authority,
 } from '@entur/sdk'
-import { differenceInHours } from 'date-fns'
 import { v4 as uuid } from 'uuid'
 
 import {
@@ -220,7 +219,6 @@ export async function searchTransit(
     prevQueries?: GraphqlQuery[],
 ): Promise<TransitTripPatterns> {
     const { initialSearchDate, searchFilter, ...searchParams } = params
-    const { searchDate } = searchParams
 
     const filteredModes = filterModesAndSubModes(searchFilter)
 
@@ -237,10 +235,7 @@ export async function searchTransit(
     const parse = createParseTripPattern()
     const tripPatterns = response.map(parse).filter(isValidTransitAlternative)
 
-    const searchTimeWithinRange =
-        differenceInHours(searchDate, initialSearchDate) < 12
-
-    if (!tripPatterns.length && searchTimeWithinRange && metadata) {
+    if (!tripPatterns.length && metadata) {
         const nextSearchParams = {
             ...params,
             searchDate: new Date(metadata.nextDateTime),
