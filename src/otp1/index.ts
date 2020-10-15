@@ -131,7 +131,7 @@ function searchQualifiesForScenario3(params: SearchParams): boolean {
 
 function shouldUseOtp2(params: SearchParams): boolean {
     if (ENVIRONMENT === 'prod') {
-        searchQualifiesForScenario2(params)
+        return searchQualifiesForScenario2(params)
     }
     return (
         searchQualifiesForScenario3(params) ||
