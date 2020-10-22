@@ -37,7 +37,6 @@ query (
                     prevDateTime
                 }
                 tripPatterns {
-                    weight
                     startTime
         endTime
         directDuration
