@@ -37,6 +37,7 @@ query (
                     prevDateTime
                 }
                 tripPatterns {
+                    generalizedCost
                     startTime
         endTime
         directDuration
@@ -48,6 +49,7 @@ query (
           text
         }
         legs {
+            generalizedCost
             ...legFields
         }
     }
