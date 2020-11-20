@@ -70,3 +70,9 @@ export enum SearchFilter {
     FLYTOG = 'flytog',
     FLYBUSS = 'flybuss',
 }
+
+export enum Platform {
+    WEB = 'web',
+    APP = 'app',
+    WIDGET = 'widget',
+}
