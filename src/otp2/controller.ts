@@ -264,6 +264,26 @@ export async function searchTransit(
     }
 }
 
+export async function searchFlexible(
+    params: SearchParams,
+): Promise<Otp2TripPattern | undefined> {
+    const { initialSearchDate, searchFilter, ...searchParams } = params
+
+    const getTripPatternsParams = {
+        ...searchParams,
+        modes: {
+            directMode: 'flexible',
+        },
+        numTripPatterns: 1,
+    }
+
+    const [response] = await getTripPatterns(getTripPatternsParams)
+
+    const parse = createParseTripPattern()
+    const tripPatterns = response.map(parse).filter(isValidTransitAlternative)
+    return tripPatterns?.[0]
+}
+
 export type NonTransitMode = 'foot' | 'bicycle' | 'car' | 'bike_rental'
 
 export async function searchNonTransit(
