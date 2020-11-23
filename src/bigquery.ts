@@ -1,7 +1,7 @@
 import { BigQuery } from '@google-cloud/bigquery'
 import { parseJSON } from 'date-fns'
 import { SearchParams, Platform } from './types'
-
+import { sleep } from './utils/promise'
 import logger from './logger'
 import { ENVIRONMENT } from './config'
 
@@ -12,6 +12,30 @@ function getPlatform(client: string): Platform | undefined {
     if (client.startsWith('entur-client-app')) return Platform.APP
     if (client.startsWith('entur-client-web')) return Platform.WEB
     if (client.startsWith('entur-client-widget')) return Platform.WIDGET
+}
+
+const MAX_RETRIES = 5
+
+async function queryWithRetries(query: string, retriesDone = 0): Promise<void> {
+    try {
+        await bigQuery.query({ query, useLegacySql: false })
+        logger.debug(
+            `logTransitAnalytics success, retries done: ${retriesDone}`,
+        )
+    } catch (error) {
+        if (
+            error.message.includes('Exceeded rate limits') &&
+            retriesDone < MAX_RETRIES
+        ) {
+            const retryNumber = retriesDone + 1
+            const minDelay = 100 * retryNumber
+            const sleepDuration =
+                minDelay + 2 ** retryNumber * 1000 * Math.random()
+            await sleep(sleepDuration)
+            return queryWithRetries(query, retryNumber)
+        }
+        throw error
+    }
 }
 
 export async function logTransitAnalytics(
@@ -51,7 +75,7 @@ export async function logTransitAnalytics(
             "${createdAt}"
         )`
 
-        await bigQuery.query({ query, useLegacySql: false })
+        await queryWithRetries(query)
         logger.debug('logTransitAnalytics success', { client })
     } catch (error) {
         logger.error(`logTransitAnalytics: ${error.message}`, { client, error })
