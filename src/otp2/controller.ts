@@ -281,7 +281,7 @@ export async function searchFlexible(
 
     const parse = createParseTripPattern()
     const tripPatterns = response.map(parse).filter(isValidTransitAlternative)
-    return tripPatterns?.[0]
+    return tripPatterns[0]
 }
 
 export type NonTransitMode = 'foot' | 'bicycle' | 'car' | 'bike_rental'
