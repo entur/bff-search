@@ -284,8 +284,5 @@ fragment estimatedCallFields on EstimatedCall {
     serviceJourney {
         ...serviceJourneyFields
     }
-    situations {
-        ...situationFields
-    }
 }
 `)
