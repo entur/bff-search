@@ -63,6 +63,7 @@ The cursor is a key to get the next search results. If the client is not satisfi
 The backend is a REST service which we would like to keep _stateless_. That means that we want all requests to be independent of some state living on the server. We therefore generate the cursors by serializing the parameters for the next search (and some metadata) and compress it. This way, it looks like a random string, but in fact everything that is needed for doing the search is encoded in the string.
 
 ## 📦 Install
+Node.js version >= 12 is required, so make sure you have that installed.
 
 ```
 npm install
