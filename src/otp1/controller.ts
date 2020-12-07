@@ -192,8 +192,8 @@ export async function searchNonTransit(
                     limit: mode === 'bicycle_rent' ? 3 : 1,
                     modes:
                         mode === 'bicycle_rent'
-                            ? [LegMode.FOOT, LegMode.BICYCLE]
-                            : [mode],
+                            ? [QueryMode.FOOT, QueryMode.BICYCLE]
+                            : [mode as QueryMode],
                     maxPreTransitWalkDistance: 2000,
                     allowBikeRental: mode === 'bicycle_rent',
                 },
@@ -246,7 +246,7 @@ async function searchTaxiFrontBack(
         modes: initialModes = [],
         ...searchParams
     } = params
-    const modes: QueryMode[] = ['car_pickup', 'car_dropoff']
+    const modes: QueryMode[] = [QueryMode.CAR_PICKUP, QueryMode.CAR_DROPOFF]
     const parseTripPattern = createParseTripPattern()
 
     const [{ car }, [pickup, dropoff]] = await Promise.all([

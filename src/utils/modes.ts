@@ -1,6 +1,7 @@
 import {
     LegMode,
     QueryMode,
+    TransportMode,
     TransportSubmode,
     TransportSubmodeParam,
 } from '@entur/sdk'
@@ -97,10 +98,10 @@ function filterModesForRailReplacementBus(
 
     if (modesIncludeRailOrFlytog && !modes.includes(SearchFilter.BUS)) {
         return {
-            filteredModes: [LegMode.BUS],
+            filteredModes: [QueryMode.BUS],
             subModesFilter: [
                 {
-                    transportMode: LegMode.BUS,
+                    transportMode: TransportMode.BUS,
                     transportSubmodes: [replacementBus],
                 },
             ],
@@ -116,7 +117,7 @@ function filterModesForRailReplacementBus(
             filteredModes: [],
             subModesFilter: [
                 {
-                    transportMode: LegMode.BUS,
+                    transportMode: TransportMode.BUS,
                     transportSubmodes: allOtherBusSubModes,
                 },
             ],
@@ -140,10 +141,10 @@ function filterModesForAirportLinkRail(
         !modes.includes(SearchFilter.RAIL)
     ) {
         return {
-            filteredModes: [LegMode.RAIL],
+            filteredModes: [QueryMode.RAIL],
             subModesFilter: [
                 {
-                    transportMode: LegMode.RAIL,
+                    transportMode: TransportMode.RAIL,
                     transportSubmodes: [airportRail],
                 },
             ],
@@ -163,7 +164,7 @@ function filterModesForAirportLinkRail(
             filteredModes: [],
             subModesFilter: [
                 {
-                    transportMode: LegMode.RAIL,
+                    transportMode: TransportMode.RAIL,
                     transportSubmodes: allOtherRailSubModes,
                 },
             ],
@@ -183,10 +184,10 @@ function filterModesForAirportLinkBus(
         !modes.includes(SearchFilter.BUS)
     ) {
         return {
-            filteredModes: [LegMode.BUS],
+            filteredModes: [QueryMode.BUS],
             subModesFilter: [
                 {
-                    transportMode: LegMode.BUS,
+                    transportMode: TransportMode.BUS,
                     transportSubmodes: [
                         ...prevBusSubModes,
                         TransportSubmode.AIRPORT_LINK_BUS,
@@ -214,7 +215,7 @@ function filterModesForAirportLinkBus(
             filteredModes: [],
             subModesFilter: [
                 {
-                    transportMode: LegMode.BUS,
+                    transportMode: TransportMode.BUS,
                     transportSubmodes: allOtherBusSubModes,
                 },
             ],
@@ -224,7 +225,7 @@ function filterModesForAirportLinkBus(
     const defaultSubModesFilter = prevBusSubModes.length
         ? [
               {
-                  transportMode: LegMode.BUS,
+                  transportMode: TransportMode.BUS,
                   transportSubmodes: prevBusSubModes,
               },
           ]
@@ -237,8 +238,8 @@ function convertSearchFiltersToMode(
     searchFilters: SearchFilter[],
 ): QueryMode[] {
     const initialModes: QueryMode[] = searchFilters.includes(SearchFilter.BUS)
-        ? ['foot', 'coach']
-        : ['foot']
+        ? [QueryMode.FOOT, QueryMode.COACH]
+        : [QueryMode.FOOT]
 
     return uniq(searchFilters.reduce(queryTransportModesReducer, initialModes))
 }
@@ -255,7 +256,7 @@ function queryTransportModesReducer(
 function isBusSubModesFilter({
     transportMode,
 }: TransportSubmodeParam): boolean {
-    return transportMode === LegMode.BUS
+    return transportMode === TransportMode.BUS
 }
 
 function isQueryTransportMode(mode: QueryMode | string): boolean {

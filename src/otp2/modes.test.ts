@@ -1,4 +1,4 @@
-import { LegMode, TransportSubmode } from '@entur/sdk'
+import { TransportMode, TransportSubmode } from '@entur/sdk'
 
 import { filterModesAndSubModes, Modes, Mode } from './modes'
 
@@ -8,13 +8,13 @@ import { ALL_BUS_SUBMODES, ALL_RAIL_SUBMODES } from '../constants'
 
 function getBusFilter(modes: Modes): Mode | undefined {
     return modes.transportModes.find(
-        (mode) => mode.transportMode === LegMode.BUS,
+        (mode) => mode.transportMode === TransportMode.BUS,
     )
 }
 
 function getRailFilter(modes: Modes): Mode | undefined {
     return modes.transportModes.find(
-        (mode) => mode.transportMode === LegMode.RAIL,
+        (mode) => mode.transportMode === TransportMode.RAIL,
     )
 }
 
@@ -31,12 +31,12 @@ describe('filterModesAndSubModes', () => {
         const withCoach = filterModesAndSubModes(modesWithBusAndCoach)
 
         const coach = withoutCoach.transportModes.some(
-            (m) => m.transportMode === LegMode.COACH,
+            (m) => m.transportMode === TransportMode.COACH,
         )
         expect(coach).toEqual(true)
 
         const alreadyCoach = withCoach.transportModes.some(
-            (m) => m.transportMode === LegMode.COACH,
+            (m) => m.transportMode === TransportMode.COACH,
         )
         expect(alreadyCoach).toEqual(true)
         expect(withCoach.transportModes).toHaveLength(
