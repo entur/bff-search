@@ -1,4 +1,9 @@
-import { LegMode, TransportSubmode, TransportSubmodeParam } from '@entur/sdk'
+import {
+    LegMode,
+    TransportMode,
+    TransportSubmode,
+    TransportSubmodeParam,
+} from '@entur/sdk'
 
 import { filterModesAndSubModes } from './modes'
 
@@ -10,7 +15,7 @@ const flytogWhitelist = { authorities: ['FLT:Authority:FLT'] }
 
 function getBusFilter(filters: TransportSubmodeParam[]): TransportSubmodeParam {
     return filters.find(
-        (filter) => filter.transportMode === LegMode.BUS,
+        (filter) => filter.transportMode === TransportMode.BUS,
     ) as TransportSubmodeParam
 }
 
@@ -18,7 +23,7 @@ function getRailFilter(
     filters: TransportSubmodeParam[],
 ): TransportSubmodeParam {
     return filters.find(
-        (filter) => filter.transportMode === LegMode.RAIL,
+        (filter) => filter.transportMode === TransportMode.RAIL,
     ) as TransportSubmodeParam
 }
 

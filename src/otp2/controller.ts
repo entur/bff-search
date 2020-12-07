@@ -5,6 +5,7 @@ import createEnturService, {
     Leg,
     Notice,
     Authority,
+    TransportMode,
 } from '@entur/sdk'
 import { v4 as uuid } from 'uuid'
 import { addDays, differenceInDays, startOfDay } from 'date-fns'
@@ -99,12 +100,12 @@ const DEFAULT_MODES: Modes = {
     accessMode: 'foot',
     egressMode: 'foot',
     transportModes: [
-        { transportMode: 'bus' },
-        { transportMode: 'tram' },
-        { transportMode: 'rail' },
-        { transportMode: 'metro' },
-        { transportMode: 'water' },
-        { transportMode: 'air' },
+        { transportMode: TransportMode.BUS },
+        { transportMode: TransportMode.TRAM },
+        { transportMode: TransportMode.RAIL },
+        { transportMode: TransportMode.METRO },
+        { transportMode: TransportMode.WATER },
+        { transportMode: TransportMode.AIR },
     ],
 }
 
