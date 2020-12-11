@@ -3,6 +3,8 @@ import { parseJSON } from 'date-fns'
 
 import { TripPattern } from '@entur/sdk'
 
+import { uniq } from '../utils/array'
+import { deriveSearchParamsId } from '../utils/searchParams'
 import { set as cacheSet, get as cacheGet } from '../cache'
 import { NotFoundError } from '../errors'
 import { RawSearchParams, GraphqlQuery, SearchParams } from '../types'
@@ -21,6 +23,8 @@ import { clean } from '../utils/object'
 
 import logger from '../logger'
 import { ENVIRONMENT } from '../config'
+
+const SEARCH_PARAMS_EXPIRE_IN_SECONDS = 2 * 60 * 60 // two hours
 
 const router = Router()
 
@@ -95,11 +99,21 @@ router.post('/v1/transit', async (req, res, next) => {
             isNotUndefined,
         )
 
-        Promise.all(
-            allTripPatterns.map((tripPattern) =>
+        const searchParamsIds = uniq(
+            tripPatterns.map(({ id = '' }) => deriveSearchParamsId(id)),
+        )
+        Promise.all([
+            ...tripPatterns.map((tripPattern) =>
                 cacheSet(`trip-pattern:${tripPattern.id}`, tripPattern),
             ),
-        ).catch((error) => logger.error(error, { correlationId }))
+            ...searchParamsIds.map((searchParamsId) =>
+                cacheSet(
+                    `search-params:${searchParamsId}`,
+                    params,
+                    SEARCH_PARAMS_EXPIRE_IN_SECONDS,
+                ),
+            ),
+        ]).catch((error) => logger.error(error, { correlationId }))
 
         res.json({
             tripPatterns: allTripPatterns,
