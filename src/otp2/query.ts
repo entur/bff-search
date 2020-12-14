@@ -16,45 +16,47 @@ query (
     $banned: InputBanned,
     $whiteListed: InputWhiteListed,
     $debugItineraryFilter: Boolean,
+    $walkReluctance: Float,
+) {
+    trip(
+        numTripPatterns: $numTripPatterns,
+        from: $from,
+        to: $to,
+        dateTime: $dateTime,
+        arriveBy: $arriveBy,
+        wheelchairAccessible: $wheelchairAccessible,
+        modes: $modes,
+        walkSpeed: $walkSpeed,
+        transferSlack: $minimumTransferTime,
+        banned: $banned,
+        whiteListed: $whiteListed,
+        debugItineraryFilter: $debugItineraryFilter,
+        walkReluctance: $walkReluctance
     ) {
-        trip(
-            numTripPatterns: $numTripPatterns,
-            from: $from,
-            to: $to,
-            dateTime: $dateTime,
-            arriveBy: $arriveBy,
-            wheelchairAccessible: $wheelchairAccessible,
-            modes: $modes,
-            walkSpeed: $walkSpeed,
-            transferSlack: $minimumTransferTime,
-            banned: $banned,
-            whiteListed: $whiteListed,
-            debugItineraryFilter: $debugItineraryFilter
-            ) {
-                metadata {
-                    searchWindowUsed
-                    nextDateTime
-                    prevDateTime
-                }
-                tripPatterns {
-                    generalizedCost
-                    startTime
-        endTime
-        directDuration
-        duration
-        distance
-        walkDistance
-        systemNotices {
-            tag
-          text
+        metadata {
+            searchWindowUsed
+            nextDateTime
+            prevDateTime
         }
-        legs {
+        tripPatterns {
             generalizedCost
-            ...legFields
+            startTime
+            endTime
+            directDuration
+            duration
+            distance
+            walkDistance
+            systemNotices {
+                tag
+                text
+            }
+            legs {
+                generalizedCost
+                ...legFields
+            }
         }
     }
 }
-  }
 
   fragment legFields on Leg {
       aimedEndTime
