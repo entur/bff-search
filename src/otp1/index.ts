@@ -129,8 +129,31 @@ function searchQualifiesForScenario3(params: SearchParams): boolean {
     )
 }
 
-function shouldUseOtp2(params: SearchParams): boolean {
+/*
+ * OTP 2 scenario 4:
+ * From and to are north of latitude 63.15
+ * Air filter disabled
+ */
+function searchQualifiesForScenario4(params: SearchParams): boolean {
+    const { from, to } = params
+    if (!from.coordinates || !to.coordinates) return false
+
     return (
+        from.coordinates.latitude > 63.15 &&
+        to.coordinates.latitude > 63.15 &&
+        !params.searchFilter?.includes(SearchFilter.AIR)
+    )
+}
+
+function shouldUseOtp2(params: SearchParams): boolean {
+    if (ENVIRONMENT === 'prod') {
+        return (
+            searchQualifiesForScenario3(params) ||
+            searchQualifiesForScenario2(params)
+        )
+    }
+    return (
+        searchQualifiesForScenario4(params) ||
         searchQualifiesForScenario3(params) ||
         searchQualifiesForScenario2(params)
     )

@@ -115,8 +115,8 @@ function uniqTripPatterns(
 }
 
 function toQueryMode(legMode: LegMode): QueryMode {
-    if (legMode === 'unknown') return 'bus'
-    return legMode
+    // LegMode is a subset of QueryMode, so casting is safe in this case
+    return (legMode as unknown) as QueryMode
 }
 
 interface QueryError {
@@ -149,7 +149,7 @@ export async function getAlternativeTripPatterns(
     }
 
     const modes: QueryMode[] = uniq([
-        'foot',
+        QueryMode.FOOT,
         ...originalTripPattern.legs.map((l) => toQueryMode(l.mode)),
     ])
 
