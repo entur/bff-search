@@ -216,10 +216,8 @@ function updateTransitLeg(leg: Leg, updatedCalls: UpdatedCalls): Leg {
 
     const { fromCall, toCall, intermediateCalls } = updatedCalls
 
-    const { expectedDepartureTime, actualDepartureTime } = fromCall
-    const expectedStartTime = actualDepartureTime || expectedDepartureTime
-    const { expectedArrivalTime, actualArrivalTime } = toCall
-    const expectedEndTime = actualArrivalTime || expectedArrivalTime
+    const { expectedDepartureTime: expectedStartTime } = fromCall
+    const { expectedArrivalTime: expectedEndTime } = toCall
     const duration = differenceInSeconds(
         parseISO(expectedEndTime),
         parseISO(expectedStartTime),
