@@ -32,6 +32,9 @@ interface UpdatedEstimatedCall {
     expectedDepartureTime: string
     aimedArrivalTime: string
     aimedDepartureTime: string
+    actualArrivalTime: string | undefined
+    actualDepartureTime: string | undefined
+    predictionInaccurate: boolean
     destinationDisplay: { frontText: string }
     notices: {
         id: string
@@ -56,10 +59,13 @@ async function getCallsForServiceJourney(
                     timezone
                 }
                 realtime
+                predictionInaccurate
                 expectedArrivalTime
                 expectedDepartureTime
                 aimedArrivalTime
                 aimedDepartureTime
+                actualArrivalTime
+                actualDepartureTime
                 destinationDisplay {
                     frontText
                 }
@@ -121,13 +127,27 @@ function updateEstimatedCall(
 ): EstimatedCall {
     if (!updatedCall) return call
 
-    const { aimedDepartureTime, expectedDepartureTime } = updatedCall
-    if (!aimedDepartureTime && !expectedDepartureTime) return call
+    const {
+        realtime,
+        predictionInaccurate,
+        aimedDepartureTime,
+        expectedDepartureTime,
+        expectedArrivalTime,
+        aimedArrivalTime,
+        actualArrivalTime,
+        actualDepartureTime,
+    } = updatedCall
 
     return {
         ...call,
+        realtime,
+        predictionInaccurate,
         aimedDepartureTime,
         expectedDepartureTime,
+        actualDepartureTime,
+        actualArrivalTime,
+        aimedArrivalTime,
+        expectedArrivalTime,
     }
 }
 interface UpdatedCalls {
