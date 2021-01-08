@@ -267,7 +267,10 @@ export async function searchTransit(
 
 export async function searchFlexible(
     params: SearchParams,
-): Promise<Otp2TripPattern | undefined> {
+): Promise<{
+    tripPatterns: Otp2TripPattern[]
+    queries: GraphqlQuery[]
+}> {
     const { initialSearchDate, searchFilter, ...searchParams } = params
 
     const getTripPatternsParams = {
@@ -281,8 +284,12 @@ export async function searchFlexible(
     const [response] = await getTripPatterns(getTripPatternsParams)
 
     const parse = createParseTripPattern()
-    const tripPatterns = response.map(parse).filter(isValidTransitAlternative)
-    return tripPatterns[0]
+    const tripPatterns = response.map(parse)
+
+    return {
+        tripPatterns,
+        queries: [getTripPatternsQuery(getTripPatternsParams)],
+    }
 }
 
 export type NonTransitMode = 'foot' | 'bicycle' | 'car' | 'bike_rental'
