@@ -77,12 +77,24 @@ router.post('/v1/transit', async (req, res, next) => {
         const correlationId = req.get('X-Correlation-Id')
 
         const [
-            flexibleTripPattern,
-            { tripPatterns, hasFlexibleTripPattern, queries, metadata },
+            flexibleSearchResults,
+            {
+                tripPatterns,
+                hasFlexibleTripPattern,
+                queries: transitQueries,
+                metadata,
+            },
         ] = await Promise.all([
             req.body.cursor ? undefined : searchFlexible(params),
             searchTransit(params, extraHeaders),
         ])
+
+        const {
+            tripPatterns: flexibleTripPatterns = [],
+            queries: flexibleQueries = [],
+        } = flexibleSearchResults || {}
+
+        const queries = [...flexibleQueries, ...transitQueries]
 
         const queriesWithLinks =
             ENVIRONMENT === 'prod'
@@ -95,9 +107,10 @@ router.post('/v1/transit', async (req, res, next) => {
 
         const nextCursor = generateCursor(params, metadata)
 
-        const allTripPatterns = [flexibleTripPattern, ...tripPatterns].filter(
-            isNotUndefined,
-        )
+        const allTripPatterns = [
+            ...flexibleTripPatterns,
+            ...tripPatterns,
+        ].filter(isNotUndefined)
 
         const searchParamsIds = uniq(
             tripPatterns.map(({ id = '' }) => deriveSearchParamsId(id)),
