@@ -2,6 +2,9 @@ import { Router, Request } from 'express'
 import { parseJSON } from 'date-fns'
 import { v4 as uuid } from 'uuid'
 import distance from 'haversine-distance'
+import { FeatureCollection, Polygon } from 'geojson'
+import booleanContains from '@turf/boolean-contains'
+import { point } from '@turf/helpers'
 
 import { TripPattern } from '@entur/sdk'
 
@@ -39,6 +42,19 @@ import { logTransitAnalytics } from '../bigquery'
 
 import { parseCursor, generateCursor } from './cursor'
 import { getAlternativeTripPatterns } from './replaceLeg'
+
+let otp2Areas: FeatureCollection<Polygon> | undefined
+
+import(ENVIRONMENT === 'prod' ? './otp2Areas.prod' : './otp2Areas.staging')
+    .then(({ default: geojson }) => {
+        otp2Areas = geojson
+    })
+    .catch((error) =>
+        logger.error('Failed to import otp2Areas', {
+            message: error.message,
+            stack: error.stack,
+        }),
+    )
 
 const SEARCH_PARAMS_EXPIRE_IN_SECONDS = 2 * 60 * 60 // two hours
 
@@ -90,11 +106,11 @@ function getParams(params: RawSearchParams): SearchParams {
 }
 
 /*
- * OTP 2 scenario 2:
- * Distance > 50 km
- * Air and Rail filters turned off
+ * OTP 2 Distance Scenario
+ * Use OTP 2 if distance between from and to > 50 km
+ * and Air and Rail filters are turned off
  */
-function searchQualifiesForScenario2(params: SearchParams): boolean {
+function searchQualifiesForDistanceScenario(params: SearchParams): boolean {
     const { from, to } = params
     if (!from.coordinates || !to.coordinates) return false
 
@@ -114,25 +130,39 @@ function searchQualifiesForScenario2(params: SearchParams): boolean {
 }
 
 /*
- * OTP 2 scenario 4:
- * From and to are north of latitude 63.15
- * Air filter disabled
+ * OTP 2 Area Scenario
+ * Use OTP 2 if both from and to are within any polygon in the GeoJSON feature collection
+ * and air filter is disabled
  */
-function searchQualifiesForScenario4(params: SearchParams): boolean {
+function searchQualifiesForAreaScenario(params: SearchParams): boolean {
     const { from, to } = params
-    if (!from.coordinates || !to.coordinates) return false
 
-    return (
-        from.coordinates.latitude > 63.15 &&
-        to.coordinates.latitude > 63.15 &&
-        !params.searchFilter?.includes(SearchFilter.AIR)
+    if (
+        !from.coordinates ||
+        !to.coordinates ||
+        !otp2Areas?.features ||
+        params.searchFilter?.includes(SearchFilter.AIR)
+    ) {
+        return false
+    }
+
+    const fromPoint = point([
+        from.coordinates.longitude,
+        from.coordinates.latitude,
+    ])
+    const toPoint = point([to.coordinates.longitude, to.coordinates.latitude])
+
+    return otp2Areas.features.some(
+        (polygonFeature) =>
+            booleanContains(polygonFeature, fromPoint) &&
+            booleanContains(polygonFeature, toPoint),
     )
 }
 
 function shouldUseOtp2(params: SearchParams): boolean {
     return (
-        searchQualifiesForScenario4(params) ||
-        searchQualifiesForScenario2(params)
+        searchQualifiesForDistanceScenario(params) ||
+        searchQualifiesForAreaScenario(params)
     )
 }
 
