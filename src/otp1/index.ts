@@ -49,7 +49,12 @@ import(ENVIRONMENT === 'prod' ? './otp2Areas.prod' : './otp2Areas.staging')
     .then(({ default: geojson }) => {
         otp2Areas = geojson
     })
-    .catch(console.error)
+    .catch((error) =>
+        logger.error('Failed to import otp2Areas', {
+            message: error.message,
+            stack: error.stack,
+        }),
+    )
 
 const SEARCH_PARAMS_EXPIRE_IN_SECONDS = 2 * 60 * 60 // two hours
 
