@@ -26,7 +26,7 @@
     "populate-env-vars": "ts-node ./scripts/environment.ts"
   },
   "dependencies": {
-    "@entur/sdk": "^3.1.0",
+    "@entur/sdk": "^3.3.0",
     "@google-cloud/bigquery": "^5.5.0",
     "@google-cloud/logging-winston": "^4.0.2",
     "@google-cloud/trace-agent": "^5.1.1",
