@@ -1,5 +1,7 @@
 import { FeatureCollection, Polygon } from 'geojson'
 
+const LATITUDE_THRESHOLD = 63.15
+
 const areas: FeatureCollection<Polygon> = {
     type: 'FeatureCollection',
     features: [
@@ -10,11 +12,11 @@ const areas: FeatureCollection<Polygon> = {
                 type: 'Polygon',
                 coordinates: [
                     [
-                        [5, 63.15],
-                        [34, 63.15],
+                        [5, LATITUDE_THRESHOLD],
+                        [34, LATITUDE_THRESHOLD],
                         [34, 72],
                         [5, 72],
-                        [5, 63.15],
+                        [5, LATITUDE_THRESHOLD],
                     ],
                 ],
             },
