@@ -1,6 +1,6 @@
 import { FeatureCollection, Polygon } from 'geojson'
 
-const LATITUDE_THRESHOLD = 67.5
+const LATITUDE_THRESHOLD = 63.15
 
 const areas: FeatureCollection<Polygon> = {
     type: 'FeatureCollection',
