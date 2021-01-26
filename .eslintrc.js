@@ -44,6 +44,7 @@ module.exports = {
         '@typescript-eslint/no-namespace': 'error',
         '@typescript-eslint/no-parameter-properties': 'off',
         '@typescript-eslint/no-require-imports': 'error',
+        '@typescript-eslint/no-shadow': ['error', { hoist: 'all' }],
         '@typescript-eslint/no-unused-vars': [
             'error',
             {
@@ -97,7 +98,6 @@ module.exports = {
                 message: 'Use the T object instead of a string in I18n calls',
             },
         ],
-        'no-shadow': ['error', { hoist: 'all' }],
         'no-unneeded-ternary': 'error',
         'no-unused-expressions': 'error',
         'no-use-before-define': 'off',
