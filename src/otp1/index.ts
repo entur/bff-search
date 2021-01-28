@@ -181,7 +181,7 @@ router.post('/v1/transit', async (req, res, next) => {
         }
 
         let searchMethod = cursorData ? searchTransit : searchTransitWithTaxi
-        const useOtp2 = shouldUseOtp2(params)
+        const useOtp2 = !res.locals.forceOtp1 && shouldUseOtp2(params)
         if (useOtp2) {
             searchMethod = searchTransitOtp2
         }

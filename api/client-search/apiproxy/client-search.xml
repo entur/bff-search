@@ -18,6 +18,7 @@
   <TargetServers/>
   <TargetEndpoints>
     <TargetEndpoint>client-search-v1</TargetEndpoint>
+    <TargetEndpoint>client-search-otp1-v1</TargetEndpoint>
     <TargetEndpoint>client-search-otp2-v1</TargetEndpoint>
   </TargetEndpoints>
 </APIProxy>

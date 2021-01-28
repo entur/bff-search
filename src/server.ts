@@ -36,6 +36,14 @@ app.get('/_ah/warmup', (_req, res) => {
 })
 
 app.use('/otp2', otp2Router)
+app.use(
+    '/otp1',
+    (req, res, next) => {
+        res.locals.forceOtp1 = true
+        next()
+    },
+    otp1Router,
+)
 app.use('/', otp1Router)
 
 app.all('*', (_, res) => {
