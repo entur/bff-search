@@ -19,9 +19,7 @@ const MAX_RETRIES = 5
 async function queryWithRetries(query: string, retriesDone = 0): Promise<void> {
     try {
         await bigQuery.query({ query, useLegacySql: false })
-        logger.debug(
-            `logTransitAnalytics success, retries done: ${retriesDone}`,
-        )
+        logger.debug(`Query successful. Retries done: ${retriesDone}`)
     } catch (error) {
         if (
             error.message.includes('Exceeded rate limits') &&
@@ -41,10 +39,9 @@ async function queryWithRetries(query: string, retriesDone = 0): Promise<void> {
 export async function logTransitAnalytics(
     params: SearchParams,
     useOtp2: boolean,
-    headers: { [key: string]: string },
+    clientName: string,
 ): Promise<void> {
     const table = `entur-${ENVIRONMENT}.analytics.transit_search`
-    const client = headers['ET-Client-Name'] || ''
     try {
         const {
             from,
@@ -62,7 +59,7 @@ export async function logTransitAnalytics(
             : ''
         const createdAt = new Date().toISOString()
 
-        const platform = getPlatform(client)
+        const platform = getPlatform(clientName)
 
         const query = `INSERT INTO \`${table}\` (
             fromName, fromPlace, toName, toPlace, searchDate, searchFilter,
@@ -76,8 +73,37 @@ export async function logTransitAnalytics(
         )`
 
         await queryWithRetries(query)
-        logger.debug('logTransitAnalytics success', { client })
+        logger.debug('logTransitAnalytics success', { client: clientName })
     } catch (error) {
-        logger.error(`logTransitAnalytics: ${error.message}`, { client, error })
+        logger.error(`logTransitAnalytics: ${error.message}`, {
+            client: clientName,
+            error,
+        })
+    }
+}
+
+export async function logTransitResultStats(
+    numberOfOperators: number,
+    clientName: string,
+): Promise<void> {
+    const table = `entur-${ENVIRONMENT}.analytics.transit_result_stats`
+
+    try {
+        const now = new Date().toISOString()
+        const platform = getPlatform(clientName)
+
+        const query = `INSERT INTO \`${table}\` (
+            createdAt, platform, numberOfOperators
+        ) VALUES (
+            "${now}", "${platform}", ${numberOfOperators}
+        )`
+
+        await queryWithRetries(query)
+        logger.debug('logTransitResultStats success', { client: clientName })
+    } catch (error) {
+        logger.error(`logTransitResultStats: ${error.message}`, {
+            client: clientName,
+            error,
+        })
     }
 }
