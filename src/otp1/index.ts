@@ -38,7 +38,7 @@ import { buildShamashLink } from '../utils/graphql'
 import { clean } from '../utils/object'
 
 import { ENVIRONMENT } from '../config'
-import { logTransitAnalytics } from '../bigquery'
+import { logTransitAnalytics, logTransitResultStats } from '../bigquery'
 
 import { parseCursor, generateCursor } from './cursor'
 import { getAlternativeTripPatterns } from './replaceLeg'
@@ -174,6 +174,7 @@ router.post('/v1/transit', async (req, res, next) => {
 
         const params = cursorData?.params || getParams(req.body)
         const extraHeaders = getHeadersFromClient(req)
+        const clientName = extraHeaders['ET-Client-Name']
 
         if (cursorData) {
             // Restrict flex results only to the initial search
@@ -206,7 +207,7 @@ router.post('/v1/transit', async (req, res, next) => {
 
         if (!cursorData) {
             const stopLogTransitAnalyticsTrace = trace('logTransitAnalytics')
-            logTransitAnalytics(params, useOtp2, extraHeaders)
+            logTransitAnalytics(params, useOtp2, clientName)
                 .then(stopLogTransitAnalyticsTrace)
                 .catch((error) => {
                     logger.error('Failed to log transit analytics', {
@@ -215,6 +216,23 @@ router.post('/v1/transit', async (req, res, next) => {
                         correlationId,
                     })
                 })
+
+            const numberOfDistinctOperators = uniq(
+                tripPatterns
+                    .flatMap(({ legs }) => legs)
+                    .map(({ operator }) => operator?.id)
+                    .filter(Boolean),
+            ).length
+
+            logTransitResultStats(numberOfDistinctOperators, clientName).catch(
+                (error) => {
+                    logger.error('Failed to log transit result stats', {
+                        error: error.message,
+                        stack: error.stack,
+                        correlationId,
+                    })
+                },
+            )
         }
 
         stopTrace = trace('generateCursor')
