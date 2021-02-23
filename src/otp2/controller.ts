@@ -8,7 +8,13 @@ import createEnturService, {
     TransportMode,
 } from '@entur/sdk'
 import { v4 as uuid } from 'uuid'
-import { addDays, differenceInDays, startOfDay } from 'date-fns'
+import {
+    addDays,
+    differenceInDays,
+    endOfDay,
+    startOfDay,
+    subDays,
+} from 'date-fns'
 
 import {
     SearchParams,
@@ -240,15 +246,19 @@ export async function searchTransit(
     if (!tripPatterns.length && metadata) {
         const nextSearchParams = {
             ...params,
-            searchDate: new Date(metadata.nextDateTime),
+            searchDate: new Date(
+                params.arriveBy ? metadata.prevDateTime : metadata.nextDateTime,
+            ),
         }
         return searchTransit(nextSearchParams, extraHeaders, queries)
     }
 
     if (!tripPatterns.length && !metadata) {
-        const nextMidnight = startOfDay(addDays(searchParams.searchDate, 1))
+        const nextMidnight = params.arriveBy
+            ? endOfDay(subDays(searchParams.searchDate, 1))
+            : startOfDay(addDays(searchParams.searchDate, 1))
 
-        if (differenceInDays(nextMidnight, initialSearchDate) < 7) {
+        if (Math.abs(differenceInDays(nextMidnight, initialSearchDate)) < 7) {
             const nextSearchParams = {
                 ...params,
                 searchDate: nextMidnight,
