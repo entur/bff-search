@@ -114,17 +114,18 @@ query (
     bookingArrangements {
         ...bookingArrangementFields
       }
-
-    fragment bookingArrangementFields on BookingArrangement {
-        bookingMethods
-        bookingNote
-        minimumBookingPeriod
-        bookingContact {
-            phone
-            url
-        }
-    }
   }
+
+}
+
+fragment bookingArrangementFields on BookingArrangement {
+    bookingMethods
+    bookingNote
+    minimumBookingPeriod
+    bookingContact {
+        phone
+        url
+}
 
   fragment lineFields on Line {
 
