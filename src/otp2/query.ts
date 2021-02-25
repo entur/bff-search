@@ -110,12 +110,25 @@ query (
       ...placeFields
     }
     transportSubmode
+
+    bookingArrangements {
+        ...bookingArrangementFields
+      }
   }
 
+}
+
+fragment bookingArrangementFields on BookingArrangement {
+    bookingMethods
+    bookingNote
+    minimumBookingPeriod
+    bookingContact {
+        phone
+        url
+}
+
   fragment lineFields on Line {
-      bookingArrangements {
-          ...bookingArrangementFields
-        }
+
         description
         flexibleLineType
         id
@@ -126,16 +139,6 @@ query (
         publicCode
         transportMode
         transportSubmode
-    }
-
-    fragment bookingArrangementFields on BookingArrangement {
-        bookingMethods
-        bookingNote
-        minimumBookingPeriod
-        bookingContact {
-            phone
-            url
-        }
     }
 
     fragment noticeFields on Notice {
