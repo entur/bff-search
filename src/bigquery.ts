@@ -36,6 +36,25 @@ async function queryWithRetries(query: string, retriesDone = 0): Promise<void> {
     }
 }
 
+export function buildInsertQuery(
+    table: string,
+    data: Record<string, string | number | boolean | undefined>,
+): string {
+    const keys = Object.keys(data).join(', ').trim()
+    const values = Object.values(data)
+        .map((value) => JSON.stringify(value))
+        .join(', ')
+        .trim()
+
+    if (keys.length === 0) {
+        throw new Error(
+            'buildInsertQuery was called with an empty data argument',
+        )
+    }
+
+    return `INSERT INTO \`${table}\` (${keys}) VALUES (${values})`
+}
+
 export async function logTransitAnalytics(
     params: SearchParams,
     useOtp2: boolean,
@@ -61,16 +80,21 @@ export async function logTransitAnalytics(
 
         const platform = getPlatform(clientName)
 
-        const query = `INSERT INTO \`${table}\` (
-            fromName, fromPlace, toName, toPlace, searchDate, searchFilter,
-            arriveBy, walkSpeed, minimumTransferTime, useFlex, useOtp2, platform, createdAt
-        ) VALUES (
-            "${from.name}", "${from.place}", "${to.name}", "${
-            to.place
-        }", ${searchDateParsed},
-            "${searchFilter.join()}", ${arriveBy}, ${walkSpeed}, ${minimumTransferTime}, ${useFlex}, ${useOtp2}, "${platform}",
-            "${createdAt}"
-        )`
+        const query = buildInsertQuery(table, {
+            fromName: from.name,
+            fromPlace: from.place,
+            toName: to.name,
+            toPlace: to.place,
+            searchDate: searchDateParsed,
+            searchFilter: searchFilter.join(),
+            arriveBy,
+            walkSpeed,
+            minimumTransferTime,
+            useFlex,
+            useOtp2,
+            platform,
+            createdAt,
+        })
 
         await queryWithRetries(query)
         logger.debug('logTransitAnalytics success', { client: clientName })
@@ -92,11 +116,11 @@ export async function logTransitResultStats(
         const now = new Date().toISOString()
         const platform = getPlatform(clientName)
 
-        const query = `INSERT INTO \`${table}\` (
-            createdAt, platform, numberOfOperators
-        ) VALUES (
-            "${now}", "${platform}", ${numberOfOperators}
-        )`
+        const query = buildInsertQuery(table, {
+            createdAt: now,
+            platform,
+            numberOfOperators,
+        })
 
         await queryWithRetries(query)
         logger.debug('logTransitResultStats success', { client: clientName })
