@@ -58,11 +58,11 @@ query (
     }
 }
 
-  fragment legFields on Leg {
-      aimedEndTime
-      aimedStartTime
-      authority {
-      ...authorityFields
+fragment legFields on Leg {
+    aimedEndTime
+    aimedStartTime
+    authority {
+        ...authorityFields
     }
     distance
     directDuration
@@ -113,9 +113,7 @@ query (
 
     bookingArrangements {
         ...bookingArrangementFields
-      }
-  }
-
+    }
 }
 
 fragment bookingArrangementFields on BookingArrangement {
@@ -125,35 +123,35 @@ fragment bookingArrangementFields on BookingArrangement {
     bookingContact {
         phone
         url
+    }
 }
 
-  fragment lineFields on Line {
-
-        description
-        flexibleLineType
-        id
-        name
-        notices {
-            ...noticeFields
-        }
-        publicCode
-        transportMode
-        transportSubmode
+fragment lineFields on Line {
+    description
+    flexibleLineType
+    id
+    name
+    notices {
+        ...noticeFields
     }
+    publicCode
+    transportMode
+    transportSubmode
+}
 
-    fragment noticeFields on Notice {
-        text
-    }
+fragment noticeFields on Notice {
+    text
+}
 
-  fragment placeFields on Place {
-      name
-      latitude
-      longitude
-      quay {
-      ...quayFields
+fragment placeFields on Place {
+    name
+    latitude
+    longitude
+    quay {
+        ...quayFields
     }
     bikeRentalStation {
-      ...bikeRentalStationFields
+        ...bikeRentalStationFields
     }
 }
 
