@@ -57,6 +57,7 @@ function reqHeadersMapper(req: Request): { [key: string]: string } {
         'Content-Length': req.get('Content-Length'),
         'Content-Type': req.get('Content-Type'),
         'User-Agent': req.get('User-Agent'),
+        Origin: req.get('Origin'),
     })
 }
 
