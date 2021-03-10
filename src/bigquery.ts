@@ -74,7 +74,7 @@ export async function logTransitAnalytics(
         } = params
 
         const searchDateParsed = searchDate
-            ? `"${parseJSON(searchDate).toISOString()}"`
+            ? parseJSON(searchDate).toISOString()
             : ''
         const createdAt = new Date().toISOString()
 
