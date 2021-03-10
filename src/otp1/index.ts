@@ -75,7 +75,7 @@ function getHeadersFromClient(req: Request): ExtraHeaders {
 
 function generateShamashLink({ query, variables }: GraphqlQuery): string {
     const host =
-        ENVIRONMENT === 'prod'
+        ENVIRONMENT === 'prod' || ENVIRONMENT === 'beta'
             ? 'https://api.entur.io/journey-planner/v2/ide/'
             : `https://api.${ENVIRONMENT}.entur.io/journey-planner/v2/ide/`
 

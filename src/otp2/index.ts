@@ -46,7 +46,7 @@ export function generateShamashLink({
     variables,
 }: GraphqlQuery): string {
     const host =
-        ENVIRONMENT === 'prod'
+        ENVIRONMENT === 'prod' || ENVIRONMENT === 'beta'
             ? 'https://api.entur.io/graphql-explorer/journey-planner-v3'
             : `https://api.${ENVIRONMENT}.entur.io/graphql-explorer/journey-planner-v3-beta`
 
