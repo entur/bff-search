@@ -61,6 +61,8 @@ export async function logTransitAnalytics(
     clientName: string,
 ): Promise<void> {
     const table = `entur-${ENVIRONMENT}.analytics.transit_search`
+    let query: string | undefined
+
     try {
         const {
             from,
@@ -80,7 +82,7 @@ export async function logTransitAnalytics(
 
         const platform = getPlatform(clientName)
 
-        const query = buildInsertQuery(table, {
+        query = buildInsertQuery(table, {
             fromName: from.name,
             fromPlace: from.place,
             toName: to.name,
@@ -101,6 +103,7 @@ export async function logTransitAnalytics(
     } catch (error) {
         logger.error(`logTransitAnalytics: ${error.message}`, {
             client: clientName,
+            query,
             error,
         })
     }
