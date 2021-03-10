@@ -55,6 +55,9 @@ function reqHeadersMapper(req: Request): { [key: string]: string } {
         'ET-Client-Version': req.get('ET-Client-Version'),
         'ET-Client-Platform': req.get('ET-Client-Platform'),
         'Content-Length': req.get('Content-Length'),
+        'Content-Type': req.get('Content-Type'),
+        'User-Agent': req.get('User-Agent'),
+        Origin: req.get('Origin'),
     })
 }
 
