@@ -42,7 +42,7 @@ export function buildInsertQuery(
 ): string {
     const keys = Object.keys(data).join(', ').trim()
     const values = Object.values(data)
-        .map((value) => JSON.stringify(value))
+        .map((value) => JSON.stringify(value ?? null))
         .join(', ')
         .trim()
 

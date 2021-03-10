@@ -23,13 +23,13 @@ describe('buildInsertQuery', () => {
             `INSERT INTO \`cheeses\` (name, quantity) VALUES ("camembert", 42)`,
         )
     })
-    it('should treat undefined values as missing value', () => {
+    it('should treat undefined values as null value', () => {
         expect(buildInsertQuery('cheeses', { nothing: undefined })).toBe(
-            `INSERT INTO \`cheeses\` (nothing) VALUES ()`,
+            `INSERT INTO \`cheeses\` (nothing) VALUES (null)`,
         )
         expect(
             buildInsertQuery('cheeses', { name: 'brie', nothing: undefined }),
-        ).toBe(`INSERT INTO \`cheeses\` (name, nothing) VALUES ("brie",)`)
+        ).toBe(`INSERT INTO \`cheeses\` (name, nothing) VALUES ("brie", null)`)
     })
     it('should throw an error if no data', () => {
         expect(() => buildInsertQuery('cheeses', {})).toThrowError(/empty data/)
