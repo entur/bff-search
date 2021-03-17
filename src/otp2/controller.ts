@@ -14,6 +14,8 @@ import {
     endOfDay,
     startOfDay,
     subDays,
+    parseISO,
+    differenceInMinutes,
 } from 'date-fns'
 
 import {
@@ -221,6 +223,16 @@ async function getTripPatterns(
     ]
 }
 
+function getSearchWindow(
+    flexibleTripPattern: Otp2TripPattern,
+    searchDate: Date,
+): number {
+    return differenceInMinutes(
+        parseISO(flexibleTripPattern.expectedStartTime),
+        searchDate,
+    )
+}
+
 export async function searchTransit(
     params: SearchParams,
     extraHeaders: { [key: string]: string },
@@ -235,7 +247,52 @@ export async function searchTransit(
         modes: filteredModes,
     }
 
-    const [response, metadata] = await getTripPatterns(getTripPatternsParams)
+    const [flexibleResults, [response, metadata]] = await Promise.all([
+        initialSearchDate === searchParams.searchDate
+            ? searchFlexible(params)
+            : undefined,
+        getTripPatterns(getTripPatternsParams),
+    ])
+
+    const flexibleTripPattern = flexibleResults?.tripPatterns?.[0]
+
+    if (flexibleResults && flexibleTripPattern && !response.length) {
+        // Rekne ut tidsforskjellen i minutt mellom searchDate fram til flexible result [0]
+        const searchWindow = getSearchWindow(
+            flexibleTripPattern,
+            searchParams.searchDate,
+        )
+
+        // Gjere nytt transit-søk med nytt søkevindu
+        const [
+            transitResultsBeforeFlexible,
+            beforeFlexibleMetadata,
+        ] = await getTripPatterns({
+            ...getTripPatternsParams,
+            searchWindow,
+        })
+
+        // eslint-disable-next-line fp/no-mutating-methods
+        const sortedTripPatterns = [
+            ...flexibleResults.tripPatterns,
+            ...transitResultsBeforeFlexible,
+        ].sort((a, b) => {
+            const field = searchParams.arriveBy
+                ? 'expectedEndTime'
+                : 'expectedStartTime'
+            return a[field] < b[field] ? -1 : 1
+        })
+
+        return {
+            tripPatterns: sortedTripPatterns,
+            metadata: beforeFlexibleMetadata,
+            hasFlexibleTripPattern: true,
+            queries: [
+                ...flexibleResults.queries,
+                getTripPatternsQuery(getTripPatternsParams),
+            ],
+        }
+    }
 
     const query = getTripPatternsQuery(getTripPatternsParams)
     const queries = [...(prevQueries || []), query]
