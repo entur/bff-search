@@ -44,6 +44,8 @@ query (
             generalizedCost
             startTime
             endTime
+            expectedStartTime
+            expectedEndTime
             directDuration
             duration
             distance
