@@ -21,10 +21,7 @@ import {
 } from '../types'
 
 import { generateShamashLink as generateShamashLinkOtp2 } from '../otp2'
-import {
-    searchFlexible as searchFlexibleOtp2,
-    searchTransit as searchTransitOtp2,
-} from '../otp2/controller'
+import { searchTransit as searchTransitOtp2 } from '../otp2/controller'
 import { generateCursor as generateCursorOtp2 } from '../otp2/cursor'
 import {
     searchTransitWithTaxi,
@@ -200,24 +197,13 @@ router.post('/v1/transit', async (req, res, next) => {
         stopTrace = trace(
             cursorData ? 'searchTransit' : 'searchTransitWithTaxi',
         )
-        const [
-            flexibleSearchResults,
-            {
-                tripPatterns,
-                metadata,
-                hasFlexibleTripPattern,
-                queries: transitQueries,
-            },
-        ] = await Promise.all([
-            useOtp2 && !cursorData ? searchFlexibleOtp2(params) : undefined,
-            searchMethod(params, extraHeaders),
-        ])
-        stopTrace()
-
         const {
-            tripPatterns: flexibleTripPatterns = [],
-            queries: flexibleQueries = [],
-        } = flexibleSearchResults || {}
+            tripPatterns,
+            metadata,
+            hasFlexibleTripPattern,
+            queries,
+        } = await searchMethod(params, extraHeaders)
+        stopTrace()
 
         if (!cursorData) {
             const stopLogTransitAnalyticsTrace = trace('logTransitAnalytics')
@@ -256,7 +242,6 @@ router.post('/v1/transit', async (req, res, next) => {
         stopTrace()
 
         stopTrace = trace('generateShamashLinks')
-        const queries = [...flexibleQueries, ...transitQueries]
         const mappedQueries =
             ENVIRONMENT === 'prod'
                 ? undefined
@@ -289,15 +274,9 @@ router.post('/v1/transit', async (req, res, next) => {
             .catch((error) => logger.error(error, { correlationId }))
             .finally(stopCacheTrace)
 
-        const allTripPatterns = [
-            ...flexibleTripPatterns,
-            ...tripPatterns,
-        ].filter((t) => t !== undefined)
-
         res.json({
-            tripPatterns: allTripPatterns,
-            hasFlexibleTripPattern:
-                hasFlexibleTripPattern || flexibleTripPatterns.length > 0,
+            tripPatterns,
+            hasFlexibleTripPattern,
             isSameDaySearch: true, // TODO 2020-03-09: Deprecated! For compatibility with v5.2.0 and older app versions we need to keep returning isSameDaySearch for a while. See https://bitbucket.org/enturas/entur-clients/pull-requests/4167
             nextCursor,
             queries: mappedQueries,
