@@ -263,8 +263,20 @@ export async function searchTransit(
     extraHeaders: { [key: string]: string },
     prevQueries?: GraphqlQuery[],
 ): Promise<TransitTripPatterns> {
-    const { initialSearchDate, searchFilter, ...searchParams } = params
+    const {
+        initialSearchDate,
+        searchFilter,
+        arriveBy,
+        ...searchParams
+    } = params
 
+    const getNextSearchDate = (currentMetadata?: Metadata): Date => {
+        const dateTime = arriveBy
+            ? currentMetadata?.prevDateTime
+            : currentMetadata?.nextDateTime
+
+        return dateTime ? parseISO(dateTime) : searchParams.searchDate
+    }
     const filteredModes = filterModesAndSubModes(searchFilter)
 
     const getTripPatternsParams = {
@@ -288,13 +300,7 @@ export async function searchTransit(
         getTripPatternsQuery(getTripPatternsParams),
     ]
 
-    const nextDateTime = params.arriveBy
-        ? metadata?.prevDateTime
-        : metadata?.nextDateTime
-
-    const nextSearchDate = nextDateTime
-        ? parseISO(nextDateTime)
-        : searchParams.searchDate
+    const nextSearchDate = getNextSearchDate(metadata)
 
     if (flexibleResults && flexibleTripPattern && !tripPatterns.length) {
         // Rekne ut tidsforskjellen i minutt mellom searchDate fram til flexible result [0]
@@ -307,7 +313,7 @@ export async function searchTransit(
         // Gjere nytt transit-søk med nytt søkevindu
         const nextSearchParams = {
             ...getTripPatternsParams,
-            searchDate: nextDateTime,
+            searchDate: nextSearchDate,
             searchWindow,
         }
         const [
@@ -332,13 +338,13 @@ export async function searchTransit(
     if (!tripPatterns.length && metadata) {
         const nextSearchParams = {
             ...params,
-            searchDate: nextSearchDate,
+            searchDate: getNextSearchDate(metadata),
         }
         return searchTransit(nextSearchParams, extraHeaders, queries)
     }
 
     if (!tripPatterns.length && !metadata) {
-        const nextMidnight = params.arriveBy
+        const nextMidnight = arriveBy
             ? endOfDay(subDays(searchParams.searchDate, 1))
             : startOfDay(addDays(searchParams.searchDate, 1))
 
@@ -352,9 +358,7 @@ export async function searchTransit(
     }
     // eslint-disable-next-line fp/no-mutating-methods
     tripPatterns = [...tripPatterns].sort((a, b) => {
-        const field = searchParams.arriveBy
-            ? 'expectedEndTime'
-            : 'expectedStartTime'
+        const field = arriveBy ? 'expectedEndTime' : 'expectedStartTime'
         return a[field] < b[field] ? -1 : 1
     })
 
