@@ -238,22 +238,24 @@ function getSearchWindow(
 
 function mixTripPatterns(
     tripPatterns: Otp2TripPattern[],
-    flexibleTripPattern: Otp2TripPattern,
     nextDateTime: Date,
+    flexibleTripPattern?: Otp2TripPattern,
     searchWindowUsed?: number,
 ): Otp2TripPattern[] {
+    if (!flexibleTripPattern) return tripPatterns
+
     const searchWindowDateLimit = searchWindowUsed
         ? addMinutes(nextDateTime, searchWindowUsed)
         : undefined
 
-    const discardFlexibleResult =
-        searchWindowDateLimit &&
+    if (
         tripPatterns.length &&
+        searchWindowDateLimit &&
         parseISO(flexibleTripPattern.expectedStartTime) > searchWindowDateLimit
+    )
+        return tripPatterns
 
-    return discardFlexibleResult
-        ? tripPatterns
-        : [flexibleTripPattern, ...tripPatterns]
+    return [flexibleTripPattern, ...tripPatterns]
 }
 
 export async function searchTransit(
@@ -269,7 +271,6 @@ export async function searchTransit(
         ...searchParams,
         modes: filteredModes,
     }
-
     const [flexibleResults, [response, initialMetadata]] = await Promise.all([
         initialSearchDate === searchParams.searchDate
             ? searchFlexible(params)
@@ -287,13 +288,21 @@ export async function searchTransit(
         getTripPatternsQuery(getTripPatternsParams),
     ]
 
+    const nextDateTime = params.arriveBy
+        ? metadata?.prevDateTime
+        : metadata?.nextDateTime
+
+    const nextSearchDate = nextDateTime
+        ? parseISO(nextDateTime)
+        : searchParams.searchDate
+
     if (flexibleResults && flexibleTripPattern && !tripPatterns.length) {
         // Rekne ut tidsforskjellen i minutt mellom searchDate fram til flexible result [0]
-        const nextDateTime = metadata?.nextDateTime
-            ? parseISO(metadata.nextDateTime)
-            : searchParams.searchDate
 
-        const searchWindow = getSearchWindow(flexibleTripPattern, nextDateTime)
+        const searchWindow = getSearchWindow(
+            flexibleTripPattern,
+            nextSearchDate,
+        )
 
         // Gjere nytt transit-søk med nytt søkevindu
         const nextSearchParams = {
@@ -311,21 +320,19 @@ export async function searchTransit(
         )
         metadata = beforeFlexibleMetadata
         queries = [...queries, getTripPatternsQuery(nextSearchParams)]
-
-        tripPatterns = mixTripPatterns(
-            tripPatterns,
-            flexibleTripPattern,
-            nextDateTime,
-            metadata?.searchWindowUsed,
-        )
     }
+
+    tripPatterns = mixTripPatterns(
+        tripPatterns,
+        nextSearchDate,
+        flexibleTripPattern,
+        metadata?.searchWindowUsed,
+    )
 
     if (!tripPatterns.length && metadata) {
         const nextSearchParams = {
             ...params,
-            searchDate: new Date(
-                params.arriveBy ? metadata.prevDateTime : metadata.nextDateTime,
-            ),
+            searchDate: nextSearchDate,
         }
         return searchTransit(nextSearchParams, extraHeaders, queries)
     }
@@ -343,7 +350,6 @@ export async function searchTransit(
             return searchTransit(nextSearchParams, extraHeaders, queries)
         }
     }
-
     // eslint-disable-next-line fp/no-mutating-methods
     tripPatterns = [...tripPatterns].sort((a, b) => {
         const field = searchParams.arriveBy
