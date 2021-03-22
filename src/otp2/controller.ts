@@ -241,6 +241,7 @@ function mixTripPatterns(
     nextDateTime: Date,
     flexibleTripPattern?: Otp2TripPattern,
     searchWindowUsed?: number,
+    arriveBy = false,
 ): Otp2TripPattern[] {
     if (!flexibleTripPattern) return tripPatterns
 
@@ -248,14 +249,20 @@ function mixTripPatterns(
         ? addMinutes(nextDateTime, searchWindowUsed)
         : undefined
 
-    if (
+    const flexIsOutsideTransitSearchWindowUsed =
         tripPatterns.length &&
         searchWindowDateLimit &&
         parseISO(flexibleTripPattern.expectedStartTime) > searchWindowDateLimit
-    )
-        return tripPatterns
 
-    return [flexibleTripPattern, ...tripPatterns]
+    if (flexIsOutsideTransitSearchWindowUsed) {
+        return tripPatterns
+    }
+
+    // eslint-disable-next-line fp/no-mutating-methods
+    return [flexibleTripPattern, ...tripPatterns].sort((a, b) => {
+        const field = arriveBy ? 'expectedEndTime' : 'expectedStartTime'
+        return a[field] < b[field] ? -1 : 1
+    })
 }
 
 export async function searchTransit(
@@ -333,6 +340,7 @@ export async function searchTransit(
         nextSearchDate,
         flexibleTripPattern,
         metadata?.searchWindowUsed,
+        arriveBy,
     )
 
     if (!tripPatterns.length && metadata) {
@@ -356,11 +364,6 @@ export async function searchTransit(
             return searchTransit(nextSearchParams, extraHeaders, queries)
         }
     }
-    // eslint-disable-next-line fp/no-mutating-methods
-    tripPatterns = [...tripPatterns].sort((a, b) => {
-        const field = arriveBy ? 'expectedEndTime' : 'expectedStartTime'
-        return a[field] < b[field] ? -1 : 1
-    })
 
     return {
         tripPatterns,
