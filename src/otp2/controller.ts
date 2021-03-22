@@ -310,14 +310,11 @@ export async function searchTransit(
     const nextSearchDate = getNextSearchDate(metadata)
 
     if (flexibleResults && flexibleTripPattern && !tripPatterns.length) {
-        // Rekne ut tidsforskjellen i minutt mellom searchDate fram til flexible result [0]
-
         const searchWindow = getSearchWindow(
             flexibleTripPattern,
             nextSearchDate,
         )
 
-        // Gjere nytt transit-søk med nytt søkevindu
         const nextSearchParams = {
             ...getTripPatternsParams,
             searchDate: nextSearchDate,
