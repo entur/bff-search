@@ -15,7 +15,6 @@ import {
     startOfDay,
     subDays,
     parseISO,
-    addMinutes,
     differenceInMinutes,
 } from 'date-fns'
 
@@ -223,46 +222,62 @@ async function getTripPatterns(
     ]
 }
 
-function getSearchWindow(
-    flexibleTripPattern: Otp2TripPattern,
-    searchDate: Date,
+function getMinutesBetweenDates(
+    a: Date,
+    b: Date,
+    limits?: { min: number; max?: number },
 ): number {
-    return Math.max(
-        differenceInMinutes(
-            parseISO(flexibleTripPattern.expectedStartTime),
-            searchDate,
-        ),
-        60,
-    )
+    const min = limits?.min || 0
+    const max = limits?.max || Infinity
+    const diff = Math.abs(differenceInMinutes(a, b))
+    return Math.max(min, Math.min(max, diff))
 }
 
-function mixTripPatterns(
+function sortTripPatternsByExpectedTime(
     tripPatterns: Otp2TripPattern[],
-    nextDateTime: Date,
+    arriveBy: boolean,
+): Otp2TripPattern[] {
+    // eslint-disable-next-line fp/no-mutating-methods
+    return tripPatterns.sort((a, b) => {
+        const field = arriveBy ? 'expectedEndTime' : 'expectedStartTime'
+        return a[field] < b[field] ? -1 : 1
+    })
+}
+
+function getNextSearchDateFromMetadata(
+    metadata: Metadata,
+    arriveBy = false,
+): Date {
+    const dateTime = arriveBy ? metadata.prevDateTime : metadata.nextDateTime
+    return parseISO(dateTime)
+}
+
+function combineAndSortFlexibleAndTransitTripPatterns(
+    tripPatterns: Otp2TripPattern[],
+    nextDateTime?: Date,
     flexibleTripPattern?: Otp2TripPattern,
-    searchWindowUsed?: number,
     arriveBy = false,
 ): Otp2TripPattern[] {
     if (!flexibleTripPattern) return tripPatterns
 
-    const searchWindowDateLimit = searchWindowUsed
-        ? addMinutes(nextDateTime, searchWindowUsed)
-        : undefined
+    const sortedTripPatterns = sortTripPatternsByExpectedTime(
+        [flexibleTripPattern, ...tripPatterns],
+        arriveBy,
+    )
 
-    const flexIsOutsideTransitSearchWindowUsed =
-        tripPatterns.length &&
-        searchWindowDateLimit &&
-        parseISO(flexibleTripPattern.expectedStartTime) > searchWindowDateLimit
+    if (!nextDateTime) {
+        return sortedTripPatterns
+    }
+
+    const flexIsOutsideTransitSearchWindowUsed = arriveBy
+        ? parseISO(flexibleTripPattern.expectedEndTime) < nextDateTime
+        : parseISO(flexibleTripPattern.expectedStartTime) > nextDateTime
 
     if (flexIsOutsideTransitSearchWindowUsed) {
         return tripPatterns
     }
 
-    // eslint-disable-next-line fp/no-mutating-methods
-    return [flexibleTripPattern, ...tripPatterns].sort((a, b) => {
-        const field = arriveBy ? 'expectedEndTime' : 'expectedStartTime'
-        return a[field] < b[field] ? -1 : 1
-    })
+    return sortedTripPatterns
 }
 
 export async function searchTransit(
@@ -277,19 +292,13 @@ export async function searchTransit(
         ...searchParams
     } = params
 
-    const getNextSearchDate = (currentMetadata?: Metadata): Date => {
-        const dateTime = arriveBy
-            ? currentMetadata?.prevDateTime
-            : currentMetadata?.nextDateTime
-
-        return dateTime ? parseISO(dateTime) : searchParams.searchDate
-    }
     const filteredModes = filterModesAndSubModes(searchFilter)
 
     const getTripPatternsParams = {
         ...searchParams,
         modes: filteredModes,
     }
+
     const [flexibleResults, [response, initialMetadata]] = await Promise.all([
         initialSearchDate === searchParams.searchDate
             ? searchFlexible(params)
@@ -307,19 +316,28 @@ export async function searchTransit(
         getTripPatternsQuery(getTripPatternsParams),
     ]
 
-    const nextSearchDate = getNextSearchDate(metadata)
+    const nextSearchDateFromMetadata = metadata
+        ? getNextSearchDateFromMetadata(metadata, arriveBy)
+        : undefined
 
     if (flexibleResults && flexibleTripPattern && !tripPatterns.length) {
-        const searchWindow = getSearchWindow(
-            flexibleTripPattern,
-            nextSearchDate,
+        const searchDate = nextSearchDateFromMetadata || searchParams.searchDate
+        const searchWindow = getMinutesBetweenDates(
+            parseISO(
+                arriveBy
+                    ? flexibleTripPattern.expectedEndTime
+                    : flexibleTripPattern.expectedStartTime,
+            ),
+            searchDate,
+            { min: 60 },
         )
 
         const nextSearchParams = {
             ...getTripPatternsParams,
-            searchDate: nextSearchDate,
+            searchDate,
             searchWindow,
         }
+
         const [
             transitResultsBeforeFlexible,
             beforeFlexibleMetadata,
@@ -332,18 +350,21 @@ export async function searchTransit(
         queries = [...queries, getTripPatternsQuery(nextSearchParams)]
     }
 
-    tripPatterns = mixTripPatterns(
+    tripPatterns = combineAndSortFlexibleAndTransitTripPatterns(
         tripPatterns,
-        nextSearchDate,
+        nextSearchDateFromMetadata,
         flexibleTripPattern,
-        metadata?.searchWindowUsed,
         arriveBy,
     )
 
     if (!tripPatterns.length && metadata) {
-        const nextSearchParams = {
+        const dateTime = arriveBy
+            ? metadata.prevDateTime
+            : metadata.nextDateTime
+
+        const nextSearchParams: SearchParams = {
             ...params,
-            searchDate: getNextSearchDate(metadata),
+            searchDate: parseISO(dateTime),
         }
         return searchTransit(nextSearchParams, extraHeaders, queries)
     }
