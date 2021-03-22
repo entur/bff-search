@@ -285,13 +285,8 @@ export async function searchTransit(
     extraHeaders: { [key: string]: string },
     prevQueries?: GraphqlQuery[],
 ): Promise<TransitTripPatterns> {
-    const {
-        initialSearchDate,
-        searchFilter,
-        arriveBy,
-        ...searchParams
-    } = params
-
+    const { initialSearchDate, searchFilter, ...searchParams } = params
+    const { searchDate, arriveBy } = searchParams
     const filteredModes = filterModesAndSubModes(searchFilter)
 
     const getTripPatternsParams = {
@@ -300,9 +295,7 @@ export async function searchTransit(
     }
 
     const [flexibleResults, [response, initialMetadata]] = await Promise.all([
-        initialSearchDate === searchParams.searchDate
-            ? searchFlexible(params)
-            : undefined,
+        initialSearchDate === searchDate ? searchFlexible(params) : undefined,
         getTripPatterns(getTripPatternsParams),
     ])
 
@@ -321,20 +314,21 @@ export async function searchTransit(
         : undefined
 
     if (flexibleResults && flexibleTripPattern && !tripPatterns.length) {
-        const searchDate = nextSearchDateFromMetadata || searchParams.searchDate
+        const transitSearchDate = nextSearchDateFromMetadata || searchDate
+
         const searchWindow = getMinutesBetweenDates(
             parseISO(
                 arriveBy
                     ? flexibleTripPattern.expectedEndTime
                     : flexibleTripPattern.expectedStartTime,
             ),
-            searchDate,
+            transitSearchDate,
             { min: 60 },
         )
 
         const nextSearchParams = {
             ...getTripPatternsParams,
-            searchDate,
+            searchDate: transitSearchDate,
             searchWindow,
         }
 
@@ -371,8 +365,8 @@ export async function searchTransit(
 
     if (!tripPatterns.length && !metadata) {
         const nextMidnight = arriveBy
-            ? endOfDay(subDays(searchParams.searchDate, 1))
-            : startOfDay(addDays(searchParams.searchDate, 1))
+            ? endOfDay(subDays(searchDate, 1))
+            : startOfDay(addDays(searchDate, 1))
 
         if (Math.abs(differenceInDays(nextMidnight, initialSearchDate)) < 7) {
             const nextSearchParams = {
