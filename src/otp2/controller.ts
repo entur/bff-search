@@ -239,8 +239,8 @@ function sortTripPatternsByExpectedTime(
 ): Otp2TripPattern[] {
     // eslint-disable-next-line fp/no-mutating-methods
     return tripPatterns.sort((a, b) => {
-        const field = arriveBy ? 'expectedEndTime' : 'expectedStartTime'
-        return a[field] < b[field] ? -1 : 1
+        if (arriveBy) return a.expectedEndTime > b.expectedEndTime ? -1 : 1
+        return a.expectedStartTime < b.expectedStartTime ? -1 : 1
     })
 }
 
