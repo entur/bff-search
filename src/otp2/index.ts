@@ -9,12 +9,7 @@ import { set as cacheSet, get as cacheGet } from '../cache'
 import { NotFoundError } from '../errors'
 import { RawSearchParams, GraphqlQuery, SearchParams } from '../types'
 
-import {
-    searchTransit,
-    searchNonTransit,
-    NonTransitMode,
-    searchFlexible,
-} from './controller'
+import { searchTransit, searchNonTransit, NonTransitMode } from './controller'
 import { updateTripPattern, getExpires } from './updateTrip'
 
 import { parseCursor, generateCursor } from './cursor'
@@ -65,10 +60,6 @@ function getParams(params: RawSearchParams): SearchParams {
     }
 }
 
-function isNotUndefined<T>(thing: T | undefined): thing is T {
-    return thing !== undefined
-}
-
 router.post('/v1/transit', async (req, res, next) => {
     try {
         const cursorData = parseCursor(req.body?.cursor)
@@ -76,25 +67,12 @@ router.post('/v1/transit', async (req, res, next) => {
         const extraHeaders = getHeadersFromClient(req)
         const correlationId = req.get('X-Correlation-Id')
 
-        const [
-            flexibleSearchResults,
-            {
-                tripPatterns,
-                hasFlexibleTripPattern,
-                queries: transitQueries,
-                metadata,
-            },
-        ] = await Promise.all([
-            req.body.cursor ? undefined : searchFlexible(params),
-            searchTransit(params, extraHeaders),
-        ])
-
         const {
-            tripPatterns: flexibleTripPatterns = [],
-            queries: flexibleQueries = [],
-        } = flexibleSearchResults || {}
-
-        const queries = [...flexibleQueries, ...transitQueries]
+            tripPatterns,
+            queries,
+            hasFlexibleTripPattern,
+            metadata,
+        } = await searchTransit(params, extraHeaders)
 
         const queriesWithLinks =
             ENVIRONMENT === 'prod'
@@ -106,11 +84,6 @@ router.post('/v1/transit', async (req, res, next) => {
                   }))
 
         const nextCursor = generateCursor(params, metadata)
-
-        const allTripPatterns = [
-            ...flexibleTripPatterns,
-            ...tripPatterns,
-        ].filter(isNotUndefined)
 
         const searchParamsIds = uniq(
             tripPatterns.map(({ id = '' }) => deriveSearchParamsId(id)),
@@ -129,7 +102,7 @@ router.post('/v1/transit', async (req, res, next) => {
         ]).catch((error) => logger.error(error, { correlationId }))
 
         res.json({
-            tripPatterns: allTripPatterns,
+            tripPatterns,
             hasFlexibleTripPattern,
             nextCursor,
             queries: queriesWithLinks,

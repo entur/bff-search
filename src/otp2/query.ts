@@ -17,6 +17,7 @@ query (
     $whiteListed: InputWhiteListed,
     $debugItineraryFilter: Boolean,
     $walkReluctance: Float,
+    $searchWindow: Int,
 ) {
     trip(
         numTripPatterns: $numTripPatterns,
@@ -31,7 +32,8 @@ query (
         banned: $banned,
         whiteListed: $whiteListed,
         debugItineraryFilter: $debugItineraryFilter,
-        walkReluctance: $walkReluctance
+        walkReluctance: $walkReluctance,
+        searchWindow: $searchWindow
     ) {
         metadata {
             searchWindowUsed
@@ -42,6 +44,8 @@ query (
             generalizedCost
             startTime
             endTime
+            expectedStartTime
+            expectedEndTime
             directDuration
             duration
             distance

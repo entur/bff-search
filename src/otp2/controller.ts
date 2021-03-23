@@ -14,6 +14,8 @@ import {
     endOfDay,
     startOfDay,
     subDays,
+    parseISO,
+    differenceInMinutes,
 } from 'date-fns'
 
 import {
@@ -23,10 +25,7 @@ import {
     Metadata,
 } from '../types'
 
-import {
-    isFlexibleAlternative,
-    isValidTransitAlternative,
-} from '../utils/tripPattern'
+import { isValidTransitAlternative } from '../utils/tripPattern'
 
 import { parseLeg } from '../utils/leg'
 
@@ -211,14 +210,74 @@ async function getTripPatterns(
     }>(JOURNEY_PLANNER_QUERY, getTripPatternsVariables(params))
 
     const { metadata } = res.trip
-
+    const parse = createParseTripPattern()
     return [
-        (res.trip?.tripPatterns || []).map((pattern: any) => ({
-            ...pattern,
-            legs: pattern.legs.map(legMapper),
-        })),
+        (res.trip?.tripPatterns || [])
+            .map((pattern: any) => ({
+                ...pattern,
+                legs: pattern.legs.map(legMapper),
+            }))
+            .map(parse),
         metadata,
     ]
+}
+
+function getMinutesBetweenDates(
+    a: Date,
+    b: Date,
+    limits?: { min: number; max?: number },
+): number {
+    const min = limits?.min || 0
+    const max = limits?.max || Infinity
+    const diff = Math.abs(differenceInMinutes(a, b))
+    return Math.max(min, Math.min(max, diff))
+}
+
+function sortTripPatternsByExpectedTime(
+    tripPatterns: Otp2TripPattern[],
+    arriveBy: boolean,
+): Otp2TripPattern[] {
+    // eslint-disable-next-line fp/no-mutating-methods
+    return tripPatterns.sort((a, b) => {
+        if (arriveBy) return a.expectedEndTime > b.expectedEndTime ? -1 : 1
+        return a.expectedStartTime < b.expectedStartTime ? -1 : 1
+    })
+}
+
+function getNextSearchDateFromMetadata(
+    metadata: Metadata,
+    arriveBy = false,
+): Date {
+    const dateTime = arriveBy ? metadata.prevDateTime : metadata.nextDateTime
+    return parseISO(dateTime)
+}
+
+function combineAndSortFlexibleAndTransitTripPatterns(
+    tripPatterns: Otp2TripPattern[],
+    nextDateTime?: Date,
+    flexibleTripPattern?: Otp2TripPattern,
+    arriveBy = false,
+): Otp2TripPattern[] {
+    if (!flexibleTripPattern) return tripPatterns
+
+    const sortedTripPatterns = sortTripPatternsByExpectedTime(
+        [flexibleTripPattern, ...tripPatterns],
+        arriveBy,
+    )
+
+    if (!nextDateTime) {
+        return sortedTripPatterns
+    }
+
+    const flexIsOutsideTransitSearchWindowUsed = arriveBy
+        ? parseISO(flexibleTripPattern.expectedEndTime) < nextDateTime
+        : parseISO(flexibleTripPattern.expectedStartTime) > nextDateTime
+
+    if (flexIsOutsideTransitSearchWindowUsed) {
+        return tripPatterns
+    }
+
+    return sortedTripPatterns
 }
 
 export async function searchTransit(
@@ -227,7 +286,7 @@ export async function searchTransit(
     prevQueries?: GraphqlQuery[],
 ): Promise<TransitTripPatterns> {
     const { initialSearchDate, searchFilter, ...searchParams } = params
-
+    const { searchDate, arriveBy } = searchParams
     const filteredModes = filterModesAndSubModes(searchFilter)
 
     const getTripPatternsParams = {
@@ -235,28 +294,79 @@ export async function searchTransit(
         modes: filteredModes,
     }
 
-    const [response, metadata] = await getTripPatterns(getTripPatternsParams)
+    const [flexibleResults, [response, initialMetadata]] = await Promise.all([
+        initialSearchDate === searchDate ? searchFlexible(params) : undefined,
+        getTripPatterns(getTripPatternsParams),
+    ])
 
-    const query = getTripPatternsQuery(getTripPatternsParams)
-    const queries = [...(prevQueries || []), query]
+    const flexibleTripPattern = flexibleResults?.tripPatterns?.[0]
 
-    const parse = createParseTripPattern()
-    const tripPatterns = response.map(parse).filter(isValidTransitAlternative)
+    let tripPatterns = response.filter(isValidTransitAlternative)
+    let metadata = initialMetadata
+    let queries = [
+        ...(prevQueries || []),
+        ...(flexibleResults?.queries || []),
+        getTripPatternsQuery(getTripPatternsParams),
+    ]
+
+    const nextSearchDateFromMetadata = metadata
+        ? getNextSearchDateFromMetadata(metadata, arriveBy)
+        : undefined
+
+    if (flexibleResults && flexibleTripPattern && !tripPatterns.length) {
+        const transitSearchDate = nextSearchDateFromMetadata || searchDate
+
+        const searchWindow = getMinutesBetweenDates(
+            parseISO(
+                arriveBy
+                    ? flexibleTripPattern.expectedEndTime
+                    : flexibleTripPattern.expectedStartTime,
+            ),
+            transitSearchDate,
+            { min: 60 },
+        )
+
+        const nextSearchParams = {
+            ...getTripPatternsParams,
+            searchDate: transitSearchDate,
+            searchWindow,
+        }
+
+        const [
+            transitResultsBeforeFlexible,
+            beforeFlexibleMetadata,
+        ] = await getTripPatterns(nextSearchParams)
+
+        tripPatterns = transitResultsBeforeFlexible.filter(
+            isValidTransitAlternative,
+        )
+        metadata = beforeFlexibleMetadata
+        queries = [...queries, getTripPatternsQuery(nextSearchParams)]
+    }
+
+    tripPatterns = combineAndSortFlexibleAndTransitTripPatterns(
+        tripPatterns,
+        nextSearchDateFromMetadata,
+        flexibleTripPattern,
+        arriveBy,
+    )
 
     if (!tripPatterns.length && metadata) {
-        const nextSearchParams = {
+        const dateTime = arriveBy
+            ? metadata.prevDateTime
+            : metadata.nextDateTime
+
+        const nextSearchParams: SearchParams = {
             ...params,
-            searchDate: new Date(
-                params.arriveBy ? metadata.prevDateTime : metadata.nextDateTime,
-            ),
+            searchDate: parseISO(dateTime),
         }
         return searchTransit(nextSearchParams, extraHeaders, queries)
     }
 
     if (!tripPatterns.length && !metadata) {
-        const nextMidnight = params.arriveBy
-            ? endOfDay(subDays(searchParams.searchDate, 1))
-            : startOfDay(addDays(searchParams.searchDate, 1))
+        const nextMidnight = arriveBy
+            ? endOfDay(subDays(searchDate, 1))
+            : startOfDay(addDays(searchDate, 1))
 
         if (Math.abs(differenceInDays(nextMidnight, initialSearchDate)) < 7) {
             const nextSearchParams = {
@@ -270,7 +380,7 @@ export async function searchTransit(
     return {
         tripPatterns,
         metadata,
-        hasFlexibleTripPattern: tripPatterns.some(isFlexibleAlternative),
+        hasFlexibleTripPattern: Boolean(flexibleTripPattern),
         queries,
     }
 }
@@ -291,10 +401,7 @@ export async function searchFlexible(
         numTripPatterns: 1,
     }
 
-    const [response] = await getTripPatterns(getTripPatternsParams)
-
-    const parse = createParseTripPattern()
-    const tripPatterns = response.map(parse)
+    const [tripPatterns] = await getTripPatterns(getTripPatternsParams)
 
     return {
         tripPatterns,
@@ -316,7 +423,6 @@ export async function searchNonTransit(
     tripPatterns: NonTransitTripPatterns
     queries: { [key in NonTransitMode]?: GraphqlQuery }
 }> {
-    const parse = createParseTripPattern()
     const results = await Promise.all(
         modes.map(async (mode) => {
             const getTripPatternsParams = {
@@ -334,9 +440,7 @@ export async function searchNonTransit(
             const [result] = await getTripPatterns(getTripPatternsParams)
             const query = getTripPatternsQuery(getTripPatternsParams)
 
-            const candidate = result[0]
-
-            const tripPattern = candidate && parse(candidate)
+            const tripPattern = result[0]
 
             return { mode, tripPattern, query }
         }),
