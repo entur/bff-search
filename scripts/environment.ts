@@ -8,7 +8,7 @@ const mkdir = promisify(fs.mkdir)
 
 const [, , ENV = 'dev', ...args] = process.argv
 const ENV_FILE = join(__dirname, `../.env.${ENV}`)
-
+const CONFIG_FILE = join(__dirname, `../dist/config.js`)
 void createConfigFile()
 
 if (args.includes('--with-types')) {
@@ -20,6 +20,10 @@ if (args.includes('--with-types')) {
 if (args.includes('--watch')) {
     // eslint-disable-next-line fp/no-mutating-methods
     fs.watch(ENV_FILE, () => {
+        void createConfigFile()
+    })
+    // eslint-disable-next-line fp/no-mutating-methods
+    fs.watch(CONFIG_FILE, () => {
         void createConfigFile()
     })
 }
@@ -51,6 +55,28 @@ async function createTypeDefinition(): Promise<void> {
 async function createConfigFile(): Promise<void> {
     try {
         const envConfig = await readEnvFile(ENV_FILE)
+        const configFile = await readEnvFile(CONFIG_FILE)
+
+        const currentConfig = Object.entries(configFile).reduce(
+            (acc, [key, value]) => {
+                if (!key.startsWith('exports.')) return acc
+                return {
+                    ...acc,
+                    [key.slice(8)]: value.slice(1, value.length - 2),
+                }
+            },
+            {},
+        )
+
+        const shouldNotWriteConfigFile =
+            Object.keys(envConfig).length ===
+                Object.keys(currentConfig).length &&
+            Object.entries(currentConfig).every(
+                ([key, value]) => value === envConfig[key],
+            )
+
+        if (shouldNotWriteConfigFile) return
+
         const format = ([key, value]: [string, string]): string =>
             `exports.${key} = "${value}";`
 
@@ -59,8 +85,9 @@ async function createConfigFile(): Promise<void> {
 
     ${Object.entries(envConfig).map(format).join('\n')}
     `
+
         await mkdir(join(__dirname, '..', 'dist'), { recursive: true })
-        await writeFile(join(__dirname, '../dist/config.js'), content)
+        await writeFile(CONFIG_FILE, content)
     } catch (error) {
         console.error(error)
         process.exit(1)
