@@ -186,9 +186,6 @@ fragment situationFields on PtSituationElement {
         language
         value
     }
-    lines {
-        ...lineFields
-    }
     validityPeriod {
         startTime
         endTime
