@@ -35,6 +35,7 @@ export const DEFAULT_MODES: Modes = {
         { transportMode: TransportMode.METRO },
         { transportMode: TransportMode.WATER },
         { transportMode: TransportMode.AIR },
+        { transportMode: TransportMode.LIFT },
     ],
 }
 
@@ -69,8 +70,8 @@ function convertSearchFiltersToMode(
     const initialModes: TransportMode[] = searchFilters.includes(
         SearchFilter.BUS,
     )
-        ? [TransportMode.COACH]
-        : []
+        ? [TransportMode.LIFT, TransportMode.COACH]
+        : [TransportMode.LIFT]
 
     return uniq(searchFilters.reduce(queryTransportModesReducer, initialModes))
 }

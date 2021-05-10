@@ -21,8 +21,9 @@ const flytogWhitelist = { authorities: ['FLT:Authority:FLT'] }
 export function filterModesAndSubModes(
     modes?: SearchFilter[],
 ): FilteredModesAndSubModes {
-    if (!modes)
+    if (!modes) {
         return { filteredModes: DEFAULT_QUERY_MODES, subModesFilter: [] }
+    }
 
     let filteredModes: QueryMode[] = convertSearchFiltersToMode(modes)
     let subModesFilter: TransportSubmodeParam[] = []
@@ -238,8 +239,8 @@ function convertSearchFiltersToMode(
     searchFilters: SearchFilter[],
 ): QueryMode[] {
     const initialModes: QueryMode[] = searchFilters.includes(SearchFilter.BUS)
-        ? [QueryMode.FOOT, QueryMode.COACH]
-        : [QueryMode.FOOT]
+        ? [QueryMode.LIFT, QueryMode.FOOT, QueryMode.COACH]
+        : [QueryMode.LIFT, QueryMode.FOOT]
 
     return uniq(searchFilters.reduce(queryTransportModesReducer, initialModes))
 }
