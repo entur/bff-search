@@ -397,11 +397,17 @@ export async function searchFlexible(params: SearchParams): Promise<{
         numTripPatterns: 1,
     }
 
-    const [tripPatterns] = await getTripPatterns(getTripPatternsParams)
+    const [returnedTripPatterns] = await getTripPatterns(getTripPatternsParams)
+    const queries = [getTripPatternsQuery(getTripPatternsParams)]
+
+    const tripPatterns = returnedTripPatterns.filter(({ legs }) => {
+        const isFootOnly = legs.length === 1 && legs[0].mode === LegMode.FOOT
+        return !isFootOnly
+    })
 
     return {
         tripPatterns,
-        queries: [getTripPatternsQuery(getTripPatternsParams)],
+        queries,
     }
 }
 
