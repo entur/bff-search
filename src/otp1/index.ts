@@ -86,12 +86,8 @@ function getParams(params: RawSearchParams): SearchParams {
     const searchDate = params.searchDate
         ? parseJSON(params.searchDate)
         : new Date()
-    const {
-        filteredModes,
-        subModesFilter,
-        banned,
-        whiteListed,
-    } = filterModesAndSubModes(params.searchFilter)
+    const { filteredModes, subModesFilter, banned, whiteListed } =
+        filterModesAndSubModes(params.searchFilter)
 
     return {
         ...params,
@@ -197,12 +193,8 @@ router.post('/v1/transit', async (req, res, next) => {
         stopTrace = trace(
             cursorData ? 'searchTransit' : 'searchTransitWithTaxi',
         )
-        const {
-            tripPatterns,
-            metadata,
-            hasFlexibleTripPattern,
-            queries,
-        } = await searchMethod(params, extraHeaders)
+        const { tripPatterns, metadata, hasFlexibleTripPattern, queries } =
+            await searchMethod(params, extraHeaders)
         stopTrace()
 
         if (!cursorData) {

@@ -67,12 +67,8 @@ router.post('/v1/transit', async (req, res, next) => {
         const extraHeaders = getHeadersFromClient(req)
         const correlationId = req.get('X-Correlation-Id')
 
-        const {
-            tripPatterns,
-            queries,
-            hasFlexibleTripPattern,
-            metadata,
-        } = await searchTransit(params, extraHeaders)
+        const { tripPatterns, queries, hasFlexibleTripPattern, metadata } =
+            await searchTransit(params, extraHeaders)
 
         const queriesWithLinks =
             ENVIRONMENT === 'prod'

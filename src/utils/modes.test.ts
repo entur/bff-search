@@ -39,9 +39,8 @@ describe('filterModesAndSubModes', () => {
         const { filteredModes: withoutCoach } = filterModesAndSubModes(
             modesWithBusWithoutCoach,
         )
-        const { filteredModes: withCoach } = filterModesAndSubModes(
-            modesWithBusAndCoach,
-        )
+        const { filteredModes: withCoach } =
+            filterModesAndSubModes(modesWithBusAndCoach)
 
         expect(withoutCoach).toContain(LegMode.COACH)
         expect(withCoach).toEqual(expect.arrayContaining(modesWithBusAndCoach))
@@ -61,14 +60,12 @@ describe('filterModesAndSubModes', () => {
             SearchFilter.METRO,
             SearchFilter.RAIL,
         ]
-        const { filteredModes: withFoot } = filterModesAndSubModes(
-            modesWithoutFoot,
-        )
+        const { filteredModes: withFoot } =
+            filterModesAndSubModes(modesWithoutFoot)
         expect(withFoot).toEqual(expect.arrayContaining(modesWithFoot))
 
-        const { filteredModes: withNoDuplicateFoot } = filterModesAndSubModes(
-            modesWithFoot,
-        )
+        const { filteredModes: withNoDuplicateFoot } =
+            filterModesAndSubModes(modesWithFoot)
         expect(withNoDuplicateFoot.length).toBe(modesWithFoot.length)
         expect(withNoDuplicateFoot).toEqual(
             expect.arrayContaining(modesWithFoot),

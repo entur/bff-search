@@ -50,10 +50,10 @@ describe('isTransitLeg', () => {
 
 describe('isBikeRentalLeg', () => {
     it("should check if the leg's from- and to-places are bike rental stations", () => {
-        const bikeStation = ({ bikeRentalStation: true } as unknown) as Place
-        const nonBikeStation = ({
+        const bikeStation = { bikeRentalStation: true } as unknown as Place
+        const nonBikeStation = {
             bikeRentalStation: false,
-        } as unknown) as Place
+        } as unknown as Place
 
         expect(
             isBikeRentalLeg({

@@ -210,11 +210,8 @@ async function updateLeg(leg: Leg): Promise<LegWithUpdate> {
 
 function updateTransitLeg(leg: Leg, updatedCalls: UpdatedCalls): Leg {
     if (!updatedCalls) return leg
-    const {
-        fromEstimatedCall,
-        toEstimatedCall,
-        intermediateEstimatedCalls,
-    } = leg
+    const { fromEstimatedCall, toEstimatedCall, intermediateEstimatedCalls } =
+        leg
 
     const { fromCall, toCall, intermediateCalls } = updatedCalls
 

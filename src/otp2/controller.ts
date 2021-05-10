@@ -332,10 +332,8 @@ export async function searchTransit(
             searchWindow,
         }
 
-        const [
-            transitResultsBeforeFlexible,
-            beforeFlexibleMetadata,
-        ] = await getTripPatterns(nextSearchParams)
+        const [transitResultsBeforeFlexible, beforeFlexibleMetadata] =
+            await getTripPatterns(nextSearchParams)
 
         tripPatterns = transitResultsBeforeFlexible.filter(
             isValidTransitAlternative,
@@ -385,9 +383,7 @@ export async function searchTransit(
     }
 }
 
-export async function searchFlexible(
-    params: SearchParams,
-): Promise<{
+export async function searchFlexible(params: SearchParams): Promise<{
     tripPatterns: Otp2TripPattern[]
     queries: GraphqlQuery[]
 }> {

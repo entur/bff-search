@@ -116,7 +116,7 @@ function uniqTripPatterns(
 
 function toQueryMode(legMode: LegMode): QueryMode {
     // LegMode is a subset of QueryMode, so casting is safe in this case
-    return (legMode as unknown) as QueryMode
+    return legMode as unknown as QueryMode
 }
 
 interface QueryError {

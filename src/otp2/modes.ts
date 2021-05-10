@@ -122,9 +122,10 @@ function filterModesForAirportLinkRail(
         filters.includes(SearchFilter.RAIL) &&
         !filters.includes(SearchFilter.FLYTOG)
     ) {
-        const allOtherRailSubModes: TransportSubmode[] = ALL_RAIL_SUBMODES.filter(
-            (mode: TransportSubmode) => mode !== airportRail,
-        )
+        const allOtherRailSubModes: TransportSubmode[] =
+            ALL_RAIL_SUBMODES.filter(
+                (mode: TransportSubmode) => mode !== airportRail,
+            )
 
         return {
             transportMode: TransportMode.RAIL,
@@ -191,9 +192,9 @@ export function filterModesAndSubModes(filters?: SearchFilter[]): Modes {
         return DEFAULT_MODES
     }
 
-    let filteredModes: Mode[] = convertSearchFiltersToMode(
-        filters,
-    ).map((transportMode) => ({ transportMode }))
+    let filteredModes: Mode[] = convertSearchFiltersToMode(filters).map(
+        (transportMode) => ({ transportMode }),
+    )
 
     /*
      * Handle the 'railReplacementBus' sub mode as either a rail-related sub mode
