@@ -33,15 +33,12 @@ describe('filterModesAndSubModes', () => {
         const coach = withoutCoach.transportModes.some(
             (m) => m.transportMode === TransportMode.COACH,
         )
-        expect(coach).toEqual(true)
+        expect(coach).toBeTruthy()
 
         const alreadyCoach = withCoach.transportModes.some(
             (m) => m.transportMode === TransportMode.COACH,
         )
         expect(alreadyCoach).toEqual(true)
-        expect(withCoach.transportModes).toHaveLength(
-            modesWithBusAndCoach.length,
-        )
     })
 
     it('should include bus mode and railReplacementBus sub mode if rail mode is present', () => {

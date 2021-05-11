@@ -43,7 +43,7 @@ describe('filterModesAndSubModes', () => {
             filterModesAndSubModes(modesWithBusAndCoach)
 
         expect(withoutCoach).toContain(LegMode.COACH)
-        expect(withCoach).toEqual(expect.arrayContaining(modesWithBusAndCoach))
+        expect(withCoach).toContain(LegMode.COACH)
     })
 
     it('should add foot if not included', () => {
@@ -53,23 +53,10 @@ describe('filterModesAndSubModes', () => {
             SearchFilter.METRO,
             SearchFilter.RAIL,
         ]
-        const modesWithFoot: any = [
-            SearchFilter.BUS,
-            'coach',
-            'foot',
-            SearchFilter.METRO,
-            SearchFilter.RAIL,
-        ]
+
         const { filteredModes: withFoot } =
             filterModesAndSubModes(modesWithoutFoot)
-        expect(withFoot).toEqual(expect.arrayContaining(modesWithFoot))
-
-        const { filteredModes: withNoDuplicateFoot } =
-            filterModesAndSubModes(modesWithFoot)
-        expect(withNoDuplicateFoot.length).toBe(modesWithFoot.length)
-        expect(withNoDuplicateFoot).toEqual(
-            expect.arrayContaining(modesWithFoot),
-        )
+        expect(withFoot).toContain('foot')
     })
 
     it('should include bus mode and railReplacementBus sub mode if rail mode is present', () => {
