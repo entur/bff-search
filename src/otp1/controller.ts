@@ -28,6 +28,7 @@ import { convertToTimeZone } from '../utils/time'
 import logger from '../logger'
 
 import { TRANSIT_HOST, NON_TRANSIT_HOST } from '../config'
+import { replaceQuay1ForOsloSWithUnknown } from '../utils/osloSTrack1Replacer'
 
 const sdkTransit = createEnturService({
     clientName: 'entur-search',
@@ -69,11 +70,11 @@ export async function searchTransitWithTaxi(
         !tripPatterns.length ? searchTaxiFrontBack(params, extraHeaders) : [],
         firstTransitResults.nextSearchParams
             ? searchTransit(
-                  firstTransitResults.nextSearchParams,
-                  extraHeaders,
-                  queries,
-                  true,
-              )
+                firstTransitResults.nextSearchParams,
+                extraHeaders,
+                queries,
+                true,
+            )
             : undefined,
     ])
 
@@ -147,6 +148,9 @@ export async function searchTransit(
     const tripPatterns = response
         .map(parseTripPattern)
         .filter(isValidTransitAlternative)
+        // No, this hack doesn't feel good. But we get wrong data from the backend and
+        // customers keep getting stuck on the wrong platform (31st of May 2021)
+        .map(replaceQuay1ForOsloSWithUnknown)
 
     const isSameDaySearch = isSameNorwegianDate(searchDate, initialSearchDate)
 
