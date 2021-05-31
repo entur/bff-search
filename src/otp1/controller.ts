@@ -65,15 +65,15 @@ export async function searchTransitWithTaxi(
 
     const [taxiResults, secondTransitResults]: [
         TripPattern[],
-            TransitTripPatterns | undefined,
+        TransitTripPatterns | undefined,
     ] = await Promise.all([
         !tripPatterns.length ? searchTaxiFrontBack(params, extraHeaders) : [],
         firstTransitResults.nextSearchParams
             ? searchTransit(
-            firstTransitResults.nextSearchParams,
-            extraHeaders,
-            queries,
-            true,
+                firstTransitResults.nextSearchParams,
+                extraHeaders,
+                queries,
+                true,
             )
             : undefined,
     ])
