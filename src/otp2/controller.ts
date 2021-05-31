@@ -32,6 +32,7 @@ import { parseLeg } from '../utils/leg'
 import { TRANSIT_HOST_OTP2 } from '../config'
 import JOURNEY_PLANNER_QUERY from './query'
 import { filterModesAndSubModes, Mode } from './modes'
+import { replaceQuay1ForOsloSWithUnknown } from '../utils/osloSTrack1Replacer'
 
 const sdk = createEnturService({
     clientName: 'entur-search',
@@ -301,7 +302,12 @@ export async function searchTransit(
 
     const flexibleTripPattern = flexibleResults?.tripPatterns?.[0]
 
-    let tripPatterns = response.filter(isValidTransitAlternative)
+    let tripPatterns = response
+        .filter(isValidTransitAlternative)
+        // No, this hack doesn't feel good. But we get wrong data from the backend and
+        // customers keep getting stuck on the wrong platform (31st of May 2021)
+        .map(replaceQuay1ForOsloSWithUnknown)
+
     let metadata = initialMetadata
     let queries = [
         ...(prevQueries || []),
