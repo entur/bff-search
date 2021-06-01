@@ -70,11 +70,11 @@ export async function searchTransitWithTaxi(
         !tripPatterns.length ? searchTaxiFrontBack(params, extraHeaders) : [],
         firstTransitResults.nextSearchParams
             ? searchTransit(
-                firstTransitResults.nextSearchParams,
-                extraHeaders,
-                queries,
-                true,
-            )
+                  firstTransitResults.nextSearchParams,
+                  extraHeaders,
+                  queries,
+                  true,
+              )
             : undefined,
     ])
 
