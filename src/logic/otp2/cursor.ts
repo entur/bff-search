@@ -4,7 +4,7 @@ import {
 } from 'lz-string'
 import { parseJSON } from 'date-fns'
 
-import { CursorData, SearchParams, Metadata } from '../types'
+import { CursorData, SearchParams, Metadata } from '../../types'
 
 export function parseCursor(cursor?: string): CursorData | undefined {
     if (!cursor?.length) return undefined

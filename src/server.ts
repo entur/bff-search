@@ -10,8 +10,7 @@ import logger, { reqResLoggerMiddleware } from './logger'
 import { NotFoundError, InvalidArgumentError } from './errors'
 import { unauthorizedError } from './auth'
 
-import otp1Router from './otp1'
-import otp2Router from './otp2'
+import v1Router from './routes/v1'
 
 const PORT = process.env.PORT || 9000
 const app = express()
@@ -35,16 +34,24 @@ app.get('/_ah/warmup', (_req, res) => {
     res.end()
 })
 
-app.use('/otp2', otp2Router)
 app.use(
-    '/otp1',
+    '/otp2/v1',
+    (_req, res, next) => {
+        res.locals.forceOtp2 = true
+        next()
+    },
+    v1Router,
+)
+app.use(
+    '/otp1/v1',
     (req, res, next) => {
         res.locals.forceOtp1 = true
         next()
     },
-    otp1Router,
+    v1Router,
 )
-app.use('/', otp1Router)
+
+app.use('/v1', v1Router)
 
 app.all('*', (_, res) => {
     res.status(404).json({ error: '404 Not Found' })

@@ -1,7 +1,7 @@
 import { TransportMode, TransportSubmode } from '@entur/sdk'
-import { uniq } from '../utils/array'
-import { SearchFilter } from '../types'
-import { ALL_BUS_SUBMODES, ALL_RAIL_SUBMODES } from '../constants'
+import { uniq } from '../../utils/array'
+import { SearchFilter } from '../../types'
+import { ALL_BUS_SUBMODES, ALL_RAIL_SUBMODES } from '../../constants'
 
 export type StreetMode =
     | 'foot'

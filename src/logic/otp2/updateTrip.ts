@@ -8,11 +8,11 @@ import {
 } from 'date-fns'
 import createEnturService, { TripPattern, Leg, EstimatedCall } from '@entur/sdk'
 
-import { first, last } from '../utils/array'
-import { isFlexibleLeg, isTransitLeg } from '../utils/leg'
-import { toISOString } from '../utils/time'
+import { first, last } from '../../utils/array'
+import { isFlexibleLeg, isTransitLeg } from '../../utils/leg'
+import { toISOString } from '../../utils/time'
 
-import { TRANSIT_HOST_OTP2 } from '../config'
+import { TRANSIT_HOST_OTP2 } from '../../config'
 
 const sdk = createEnturService({
     clientName: 'entur-search',

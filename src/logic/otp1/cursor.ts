@@ -6,13 +6,13 @@ import { addMinutes, subMinutes, parseJSON } from 'date-fns'
 
 import { TripPattern } from '@entur/sdk'
 
-import { maxBy, minBy } from '../utils/array'
+import { maxBy, minBy } from '../../utils/array'
 import {
     isTransitAlternative,
     isFlexibleAlternative,
-} from '../utils/tripPattern'
+} from '../../utils/tripPattern'
 
-import { CursorData, SearchParams } from '../types'
+import { CursorData, SearchParams } from '../../types'
 
 export function parseCursor(cursor?: string): CursorData | undefined {
     if (!cursor?.length) return undefined
