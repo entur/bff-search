@@ -12,7 +12,7 @@ import {
     TransitTripPatterns,
     NonTransitTripPatterns,
     GraphqlQuery,
-} from '../types'
+} from '../../types'
 
 import {
     isBikeRentalAlternative,
@@ -21,14 +21,14 @@ import {
     isValidTaxiAlternative,
     isValidNonTransitDistance,
     createParseTripPattern,
-} from '../utils/tripPattern'
-import { sortBy } from '../utils/array'
-import { convertToTimeZone } from '../utils/time'
+} from '../../utils/tripPattern'
+import { sortBy } from '../../utils/array'
+import { convertToTimeZone } from '../../utils/time'
 
-import logger from '../logger'
+import logger from '../../logger'
 
-import { TRANSIT_HOST, NON_TRANSIT_HOST } from '../config'
-import { replaceQuay1ForOsloSWithUnknown } from '../utils/osloSTrack1Replacer'
+import { TRANSIT_HOST, NON_TRANSIT_HOST } from '../../config'
+import { replaceQuay1ForOsloSWithUnknown } from '../../utils/osloSTrack1Replacer'
 
 const sdkTransit = createEnturService({
     clientName: 'entur-search',

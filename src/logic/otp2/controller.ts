@@ -23,16 +23,16 @@ import {
     NonTransitTripPatterns,
     GraphqlQuery,
     Metadata,
-} from '../types'
+} from '../../types'
 
-import { isValidTransitAlternative } from '../utils/tripPattern'
+import { isValidTransitAlternative } from '../../utils/tripPattern'
+import { parseLeg } from '../../utils/leg'
+import { replaceQuay1ForOsloSWithUnknown } from '../../utils/osloSTrack1Replacer'
 
-import { parseLeg } from '../utils/leg'
+import { TRANSIT_HOST_OTP2 } from '../../config'
 
-import { TRANSIT_HOST_OTP2 } from '../config'
 import JOURNEY_PLANNER_QUERY from './query'
 import { filterModesAndSubModes, Mode } from './modes'
-import { replaceQuay1ForOsloSWithUnknown } from '../utils/osloSTrack1Replacer'
 
 const sdk = createEnturService({
     clientName: 'entur-search',

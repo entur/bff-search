@@ -2,9 +2,9 @@ import { TransportMode, TransportSubmode } from '@entur/sdk'
 
 import { filterModesAndSubModes, Modes, Mode } from './modes'
 
-import { SearchFilter } from '../types'
+import { SearchFilter } from '../../types'
 
-import { ALL_BUS_SUBMODES, ALL_RAIL_SUBMODES } from '../constants'
+import { ALL_BUS_SUBMODES, ALL_RAIL_SUBMODES } from '../../constants'
 
 function getBusFilter(modes: Modes): Mode | undefined {
     return modes.transportModes.find(

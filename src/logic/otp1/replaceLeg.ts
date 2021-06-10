@@ -7,12 +7,12 @@ import {
     QueryMode,
 } from '@entur/sdk'
 
-import { SearchParams } from '../types'
-import { TRANSIT_HOST } from '../config'
-import { InvalidArgumentError, JourneyPlannerError } from '../errors'
-import { uniq, sortBy } from '../utils/array'
-import { createParseTripPattern } from '../utils/tripPattern'
-import { isTransitLeg } from '../utils/leg'
+import { SearchParams } from '../../types'
+import { TRANSIT_HOST } from '../../config'
+import { InvalidArgumentError, JourneyPlannerError } from '../../errors'
+import { uniq, sortBy } from '../../utils/array'
+import { createParseTripPattern } from '../../utils/tripPattern'
+import { isTransitLeg } from '../../utils/leg'
 
 async function post<T>(
     url: string,
