@@ -12,6 +12,7 @@ export type StreetMode =
     | 'car_park'
     | 'taxi'
     | 'car_rental'
+    | 'car_pickup'
 
 export interface Mode {
     transportMode: TransportMode

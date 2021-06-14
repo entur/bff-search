@@ -29,7 +29,7 @@ import { isValidTransitAlternative } from '../../utils/tripPattern'
 import { parseLeg } from '../../utils/leg'
 import { replaceQuay1ForOsloSWithUnknown } from '../../utils/osloSTrack1Replacer'
 
-import { TRANSIT_HOST_OTP2 } from '../../config'
+import { ENVIRONMENT, TRANSIT_HOST_OTP2 } from '../../config'
 
 import JOURNEY_PLANNER_QUERY from './query'
 import { filterModesAndSubModes, Mode } from './modes'
@@ -295,10 +295,16 @@ export async function searchTransit(
         modes: filteredModes,
     }
 
-    const [flexibleResults, [response, initialMetadata]] = await Promise.all([
-        initialSearchDate === searchDate ? searchFlexible(params) : undefined,
-        getTripPatterns(getTripPatternsParams),
-    ])
+    const [flexibleResults, taxiResults, [response, initialMetadata]] =
+        await Promise.all([
+            initialSearchDate === searchDate
+                ? searchFlexible(params)
+                : undefined,
+            ENVIRONMENT === 'dev' && initialSearchDate === searchDate
+                ? searchTaxiFrontBack(params)
+                : undefined,
+            getTripPatterns(getTripPatternsParams),
+        ])
 
     const flexibleTripPattern = flexibleResults?.tripPatterns?.[0]
 
@@ -312,6 +318,7 @@ export async function searchTransit(
     let queries = [
         ...(prevQueries || []),
         ...(flexibleResults?.queries || []),
+        ...(taxiResults?.queries || []),
         getTripPatternsQuery(getTripPatternsParams),
     ]
 
@@ -348,12 +355,15 @@ export async function searchTransit(
         queries = [...queries, getTripPatternsQuery(nextSearchParams)]
     }
 
-    tripPatterns = combineAndSortFlexibleAndTransitTripPatterns(
-        tripPatterns,
-        nextSearchDateFromMetadata,
-        flexibleTripPattern,
-        arriveBy,
-    )
+    tripPatterns = [
+        ...(taxiResults?.tripPatterns || []),
+        ...combineAndSortFlexibleAndTransitTripPatterns(
+            tripPatterns,
+            nextSearchDateFromMetadata,
+            flexibleTripPattern,
+            arriveBy,
+        ),
+    ]
 
     if (!tripPatterns.length && metadata) {
         const dateTime = arriveBy
@@ -389,7 +399,7 @@ export async function searchTransit(
     }
 }
 
-export async function searchFlexible(params: SearchParams): Promise<{
+async function searchFlexible(params: SearchParams): Promise<{
     tripPatterns: Otp2TripPattern[]
     queries: GraphqlQuery[]
 }> {
@@ -410,6 +420,31 @@ export async function searchFlexible(params: SearchParams): Promise<{
         const isFootOnly = legs.length === 1 && legs[0].mode === LegMode.FOOT
         return !isFootOnly
     })
+
+    return {
+        tripPatterns,
+        queries,
+    }
+}
+
+async function searchTaxiFrontBack(params: SearchParams): Promise<{
+    tripPatterns: Otp2TripPattern[]
+    queries: GraphqlQuery[]
+}> {
+    const { initialSearchDate, searchFilter, ...searchParams } = params
+
+    const getTripPatternsParams = {
+        ...searchParams,
+        modes: {
+            ...DEFAULT_MODES,
+            accessMode: 'car_pickup',
+            egressMode: 'car_pickup',
+        },
+        numTripPatterns: 2,
+    }
+
+    const [tripPatterns] = await getTripPatterns(getTripPatternsParams)
+    const queries = [getTripPatternsQuery(getTripPatternsParams)]
 
     return {
         tripPatterns,
