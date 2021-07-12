@@ -31,9 +31,9 @@ export function generateCursor(
 ): string | undefined {
     if (!metadata) return
 
-    const nextDate = new Date(
-        params.arriveBy ? metadata.prevDateTime : metadata.nextDateTime,
-    )
+    const { prevDateTime, nextDateTime, searchWindowUsed } = metadata
+
+    const nextDate = new Date(params.arriveBy ? prevDateTime : nextDateTime)
 
     const cursorData = {
         v: 1,
@@ -41,6 +41,7 @@ export function generateCursor(
             ...params,
             searchDate: nextDate,
             useFlex: false,
+            searchWindow: searchWindowUsed,
         },
     }
 

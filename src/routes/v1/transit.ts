@@ -163,6 +163,7 @@ router.post('/', async (req, res, next) => {
             res.locals.forceOtp2 ||
             (!res.locals.forceOtp1 && shouldUseOtp2(params))
         if (useOtp2) {
+            // @ts-ignore searchTransitOtp2 expects a slightly different SearchParams type
             searchMethod = searchTransitOtp2
         }
 
