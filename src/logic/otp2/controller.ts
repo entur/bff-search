@@ -49,6 +49,7 @@ interface Otp2TripPattern extends TripPattern {
 }
 
 export interface Otp2SearchParams extends Omit<SearchParams, 'modes'> {
+    searchWindow?: number
     modes: Modes
 }
 
@@ -282,7 +283,7 @@ function combineAndSortFlexibleAndTransitTripPatterns(
 }
 
 export async function searchTransit(
-    params: SearchParams,
+    params: Otp2SearchParams,
     extraHeaders: { [key: string]: string },
     prevQueries?: GraphqlQuery[],
 ): Promise<TransitTripPatterns> {
@@ -370,8 +371,9 @@ export async function searchTransit(
             ? metadata.prevDateTime
             : metadata.nextDateTime
 
-        const nextSearchParams: SearchParams = {
+        const nextSearchParams: Otp2SearchParams = {
             ...params,
+            searchWindow: metadata.searchWindowUsed,
             searchDate: parseISO(dateTime),
         }
         return searchTransit(nextSearchParams, extraHeaders, queries)
@@ -399,7 +401,7 @@ export async function searchTransit(
     }
 }
 
-async function searchFlexible(params: SearchParams): Promise<{
+async function searchFlexible(params: Otp2SearchParams): Promise<{
     tripPatterns: Otp2TripPattern[]
     queries: GraphqlQuery[]
 }> {
@@ -427,7 +429,7 @@ async function searchFlexible(params: SearchParams): Promise<{
     }
 }
 
-async function searchTaxiFrontBack(params: SearchParams): Promise<{
+async function searchTaxiFrontBack(params: Otp2SearchParams): Promise<{
     tripPatterns: Otp2TripPattern[]
     queries: GraphqlQuery[]
 }> {
