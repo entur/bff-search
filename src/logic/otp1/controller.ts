@@ -137,9 +137,18 @@ export async function searchTransit(
         maxPreTransitWalkDistance: 2000,
     }
 
-    const response = await sdkTransit.getTripPatterns(getTripPatternsParams, {
-        headers: extraHeaders,
-    })
+    let response
+    try {
+        response = await sdkTransit.getTripPatterns(getTripPatternsParams, {
+            headers: extraHeaders,
+        })
+    } catch (error) {
+        logger.error('Error during searchTransit call to getTripPattern', {
+            error,
+            getTripPatternsParams,
+        })
+        throw error
+    }
 
     const query = getTripPatternsQuery(getTripPatternsParams)
     const queries = [...(prevQueries || []), query]
@@ -190,45 +199,59 @@ export async function searchNonTransit(
 
     const results = await Promise.all(
         modes.map(async (mode) => {
-            const result = await sdkNonTransit.getTripPatterns(
-                {
-                    ...params,
-                    limit: mode === 'bicycle_rent' ? 3 : 1,
-                    modes:
-                        mode === 'bicycle_rent'
-                            ? [QueryMode.FOOT, QueryMode.BICYCLE]
-                            : [mode as QueryMode],
-                    maxPreTransitWalkDistance: 2000,
-                    allowBikeRental: mode === 'bicycle_rent',
-                },
-                { headers: extraHeaders },
-            )
+            try {
+                const result = await sdkNonTransit.getTripPatterns(
+                    {
+                        ...params,
+                        limit: mode === 'bicycle_rent' ? 3 : 1,
+                        modes:
+                            mode === 'bicycle_rent'
+                                ? [QueryMode.FOOT, QueryMode.BICYCLE]
+                                : [mode as QueryMode],
+                        maxPreTransitWalkDistance: 2000,
+                        allowBikeRental: mode === 'bicycle_rent',
+                    },
+                    { headers: extraHeaders },
+                )
 
-            const candidate = result.find(({ legs }) => {
-                const modeToCheck =
-                    mode === 'bicycle_rent' ? LegMode.BICYCLE : mode
+                const candidate = result.find(({ legs }) => {
+                    const modeToCheck =
+                        mode === 'bicycle_rent' ? LegMode.BICYCLE : mode
 
-                const matchesMode = (leg: Leg): boolean =>
-                    leg.mode === modeToCheck &&
-                    leg.rentedBike === (mode === 'bicycle_rent')
+                    const matchesMode = (leg: Leg): boolean =>
+                        leg.mode === modeToCheck &&
+                        leg.rentedBike === (mode === 'bicycle_rent')
 
-                const matchesModes =
-                    legs.some(matchesMode) &&
-                    legs.every(
-                        (leg) => leg.mode === LegMode.FOOT || matchesMode(leg),
-                    )
+                    const matchesModes =
+                        legs.some(matchesMode) &&
+                        legs.every(
+                            (leg) =>
+                                leg.mode === LegMode.FOOT || matchesMode(leg),
+                        )
 
-                return matchesModes
-            })
+                    return matchesModes
+                })
 
-            const tripPattern =
-                candidate &&
-                isValidNonTransitDistance(candidate, mode) &&
-                (mode !== 'bicycle_rent' || isBikeRentalAlternative(candidate))
-                    ? parseTripPattern(candidate)
-                    : undefined
+                const tripPattern =
+                    candidate &&
+                    isValidNonTransitDistance(candidate, mode) &&
+                    (mode !== 'bicycle_rent' ||
+                        isBikeRentalAlternative(candidate))
+                        ? parseTripPattern(candidate)
+                        : undefined
 
-            return { mode, tripPattern }
+                return { mode, tripPattern }
+            } catch (error) {
+                logger.error(
+                    'Error during searchNonTransit call to getTripPattern',
+                    {
+                        error,
+                        parseTripPattern,
+                        mode,
+                    },
+                )
+                throw error
+            }
         }),
     )
 
@@ -257,19 +280,33 @@ async function searchTaxiFrontBack(
         searchNonTransit(params, extraHeaders, [LegMode.CAR]),
         Promise.all(
             modes.map(async (mode) => {
-                const response = await sdkTransit.getTripPatterns(
-                    {
-                        ...searchParams,
-                        limit: 1,
-                        maxPreTransitWalkDistance: 2000,
-                        modes: [...initialModes, mode],
-                    },
-                    { headers: extraHeaders },
-                )
+                try {
+                    const response = await sdkTransit.getTripPatterns(
+                        {
+                            ...searchParams,
+                            limit: 1,
+                            maxPreTransitWalkDistance: 2000,
+                            modes: [...initialModes, mode],
+                        },
+                        { headers: extraHeaders },
+                    )
 
-                if (!response?.length) return []
+                    if (!response?.length) {
+                        return []
+                    }
 
-                return response.map(parseTripPattern)
+                    return response.map(parseTripPattern)
+                } catch (error) {
+                    logger.error(
+                        'Error during searchTaxiFrontBack getTripPattern',
+                        {
+                            error,
+                            parseTripPattern,
+                            mode,
+                        },
+                    )
+                    throw error
+                }
             }),
         ),
     ])
