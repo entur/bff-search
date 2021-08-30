@@ -145,7 +145,7 @@ export async function searchTransit(
     } catch (error) {
         logger.error('Error during searchTransit call to getTripPattern', {
             error,
-            getTripPatternsParams,
+            params,
         })
         throw error
     }
@@ -246,7 +246,7 @@ export async function searchNonTransit(
                     'Error during searchNonTransit call to getTripPattern',
                     {
                         error,
-                        parseTripPattern,
+                        params,
                         mode,
                     },
                 )
@@ -301,7 +301,7 @@ async function searchTaxiFrontBack(
                         'Error during searchTaxiFrontBack getTripPattern',
                         {
                             error,
-                            parseTripPattern,
+                            params,
                             mode,
                         },
                     )
