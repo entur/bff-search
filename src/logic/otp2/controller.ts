@@ -301,7 +301,7 @@ export async function searchTransit(
             initialSearchDate === searchDate
                 ? searchFlexible(params)
                 : undefined,
-            ENVIRONMENT === 'dev' && initialSearchDate === searchDate
+            ENVIRONMENT !== 'prod' && initialSearchDate === searchDate
                 ? searchTaxiFrontBack(params)
                 : undefined,
             getTripPatterns(getTripPatternsParams),
