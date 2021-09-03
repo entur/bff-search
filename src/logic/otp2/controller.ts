@@ -29,7 +29,7 @@ import { isValidTransitAlternative } from '../../utils/tripPattern'
 import { parseLeg } from '../../utils/leg'
 import { replaceQuay1ForOsloSWithUnknown } from '../../utils/osloSTrack1Replacer'
 
-import { ENVIRONMENT, TRANSIT_HOST_OTP2 } from '../../config'
+import { TRANSIT_HOST_OTP2 } from '../../config'
 
 import JOURNEY_PLANNER_QUERY from './query'
 import { filterModesAndSubModes, Mode } from './modes'
@@ -286,6 +286,7 @@ export async function searchTransit(
     params: Otp2SearchParams,
     extraHeaders: { [key: string]: string },
     prevQueries?: GraphqlQuery[],
+    options?: { enableTaxiSearch?: boolean },
 ): Promise<TransitTripPatterns> {
     const { initialSearchDate, searchFilter, ...searchParams } = params
     const { searchDate, arriveBy } = searchParams
@@ -301,7 +302,7 @@ export async function searchTransit(
             initialSearchDate === searchDate
                 ? searchFlexible(params)
                 : undefined,
-            ENVIRONMENT !== 'prod' && initialSearchDate === searchDate
+            options?.enableTaxiSearch && initialSearchDate === searchDate
                 ? searchTaxiFrontBack(params)
                 : undefined,
             getTripPatterns(getTripPatternsParams),

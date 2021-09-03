@@ -159,6 +159,12 @@ router.post('/', async (req, res, next) => {
         }
 
         let searchMethod = cursorData ? searchTransit : searchTransitWithTaxi
+        const searchOptions: { runOnce?: boolean; enableTaxiSearch?: boolean } =
+            {
+                enableTaxiSearch:
+                    ENVIRONMENT !== 'prod' && res.locals.forceOtp2 === true,
+            }
+
         const useOtp2 =
             res.locals.forceOtp2 ||
             (!res.locals.forceOtp1 && shouldUseOtp2(params))
@@ -178,7 +184,7 @@ router.post('/', async (req, res, next) => {
             cursorData ? 'searchTransit' : 'searchTransitWithTaxi',
         )
         const { tripPatterns, metadata, hasFlexibleTripPattern, queries } =
-            await searchMethod(params, extraHeaders)
+            await searchMethod(params, extraHeaders, undefined, searchOptions)
         stopTrace()
 
         if (!cursorData) {

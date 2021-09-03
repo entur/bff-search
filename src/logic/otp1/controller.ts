@@ -58,7 +58,7 @@ export async function searchTransitWithTaxi(
         params,
         extraHeaders,
         undefined,
-        true,
+        { runOnce: true },
     )
 
     let { tripPatterns, queries } = firstTransitResults
@@ -73,7 +73,7 @@ export async function searchTransitWithTaxi(
                   firstTransitResults.nextSearchParams,
                   extraHeaders,
                   queries,
-                  true,
+                  { runOnce: true },
               )
             : undefined,
     ])
@@ -127,7 +127,7 @@ export async function searchTransit(
     params: SearchParams,
     extraHeaders: { [key: string]: string },
     prevQueries?: GraphqlQuery[],
-    runOnce = false,
+    options?: { runOnce?: boolean },
 ): Promise<TransitTripPatterns> {
     const { initialSearchDate, searchFilter, ...searchParams } = params
     const { searchDate } = searchParams
@@ -165,7 +165,7 @@ export async function searchTransit(
 
     if (!tripPatterns.length && isSameDaySearch) {
         const nextSearchParams = getNextSearchParams(params)
-        if (!runOnce) {
+        if (!options?.runOnce) {
             return searchTransit(nextSearchParams, extraHeaders, queries)
         }
         return {
