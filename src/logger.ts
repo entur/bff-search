@@ -51,6 +51,7 @@ function reqBodyMapper(req: Request): Record<string, any> {
 function reqHeadersMapper(req: Request): { [key: string]: string } {
     return clean({
         'X-Correlation-Id': req.get('X-Correlation-Id'),
+        'X-Session-Id': req.get('X-Session-Id'),
         'ET-Client-Name': req.get('ET-Client-Name'),
         'ET-Client-Version': req.get('ET-Client-Version'),
         'ET-Client-Platform': req.get('ET-Client-Platform'),
@@ -80,6 +81,7 @@ export function reqResLoggerMiddleware(
         body: reqBodyMapper(req),
         headers: reqHeadersMapper(req),
         correlationId: req.get('X-Correlation-Id'),
+        sessionId: req.get('X-Session-Id'),
         method,
         url,
         [LoggingWinston.LOGGING_TRACE_KEY]: getCurrentTraceFromAgent(),
@@ -130,6 +132,7 @@ export function reqResLoggerMiddleware(
             method,
             url,
             correlationId: req.get('X-Correlation-Id'),
+            sessionId: req.get('X-Session-Id'),
             ...getTraceInfo(),
         })
     }
