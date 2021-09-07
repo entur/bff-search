@@ -6,11 +6,13 @@ import cors from 'cors'
 import express from 'express'
 
 import './cache'
-import logger, { reqResLoggerMiddleware } from './logger'
+import logger from './logger'
 import { NotFoundError, InvalidArgumentError } from './errors'
 import { unauthorizedError } from './auth'
 
 import v1Router from './routes/v1'
+import correlationIdsMiddleware from './utils/middleware/correlationIdsMiddleware'
+import reqResLoggerMiddleware from './utils/middleware/reqResLoggerMiddleware'
 
 const PORT = process.env.PORT || 9000
 const app = express()
@@ -25,6 +27,7 @@ if (process.env.NODE_ENV === 'production') {
     app.use(reqResLoggerMiddleware)
 }
 
+app.use(correlationIdsMiddleware)
 app.use(cors())
 
 app.get('/_ah/warmup', (_req, res) => {
