@@ -167,11 +167,8 @@ router.post('/', async (req, res, next) => {
             searchMethod = searchTransitOtp2
         }
 
-        const correlationId = req.get('X-Correlation-Id')
-
         logger.info(`Using OTP2 ${useOtp2}`, {
             useOtp2,
-            correlationId,
         })
 
         stopTrace = trace(
@@ -189,7 +186,6 @@ router.post('/', async (req, res, next) => {
                     logger.error('Failed to log transit analytics', {
                         error: error.message,
                         stack: error.stack,
-                        correlationId,
                     })
                 })
 
@@ -205,7 +201,6 @@ router.post('/', async (req, res, next) => {
                     logger.error('Failed to log transit result stats', {
                         error: error.message,
                         stack: error.stack,
-                        correlationId,
                     })
                 },
             )
@@ -247,7 +242,7 @@ router.post('/', async (req, res, next) => {
                 ),
             ),
         ])
-            .catch((error) => logger.error(error, { correlationId }))
+            .catch((error) => logger.error(error))
             .finally(stopCacheTrace)
 
         res.json({

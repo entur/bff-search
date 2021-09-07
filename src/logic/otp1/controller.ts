@@ -110,7 +110,6 @@ export async function searchTransitWithTaxi(
     }
 
     logger.info('searchTransitWithTaxi returning', {
-        correlationId: extraHeaders['X-Correlation-Id'],
         numberOfQueries: queries.length,
         numberOfTaxiResults: taxiPatterns.length,
         numberOfResults: tripPatterns.length,

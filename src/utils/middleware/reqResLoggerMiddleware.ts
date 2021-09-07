@@ -70,8 +70,6 @@ function reqResLoggerMiddleware(
     logger.info(`Request ${req.method} ${req.url}`, {
         body: reqBodyMapper(req),
         headers: reqHeadersMapper(req),
-        correlationId: req.get('X-Correlation-Id'),
-        sessionId: req.get('X-Session-Id'),
         method,
         url,
         [LoggingWinston.LOGGING_TRACE_KEY]: getCurrentTraceFromAgent(),
@@ -121,8 +119,6 @@ function reqResLoggerMiddleware(
             responseTime,
             method,
             url,
-            correlationId: req.get('X-Correlation-Id'),
-            sessionId: req.get('X-Session-Id'),
             ...getTraceInfo(),
         })
     }

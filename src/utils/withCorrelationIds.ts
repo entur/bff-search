@@ -27,14 +27,6 @@ export const withCorrelationIds = (req: Request, work: () => void): void => {
     )
 }
 
-export const withCorrelationId = (work: () => void, id = uuid()): void =>
-    asyncLocalStorage.run(
-        {
-            correlationId: id,
-        },
-        () => work(),
-    )
-
 export const getSessionId = (): string | undefined => {
     const store = asyncLocalStorage.getStore()
     return store?.sessionId
