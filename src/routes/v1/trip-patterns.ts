@@ -6,7 +6,11 @@ import { TripPattern } from '@entur/sdk'
 
 import trace from '../../tracer'
 import { set as cacheSet, get as cacheGet } from '../../cache'
-import { NotFoundError, InvalidArgumentError } from '../../errors'
+import {
+    NotFoundError,
+    InvalidArgumentError,
+    TripPatternExpiredError,
+} from '../../errors'
 import { verifyPartnerToken } from '../../auth'
 
 import { RawSearchParams, SearchParams } from '../../types'
@@ -25,6 +29,9 @@ const SEARCH_PARAMS_EXPIRE_IN_SECONDS = 2 * 60 * 60 // two hours
 
 const router = Router()
 
+// DO NOT CHANGE - This is used in entur-bff for detecting trip pattern errors (!!!)
+const errorPrefix = 'Found no trip pattern with id'
+
 router.get('/:id', async (req, res, next) => {
     try {
         const { id } = req.params
@@ -36,8 +43,14 @@ router.get('/:id', async (req, res, next) => {
         ])
 
         if (!tripPattern) {
+            if (searchParams) {
+                throw new TripPatternExpiredError(
+                    `${errorPrefix} ${id} expired but search params are still present`,
+                    searchParams,
+                )
+            }
             throw new NotFoundError(
-                `Found no trip pattern with id ${id}. Maybe cache entry expired?`,
+                `${errorPrefix} ${id}. Maybe cache entry expired?`,
             )
         }
 
@@ -78,7 +91,7 @@ router.post('/', verifyPartnerToken, async (req, res, next) => {
         }
 
         await Promise.all([
-            cacheSet(`trip-pattern:${tripPatternId}`, newTripPattern),
+            cacheSet(`trip-pattern:${tripPatternId}`, newTripPattern, 10),
             searchParams &&
                 cacheSet(
                     `search-params:${searchParamsId}`,
@@ -125,10 +138,17 @@ router.post('/:id/replace-leg', async (req, res, next) => {
         stopTrace()
 
         if (!tripPattern) {
+            if (searchParams) {
+                throw new TripPatternExpiredError(
+                    `${errorPrefix}  ${id} but search params are still present`,
+                    searchParams,
+                )
+            }
             throw new NotFoundError(
-                `Found no trip pattern with id ${id}. Maybe cache entry expired?`,
+                `${errorPrefix} ${id}. Maybe cache entry expired?`,
             )
         }
+        // TODO: Will we ever get here????
         if (!searchParams) {
             throw new NotFoundError(
                 `Found no search params id ${id}. Maybe cache entry expired?`,

@@ -7,7 +7,11 @@ import express from 'express'
 
 import './cache'
 import logger from './logger'
-import { NotFoundError, InvalidArgumentError } from './errors'
+import {
+    NotFoundError,
+    InvalidArgumentError,
+    TripPatternExpiredError,
+} from './errors'
 import { unauthorizedError } from './auth'
 
 import v1Router from './routes/v1'
@@ -71,7 +75,14 @@ app.use(
     ) => {
         const name = error.constructor?.name || 'Error'
         let statusCode = 500
-        if (error instanceof NotFoundError) {
+        if (error instanceof TripPatternExpiredError) {
+            return res.status(404).json({
+                error: error.message,
+                stack: error.stack,
+                searchParams: error.getSearchParams(),
+                name,
+            })
+        } else if (error instanceof NotFoundError) {
             statusCode = 404
         } else if (error instanceof InvalidArgumentError) {
             statusCode = 400
