@@ -25,7 +25,7 @@ import { filterModesAndSubModes } from '../../utils/modes'
 import { uniq } from '../../utils/array'
 import { deriveSearchParamsId } from '../../utils/searchParams'
 
-const SEARCH_PARAMS_EXPIRE_IN_SECONDS = 2 * 60 * 60 // two hours
+const SEARCH_PARAMS_EXPIRE_IN_SECONDS = 4 * 60 * 60 // four hours
 
 const router = Router()
 
@@ -36,7 +36,10 @@ router.get('/:id', async (req, res, next) => {
 
         const [tripPattern, searchParams] = await Promise.all([
             cacheGet<TripPattern>(`trip-pattern:${id}`),
-            cacheGet<SearchParams>(`search-params:${deriveSearchParamsId(id)}`),
+            cacheGet<SearchParams>(
+                `search-params:${deriveSearchParamsId(id)}`,
+                SEARCH_PARAMS_EXPIRE_IN_SECONDS,
+            ),
         ])
 
         if (!tripPattern) {
@@ -130,7 +133,10 @@ router.post('/:id/replace-leg', async (req, res, next) => {
         let stopTrace = trace('retrieve from cache')
         const [tripPattern, searchParams] = await Promise.all([
             cacheGet<TripPattern>(`trip-pattern:${id}`),
-            cacheGet<SearchParams>(`search-params:${deriveSearchParamsId(id)}`),
+            cacheGet<SearchParams>(
+                `search-params:${deriveSearchParamsId(id)}`,
+                SEARCH_PARAMS_EXPIRE_IN_SECONDS,
+            ),
         ])
         stopTrace()
 

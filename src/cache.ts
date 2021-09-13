@@ -29,12 +29,16 @@ export async function set(
     await expire(key, expireInSeconds)
 }
 
-export async function get<T>(key: string): Promise<T | null> {
+export async function get<T>(
+    key: string,
+    expireInSeconds: number = DEFAULT_EXPIRE,
+): Promise<T | null> {
     const entry = await hgetall(key)
 
     if (entry === null) {
         return null
     }
+    await expire(key, expireInSeconds)
 
     return JSON.parse(entry.data)
 }
