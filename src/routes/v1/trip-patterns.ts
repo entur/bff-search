@@ -29,9 +29,6 @@ const SEARCH_PARAMS_EXPIRE_IN_SECONDS = 2 * 60 * 60 // two hours
 
 const router = Router()
 
-// DO NOT CHANGE - This is used in entur-bff for detecting trip pattern errors (!!!)
-const errorPrefix = 'Found no trip pattern with id'
-
 router.get('/:id', async (req, res, next) => {
     try {
         const { id } = req.params
@@ -45,12 +42,12 @@ router.get('/:id', async (req, res, next) => {
         if (!tripPattern) {
             if (searchParams) {
                 throw new TripPatternExpiredError(
-                    `${errorPrefix} ${id} expired but search params are still present`,
+                    `Found no trip pattern with id ${id} expired but search params are still present`,
                     searchParams,
                 )
             }
             throw new NotFoundError(
-                `${errorPrefix} ${id}. Maybe cache entry expired?`,
+                `Found no trip pattern with id ${id}. Maybe cache entry expired?`,
             )
         }
 
@@ -140,15 +137,17 @@ router.post('/:id/replace-leg', async (req, res, next) => {
         if (!tripPattern) {
             if (searchParams) {
                 throw new TripPatternExpiredError(
-                    `${errorPrefix}  ${id} but search params are still present`,
+                    `Found no trip pattern with id ${id} but search params are still present`,
                     searchParams,
                 )
             }
             throw new NotFoundError(
-                `${errorPrefix} ${id}. Maybe cache entry expired?`,
+                `Found no trip pattern with id ${id}. Maybe cache entry expired?`,
             )
         }
-        // TODO: Will we ever get here????
+
+        // This should not happen as the trip pattern cache lives shorter than the
+        // searchParams cache.
         if (!searchParams) {
             throw new NotFoundError(
                 `Found no search params id ${id}. Maybe cache entry expired?`,
