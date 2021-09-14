@@ -6,7 +6,11 @@ import { TripPattern } from '@entur/sdk'
 
 import trace from '../../tracer'
 import { set as cacheSet, get as cacheGet } from '../../cache'
-import { NotFoundError, InvalidArgumentError } from '../../errors'
+import {
+    NotFoundError,
+    InvalidArgumentError,
+    TripPatternExpiredError,
+} from '../../errors'
 import { verifyPartnerToken } from '../../auth'
 
 import { RawSearchParams, SearchParams } from '../../types'
@@ -21,7 +25,7 @@ import { filterModesAndSubModes } from '../../utils/modes'
 import { uniq } from '../../utils/array'
 import { deriveSearchParamsId } from '../../utils/searchParams'
 
-const SEARCH_PARAMS_EXPIRE_IN_SECONDS = 2 * 60 * 60 // two hours
+const SEARCH_PARAMS_EXPIRE_IN_SECONDS = 4 * 60 * 60 // four hours
 
 const router = Router()
 
@@ -32,10 +36,19 @@ router.get('/:id', async (req, res, next) => {
 
         const [tripPattern, searchParams] = await Promise.all([
             cacheGet<TripPattern>(`trip-pattern:${id}`),
-            cacheGet<SearchParams>(`search-params:${deriveSearchParamsId(id)}`),
+            cacheGet<SearchParams>(
+                `search-params:${deriveSearchParamsId(id)}`,
+                SEARCH_PARAMS_EXPIRE_IN_SECONDS,
+            ),
         ])
 
         if (!tripPattern) {
+            if (searchParams) {
+                throw new TripPatternExpiredError(
+                    `Found no trip pattern with id ${id} expired but search params are still present`,
+                    searchParams,
+                )
+            }
             throw new NotFoundError(
                 `Found no trip pattern with id ${id}. Maybe cache entry expired?`,
             )
@@ -120,15 +133,27 @@ router.post('/:id/replace-leg', async (req, res, next) => {
         let stopTrace = trace('retrieve from cache')
         const [tripPattern, searchParams] = await Promise.all([
             cacheGet<TripPattern>(`trip-pattern:${id}`),
-            cacheGet<SearchParams>(`search-params:${deriveSearchParamsId(id)}`),
+            cacheGet<SearchParams>(
+                `search-params:${deriveSearchParamsId(id)}`,
+                SEARCH_PARAMS_EXPIRE_IN_SECONDS,
+            ),
         ])
         stopTrace()
 
         if (!tripPattern) {
+            if (searchParams) {
+                throw new TripPatternExpiredError(
+                    `Found no trip pattern with id ${id} but search params are still present`,
+                    searchParams,
+                )
+            }
             throw new NotFoundError(
                 `Found no trip pattern with id ${id}. Maybe cache entry expired?`,
             )
         }
+
+        // This should not happen as the trip pattern cache lives shorter than the
+        // searchParams cache.
         if (!searchParams) {
             throw new NotFoundError(
                 `Found no search params id ${id}. Maybe cache entry expired?`,
