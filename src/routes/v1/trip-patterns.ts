@@ -91,7 +91,7 @@ router.post('/', verifyPartnerToken, async (req, res, next) => {
         }
 
         await Promise.all([
-            cacheSet(`trip-pattern:${tripPatternId}`, newTripPattern, 10),
+            cacheSet(`trip-pattern:${tripPatternId}`, newTripPattern),
             searchParams &&
                 cacheSet(
                     `search-params:${searchParamsId}`,
