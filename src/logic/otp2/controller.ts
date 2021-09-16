@@ -449,8 +449,17 @@ async function searchTaxiFrontBack(params: Otp2SearchParams): Promise<{
     const [tripPatterns] = await getTripPatterns(getTripPatternsParams)
     const queries = [getTripPatternsQuery(getTripPatternsParams)]
 
+    /**
+     * If no access or egress leg is necessary, we can get trip patterns with
+     * no car legs. We therefore filter the results to prevent it from
+     * returning results that the normal search also might return.
+     */
+    const taxiResults = tripPatterns.filter(({ legs }) =>
+        legs.some(({ mode }) => mode === LegMode.CAR),
+    )
+
     return {
-        tripPatterns,
+        tripPatterns: taxiResults,
         queries,
     }
 }
