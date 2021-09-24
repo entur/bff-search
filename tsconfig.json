@@ -1,6 +1,7 @@
 {
     "compileOnSave": true,
     "compilerOptions": {
+        "allowSyntheticDefaultImports": true,
         "baseUrl": ".",
         "esModuleInterop": true,
         "lib": ["es2020"],
@@ -12,7 +13,7 @@
             "*": ["node_modules/*"]
         },
         "sourceMap": true,
-        "target": "es2019",
+        "target": "es2020",
     },
     "include": [
         "src/**/*",
