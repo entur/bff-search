@@ -368,6 +368,15 @@ export async function searchTransit(
     ]
 
     if (!tripPatterns.length && metadata) {
+        if (queries.length > 15) {
+            return {
+                tripPatterns: [],
+                metadata: undefined,
+                hasFlexibleTripPattern: false,
+                queries,
+            }
+        }
+
         const dateTime = arriveBy
             ? metadata.prevDateTime
             : metadata.nextDateTime
