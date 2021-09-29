@@ -1,8 +1,8 @@
 version: 2.1
 orbs:
-    node: 'circleci/node@3.0.1'
+    node: 'circleci/node@4.7.0'
 workflows:
     build-and-test:
         jobs:
             - node/test:
-                version: 12.20.0
+                version: 14.17.6
