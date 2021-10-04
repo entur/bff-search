@@ -6,7 +6,12 @@ import {
     differenceInSeconds,
     differenceInMinutes,
 } from 'date-fns'
-import createEnturService, { TripPattern, Leg, EstimatedCall } from '@entur/sdk'
+import createEnturService, {
+    TripPattern,
+    Leg,
+    EstimatedCall,
+    Place,
+} from '@entur/sdk'
 
 import { first, last } from '../../utils/array'
 import { isFlexibleLeg, isTransitLeg } from '../../utils/leg'
@@ -26,6 +31,11 @@ interface UpdatedEstimatedCall {
         id: string
         name: string
         timezone: string
+        description: string
+        publicCode: string
+        stopPlace: {
+            description?: string
+        }
     }
     realtime: boolean
     predictionInaccurate: boolean
@@ -56,6 +66,11 @@ async function getCallsForServiceJourney(
                     id
                     name
                     timezone
+                    description
+                    publicCode
+                    stopPlace {
+                        description
+                    }
                 }
                 realtime
                 predictionInaccurate
@@ -94,6 +109,24 @@ function createIsSameCallPredicate(
     return (updatedCall: UpdatedEstimatedCall) =>
         updatedCall.quay?.id === quayId &&
         updatedCall.aimedDepartureTime === aimedDepartureTime
+}
+
+function updatePlace(place: Place, updatedCall: UpdatedEstimatedCall): Place {
+    const { description, publicCode, stopPlace } = updatedCall.quay
+
+    if (!place.quay) return place
+    return {
+        ...place,
+        quay: {
+            ...place.quay,
+            description,
+            publicCode,
+            stopPlace: {
+                ...place.quay.stopPlace,
+                description: stopPlace.description,
+            },
+        },
+    }
 }
 
 function updateEstimatedCall(
@@ -175,8 +208,13 @@ async function updateLeg(leg: Leg): Promise<LegWithUpdate> {
 
 function updateTransitLeg(leg: Leg, updatedCalls: UpdatedCalls): Leg {
     if (!updatedCalls) return leg
-    const { fromEstimatedCall, toEstimatedCall, intermediateEstimatedCalls } =
-        leg
+    const {
+        fromEstimatedCall,
+        toEstimatedCall,
+        intermediateEstimatedCalls,
+        fromPlace,
+        toPlace,
+    } = leg
 
     const { fromCall, toCall, intermediateCalls } = updatedCalls
 
@@ -195,6 +233,8 @@ function updateTransitLeg(leg: Leg, updatedCalls: UpdatedCalls): Leg {
         fromEstimatedCall && updateEstimatedCall(fromEstimatedCall, fromCall)
     const updatedToEstimatedCall =
         toEstimatedCall && updateEstimatedCall(toEstimatedCall, toCall)
+    const updatedFromPlace = updatePlace(fromPlace, fromCall)
+    const updatedToPlace = updatePlace(toPlace, toCall)
 
     const updatedIntermediateEstimatedCalls = intermediateEstimatedCalls.map(
         (call) => {
@@ -213,6 +253,8 @@ function updateTransitLeg(leg: Leg, updatedCalls: UpdatedCalls): Leg {
         expectedEndTime,
         fromEstimatedCall: updatedFromEstimatedCall,
         toEstimatedCall: updatedToEstimatedCall,
+        fromPlace: updatedFromPlace,
+        toPlace: updatedToPlace,
         intermediateEstimatedCalls: updatedIntermediateEstimatedCalls,
     }
 }
