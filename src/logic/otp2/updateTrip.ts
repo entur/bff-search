@@ -35,7 +35,6 @@ interface UpdatedEstimatedCall {
     actualArrivalTime: string | undefined
     actualDepartureTime: string | undefined
     predictionInaccurate: boolean
-    destinationDisplay: { frontText: string }
     notices: {
         id: string
     }
@@ -66,9 +65,6 @@ async function getCallsForServiceJourney(
                 aimedDepartureTime
                 actualArrivalTime
                 actualDepartureTime
-                destinationDisplay {
-                    frontText
-                }
                 notices {
                     id
                 }
@@ -89,36 +85,15 @@ async function getCallsForServiceJourney(
     return data.serviceJourney.estimatedCalls
 }
 
-function isSameCall(
-    estimatedCall: UpdatedEstimatedCall,
-    quayId: string,
-    destinationFrontText?: string,
-): boolean {
-    const { quay, destinationDisplay } = estimatedCall
-    return destinationFrontText
-        ? quay.id === quayId &&
-              destinationDisplay.frontText === destinationFrontText
-        : quay.id === quayId
-}
-
-function findCallByQuayId(
-    estimatedCalls: UpdatedEstimatedCall[],
-    quayId: string,
-    destinationFrontText?: string,
-): UpdatedEstimatedCall | undefined {
-    return estimatedCalls.find((call) =>
-        isSameCall(call, quayId, destinationFrontText),
-    )
-}
-
-function findCallIndexByQuayId(
-    estimatedCalls: UpdatedEstimatedCall[],
-    quayId: string,
-    destinationFrontText?: string,
-): number {
-    return estimatedCalls.findIndex((call) =>
-        isSameCall(call, quayId, destinationFrontText),
-    )
+function createCallPredicate(
+    call: EstimatedCall,
+): (updatedCall: UpdatedEstimatedCall) => boolean {
+    const { aimedDepartureTime } = call
+    const quayId = call.quay?.id
+    if (!quayId) return () => false
+    return (updatedCall: UpdatedEstimatedCall) =>
+        updatedCall.quay?.id === quayId &&
+        updatedCall.aimedDepartureTime === aimedDepartureTime
 }
 
 function updateEstimatedCall(
@@ -175,22 +150,14 @@ async function updateLeg(leg: Leg): Promise<LegWithUpdate> {
         fromEstimatedCall.date,
     )
 
-    const fromFrontText = fromEstimatedCall.destinationDisplay?.frontText
-    const fromQuayId = fromEstimatedCall.quay?.id || ''
-    const fromIndex = findCallIndexByQuayId(
-        updatedEstimatedCalls,
-        fromQuayId,
-        fromFrontText,
+    const fromIndex = updatedEstimatedCalls.findIndex(
+        createCallPredicate(fromEstimatedCall),
     )
     const fromCall = updatedEstimatedCalls[fromIndex]
     if (!fromCall) return { leg }
 
-    const toFrontText = toEstimatedCall.destinationDisplay?.frontText
-    const toQuayId = toEstimatedCall.quay?.id || ''
-    const toIndex = findCallIndexByQuayId(
-        updatedEstimatedCalls,
-        toQuayId,
-        toFrontText,
+    const toIndex = updatedEstimatedCalls.findIndex(
+        createCallPredicate(toEstimatedCall),
     )
     const toCall = updatedEstimatedCalls[toIndex]
     if (!toCall) return { leg }
@@ -231,13 +198,8 @@ function updateTransitLeg(leg: Leg, updatedCalls: UpdatedCalls): Leg {
 
     const updatedIntermediateEstimatedCalls = intermediateEstimatedCalls.map(
         (call) => {
-            if (!call.quay || !call.quay.id) return call
-            const frontText = call.destinationDisplay?.frontText
-            const quayId = call.quay.id
-            const updatedCall = findCallByQuayId(
-                intermediateCalls,
-                quayId,
-                frontText,
+            const updatedCall = intermediateCalls.find(
+                createCallPredicate(call),
             )
             return updateEstimatedCall(call, updatedCall)
         },
