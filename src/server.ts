@@ -78,7 +78,6 @@ app.use(
         if (error instanceof TripPatternExpiredError) {
             return res.status(404).json({
                 error: error.message,
-                stack: error.stack,
                 searchParams: error.getSearchParams(),
                 name,
             })
@@ -90,7 +89,6 @@ app.use(
 
         res.status(statusCode).json({
             error: error.message,
-            stack: error.stack,
             name,
         })
     },
