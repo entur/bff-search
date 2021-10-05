@@ -85,7 +85,7 @@ async function getCallsForServiceJourney(
     return data.serviceJourney.estimatedCalls
 }
 
-function createCallPredicate(
+function createIsSameCallPredicate(
     call: EstimatedCall,
 ): (updatedCall: UpdatedEstimatedCall) => boolean {
     const { aimedDepartureTime } = call
@@ -151,13 +151,13 @@ async function updateLeg(leg: Leg): Promise<LegWithUpdate> {
     )
 
     const fromIndex = updatedEstimatedCalls.findIndex(
-        createCallPredicate(fromEstimatedCall),
+        createIsSameCallPredicate(fromEstimatedCall),
     )
     const fromCall = updatedEstimatedCalls[fromIndex]
     if (!fromCall) return { leg }
 
     const toIndex = updatedEstimatedCalls.findIndex(
-        createCallPredicate(toEstimatedCall),
+        createIsSameCallPredicate(toEstimatedCall),
     )
     const toCall = updatedEstimatedCalls[toIndex]
     if (!toCall) return { leg }
@@ -199,7 +199,7 @@ function updateTransitLeg(leg: Leg, updatedCalls: UpdatedCalls): Leg {
     const updatedIntermediateEstimatedCalls = intermediateEstimatedCalls.map(
         (call) => {
             const updatedCall = intermediateCalls.find(
-                createCallPredicate(call),
+                createIsSameCallPredicate(call),
             )
             return updateEstimatedCall(call, updatedCall)
         },
