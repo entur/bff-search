@@ -40,6 +40,11 @@ query (
             nextDateTime
             prevDateTime
         }
+        routingErrors {
+            inputField
+            description
+            code
+        }
         tripPatterns {
             generalizedCost
             startTime

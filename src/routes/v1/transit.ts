@@ -32,6 +32,7 @@ import { filterModesAndSubModes } from '../../utils/modes'
 
 import { ENVIRONMENT } from '../../config'
 import { logTransitAnalytics, logTransitResultStats } from '../../bigquery'
+import { RoutingErrorsError } from '../../errors'
 
 let otp2Areas: FeatureCollection<Polygon> | undefined
 
@@ -259,6 +260,14 @@ router.post('/', async (req, res, next) => {
             queries: mappedQueries,
         })
     } catch (error) {
+        if (error instanceof RoutingErrorsError) {
+            return res.json({
+                tripPatterns: [],
+                hasFlexibleTripPattern: false,
+                queries: [],
+                routingErrors: error.getRoutingErrors(),
+            })
+        }
         next(error)
     }
 })

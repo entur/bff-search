@@ -23,6 +23,8 @@ import {
     NonTransitTripPatterns,
     GraphqlQuery,
     Metadata,
+    RoutingError,
+    RoutingErrorCode,
 } from '../../types'
 
 import { isValidTransitAlternative } from '../../utils/tripPattern'
@@ -30,6 +32,7 @@ import { parseLeg } from '../../utils/leg'
 import { replaceQuay1ForOsloSWithUnknown } from '../../utils/osloSTrack1Replacer'
 
 import { TRANSIT_HOST_OTP2 } from '../../config'
+import { RoutingErrorsError } from '../../errors'
 
 import JOURNEY_PLANNER_QUERY from './query'
 import { filterModesAndSubModes, Mode } from './modes'
@@ -55,10 +58,20 @@ export interface Otp2SearchParams extends Omit<SearchParams, 'modes'> {
 
 interface TransitTripPatterns {
     tripPatterns: Otp2TripPattern[]
-    hasFlexibleTripPattern: boolean
+    hasFlexibleTripPattern?: boolean
     queries: GraphqlQuery[]
     metadata?: Metadata
 }
+
+// If any of these routing errors are received, there is no point in continuing the search.
+const HOPELESS_ROUTING_ERRORS = [
+    RoutingErrorCode.noTransitConnection,
+    RoutingErrorCode.outsideServicePeriod,
+    RoutingErrorCode.outsideBounds,
+    RoutingErrorCode.locationNotFound,
+    RoutingErrorCode.walkingBetterThanTransit,
+    RoutingErrorCode.systemError,
+]
 
 export function createParseTripPattern(): (
     rawTripPattern: any,
@@ -206,12 +219,23 @@ export function legMapper(leg: Leg): Leg {
 
 async function getTripPatterns(
     params: any,
-): Promise<[Otp2TripPattern[], Metadata | undefined]> {
+): Promise<[Otp2TripPattern[], Metadata | undefined, RoutingError[]]> {
     const res = await sdk.queryJourneyPlanner<{
-        trip: { metadata: Metadata; tripPatterns: any[] }
+        trip: {
+            metadata: Metadata
+            tripPatterns: any[]
+            routingErrors: RoutingError[]
+        }
     }>(JOURNEY_PLANNER_QUERY, getTripPatternsVariables(params))
 
-    const { metadata } = res.trip
+    const { metadata, routingErrors } = res.trip
+
+    if (
+        routingErrors.some(({ code }) => HOPELESS_ROUTING_ERRORS.includes(code))
+    ) {
+        throw new RoutingErrorsError(routingErrors)
+    }
+
     const parse = createParseTripPattern()
     return [
         (res.trip?.tripPatterns || [])
@@ -221,6 +245,7 @@ async function getTripPatterns(
             }))
             .map(parse),
         metadata,
+        routingErrors,
     ]
 }
 
@@ -297,16 +322,30 @@ export async function searchTransit(
         modes: filteredModes,
     }
 
-    const [flexibleResults, taxiResults, [response, initialMetadata]] =
+    const [flexibleResults, [response, initialMetadata, routingErrors]] =
         await Promise.all([
             initialSearchDate === searchDate
                 ? searchFlexible(params)
                 : undefined,
-            options?.enableTaxiSearch && initialSearchDate === searchDate
-                ? searchTaxiFrontBack(params)
-                : undefined,
             getTripPatterns(getTripPatternsParams),
         ])
+
+    let taxiResults: TransitTripPatterns | undefined
+
+    const noStopsInRangeError = routingErrors.find(
+        ({ code }) => code === RoutingErrorCode.noStopsInRange,
+    )
+
+    if (
+        options?.enableTaxiSearch &&
+        initialSearchDate === searchDate &&
+        noStopsInRangeError
+    ) {
+        taxiResults = await searchTaxiFrontBack(params, {
+            access: noStopsInRangeError.inputField === 'from',
+            egress: noStopsInRangeError.inputField === 'to',
+        })
+    }
 
     const flexibleTripPattern = flexibleResults?.tripPatterns?.[0]
 
@@ -439,20 +478,26 @@ async function searchFlexible(params: Otp2SearchParams): Promise<{
     }
 }
 
-async function searchTaxiFrontBack(params: Otp2SearchParams): Promise<{
-    tripPatterns: Otp2TripPattern[]
-    queries: GraphqlQuery[]
-}> {
+async function searchTaxiFrontBack(
+    params: Otp2SearchParams,
+    options?: { access: boolean; egress: boolean },
+): Promise<TransitTripPatterns> {
     const { initialSearchDate, searchFilter, ...searchParams } = params
+
+    const { access, egress } = {
+        access: true,
+        egress: true,
+        ...options,
+    }
 
     const getTripPatternsParams = {
         ...searchParams,
         modes: {
             ...DEFAULT_MODES,
-            accessMode: 'car_pickup',
-            egressMode: 'car_pickup',
+            accessMode: access ? 'car_pickup' : undefined,
+            egressMode: egress ? 'car_pickup' : undefined,
         },
-        numTripPatterns: 2,
+        numTripPatterns: egress && access ? 2 : 1,
     }
 
     const [tripPatterns] = await getTripPatterns(getTripPatternsParams)
