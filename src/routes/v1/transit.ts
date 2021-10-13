@@ -184,8 +184,7 @@ router.post('/', async (req, res, next) => {
         let searchMethod = cursorData ? searchTransit : searchTransitWithTaxi
         const searchOptions: { runOnce?: boolean; enableTaxiSearch?: boolean } =
             {
-                enableTaxiSearch:
-                    ENVIRONMENT !== 'prod' && res.locals.forceOtp2 === true,
+                enableTaxiSearch: ENVIRONMENT !== 'prod',
             }
 
         useOtp2 =
