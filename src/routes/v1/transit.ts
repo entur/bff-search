@@ -9,7 +9,12 @@ import trace from '../../tracer'
 import { set as cacheSet } from '../../cache'
 import logger from '../../logger'
 
-import { RawSearchParams, SearchParams, SearchFilter } from '../../types'
+import {
+    RawSearchParams,
+    SearchParams,
+    SearchFilter,
+    GraphqlQuery,
+} from '../../types'
 
 import {
     searchTransitWithTaxi,
@@ -144,7 +149,24 @@ function getParams(params: RawSearchParams): SearchParams {
     }
 }
 
+function mapQueries(
+    queries: GraphqlQuery[],
+    useOtp2: boolean,
+):
+    | (GraphqlQuery & { algorithm: 'OTP1' | 'OTP2'; shamash: string })[]
+    | undefined {
+    if (ENVIRONMENT === 'prod') return
+
+    return queries.map((q) => ({
+        ...q,
+        algorithm: useOtp2 ? 'OTP2' : 'OTP1',
+        shamash: useOtp2 ? generateShamashLinkOtp2(q) : generateShamashLink(q),
+    }))
+}
+
 router.post('/', async (req, res, next) => {
+    let useOtp2 = false
+
     try {
         let stopTrace = trace('parseCursor')
         const cursorData = parseCursor(req.body?.cursor)
@@ -166,9 +188,10 @@ router.post('/', async (req, res, next) => {
                     ENVIRONMENT !== 'prod' && res.locals.forceOtp2 === true,
             }
 
-        const useOtp2 =
+        useOtp2 =
             res.locals.forceOtp2 ||
             (!res.locals.forceOtp1 && shouldUseOtp2(params))
+
         if (useOtp2) {
             // @ts-ignore searchTransitOtp2 expects a slightly different SearchParams type
             searchMethod = searchTransitOtp2
@@ -220,16 +243,7 @@ router.post('/', async (req, res, next) => {
         stopTrace()
 
         stopTrace = trace('generateShamashLinks')
-        const mappedQueries =
-            ENVIRONMENT === 'prod'
-                ? undefined
-                : queries.map((q) => ({
-                      ...q,
-                      algorithm: useOtp2 ? 'OTP2' : 'OTP1',
-                      shamash: useOtp2
-                          ? generateShamashLinkOtp2(q)
-                          : generateShamashLink(q),
-                  }))
+        const mappedQueries = mapQueries(queries, useOtp2)
         stopTrace()
 
         const stopCacheTrace = trace('cache')
@@ -264,7 +278,7 @@ router.post('/', async (req, res, next) => {
             return res.json({
                 tripPatterns: [],
                 hasFlexibleTripPattern: false,
-                queries: [],
+                queries: mapQueries(error.getQueries(), useOtp2),
                 routingErrors: error.getRoutingErrors(),
             })
         }

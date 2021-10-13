@@ -233,7 +233,9 @@ async function getTripPatterns(
     if (
         routingErrors.some(({ code }) => HOPELESS_ROUTING_ERRORS.includes(code))
     ) {
-        throw new RoutingErrorsError(routingErrors)
+        throw new RoutingErrorsError(routingErrors, [
+            getTripPatternsQuery(params),
+        ])
     }
 
     const parse = createParseTripPattern()

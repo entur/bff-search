@@ -1,4 +1,4 @@
-import { SearchParams, RoutingError } from './types'
+import { SearchParams, RoutingError, GraphqlQuery } from './types'
 
 export class TripPatternExpiredError extends Error {
     private searchParams: SearchParams
@@ -16,15 +16,21 @@ export class TripPatternExpiredError extends Error {
 
 export class RoutingErrorsError extends Error {
     private routingErrors: RoutingError[]
+    private queries: GraphqlQuery[]
 
-    public constructor(routingErrors: RoutingError[]) {
+    public constructor(routingErrors: RoutingError[], queries: GraphqlQuery[]) {
         super()
         this.message = 'Routing Errors'
         this.routingErrors = routingErrors
+        this.queries = queries
     }
 
     public getRoutingErrors(): RoutingError[] {
         return this.routingErrors
+    }
+
+    public getQueries(): GraphqlQuery[] {
+        return this.queries
     }
 }
 
