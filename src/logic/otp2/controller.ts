@@ -496,8 +496,8 @@ async function searchTaxiFrontBack(
         ...searchParams,
         modes: {
             ...DEFAULT_MODES,
-            accessMode: access ? 'car_pickup' : undefined,
-            egressMode: egress ? 'car_pickup' : undefined,
+            accessMode: access ? 'car_pickup' : 'foot',
+            egressMode: egress ? 'car_pickup' : 'foot',
         },
         numTripPatterns: egress && access ? 2 : 1,
     }
