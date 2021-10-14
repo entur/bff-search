@@ -334,18 +334,18 @@ export async function searchTransit(
 
     let taxiResults: TransitTripPatterns | undefined
 
-    const noStopsInRangeError = routingErrors.find(
+    const noStopsInRangeErrors = routingErrors.filter(
         ({ code }) => code === RoutingErrorCode.noStopsInRange,
     )
 
     if (
         options?.enableTaxiSearch &&
         initialSearchDate === searchDate &&
-        noStopsInRangeError
+        noStopsInRangeErrors.length > 0
     ) {
         taxiResults = await searchTaxiFrontBack(params, {
-            access: noStopsInRangeError.inputField === 'from',
-            egress: noStopsInRangeError.inputField === 'to',
+            access: noStopsInRangeErrors.some((e) => e.inputField === 'from'),
+            egress: noStopsInRangeErrors.some((e) => e.inputField === 'to'),
         })
     }
 
