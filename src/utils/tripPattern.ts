@@ -2,7 +2,7 @@ import { isCar, LegMode, TripPattern } from '@entur/sdk'
 import { v4 as uuid } from 'uuid'
 import { differenceInHours, parseISO } from 'date-fns'
 
-import { NON_TRANSIT_DISTANCE_LIMITS, TAXI_LIMITS } from '../constants'
+import { TAXI_LIMITS } from '../constants'
 
 import { parseLeg, isFlexibleLeg, isTransitLeg, isBikeRentalLeg } from './leg'
 
@@ -35,16 +35,6 @@ export function isValidTaxiAlternative(
         isTaxiAlternativeBetterThanCarAlternative(taxiPattern, carPattern) &&
         hoursBetweenDateAndTripPattern(searchDate, taxiPattern, arriveBy) <
             TAXI_LIMITS.DURATION_MAX_HOURS
-}
-
-export function isValidNonTransitDistance(
-    pattern: TripPattern,
-    mode: 'foot' | 'bicycle' | 'bicycle_rent' | 'car',
-): boolean {
-    return (
-        pattern.distance <= NON_TRANSIT_DISTANCE_LIMITS.UPPER[mode] &&
-        pattern.distance >= NON_TRANSIT_DISTANCE_LIMITS.LOWER[mode]
-    )
 }
 
 export function createParseTripPattern(): (rawTripPattern: any) => TripPattern {
