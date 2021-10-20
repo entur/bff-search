@@ -19,7 +19,6 @@ import {
     isFlexibleAlternative,
     isValidTransitAlternative,
     isValidTaxiAlternative,
-    isValidNonTransitDistance,
     createParseTripPattern,
 } from '../../utils/tripPattern'
 import { sortBy } from '../../utils/array'
@@ -233,7 +232,6 @@ export async function searchNonTransit(
 
                 const tripPattern =
                     candidate &&
-                    isValidNonTransitDistance(candidate, mode) &&
                     (mode !== 'bicycle_rent' ||
                         isBikeRentalAlternative(candidate))
                         ? parseTripPattern(candidate)

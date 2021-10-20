@@ -2,11 +2,8 @@ import { addHours, subHours } from 'date-fns'
 
 import { Leg, LegMode, TripPattern } from '@entur/sdk'
 
-import { NON_TRANSIT_DISTANCE_LIMITS } from '../constants'
-
 import {
     isValidTaxiAlternative,
-    isValidNonTransitDistance,
     hoursBetweenDateAndTripPattern,
 } from './tripPattern'
 
@@ -86,41 +83,6 @@ describe('isValidTaxiAlternative', () => {
 
         expect(isValidTaxi(tooShortDuration)).toEqual(false)
         expect(isValidTaxi(tooLongDuration)).toEqual(false)
-    })
-})
-
-describe('isValidNonTransitDistance', () => {
-    function mockPattern(
-        mode: 'foot' | 'bicycle' | 'car',
-        distanceDelta = 0,
-    ): TripPattern {
-        return {
-            distance: NON_TRANSIT_DISTANCE_LIMITS.UPPER[mode] + distanceDelta,
-        } as TripPattern
-    }
-
-    it('should be true if the given trip has a distance within the limits of the given mode', () => {
-        expect(isValidNonTransitDistance(mockPattern('car'), 'car')).toEqual(
-            true,
-        )
-        expect(isValidNonTransitDistance(mockPattern('foot'), 'foot')).toEqual(
-            true,
-        )
-        expect(
-            isValidNonTransitDistance(mockPattern('bicycle'), 'bicycle'),
-        ).toEqual(true)
-    })
-
-    it('should be false if the given trip has a distance outside the limits of the given mode', () => {
-        expect(
-            isValidNonTransitDistance(mockPattern('car', 1337), 'car'),
-        ).toEqual(false)
-        expect(
-            isValidNonTransitDistance(mockPattern('foot', 404), 'foot'),
-        ).toEqual(false)
-        expect(
-            isValidNonTransitDistance(mockPattern('bicycle', 42), 'bicycle'),
-        ).toEqual(false)
     })
 })
 

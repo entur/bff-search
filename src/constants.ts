@@ -39,21 +39,6 @@ export const ALL_RAIL_SUBMODES: TransportSubmode[] = [
     TransportSubmode.REGIONAL_RAIL,
 ]
 
-export const NON_TRANSIT_DISTANCE_LIMITS = {
-    UPPER: {
-        bicycle: 100000,
-        bicycle_rent: 100000,
-        car: 120000,
-        foot: 100000,
-    },
-    LOWER: {
-        foot: 1,
-        bicycle_rent: 1,
-        bicycle: 1,
-        car: 1,
-    },
-}
-
 export const TAXI_LIMITS = {
     DURATION_MAX_HOURS: 4,
     DURATION_MIN_SECONDS: 5 * 60,
