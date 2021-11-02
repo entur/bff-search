@@ -72,13 +72,13 @@ function getHeadersFromClient(req: Request): ExtraHeaders {
 /*
  * OTP 2 Distance Scenario
  * Use OTP 2 if distance between from and to > 50 km
- * and Air and Rail filters are turned off
+ * and Rail filter is turned off
  */
 function searchQualifiesForDistanceScenario(params: SearchParams): boolean {
     const { from, to } = params
     if (!from.coordinates || !to.coordinates) return false
 
-    const blacklistedFilters = [SearchFilter.AIR, SearchFilter.RAIL]
+    const blacklistedFilters = [SearchFilter.RAIL]
 
     if (
         blacklistedFilters.some((filter) =>
@@ -96,17 +96,11 @@ function searchQualifiesForDistanceScenario(params: SearchParams): boolean {
 /*
  * OTP 2 Area Scenario
  * Use OTP 2 if both from and to are within any polygon in the GeoJSON feature collection
- * and air filter is disabled
  */
 function searchQualifiesForAreaScenario(params: SearchParams): boolean {
     const { from, to } = params
 
-    if (
-        !from.coordinates ||
-        !to.coordinates ||
-        !otp2Areas?.features ||
-        params.searchFilter?.includes(SearchFilter.AIR)
-    ) {
+    if (!from.coordinates || !to.coordinates || !otp2Areas?.features) {
         return false
     }
 
