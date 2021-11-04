@@ -18,6 +18,7 @@ import { isFlexibleLeg, isTransitLeg } from '../../utils/leg'
 import { toISOString } from '../../utils/time'
 
 import { TRANSIT_HOST_OTP2 } from '../../config'
+import logger from '../../logger'
 
 const sdk = createEnturService({
     clientName: 'entur-search',
@@ -27,13 +28,13 @@ const sdk = createEnturService({
 })
 
 interface UpdatedEstimatedCall {
-    quay: {
+    quay?: {
         id: string
         name: string
         timezone: string
         description: string
         publicCode: string
-        stopPlace: {
+        stopPlace?: {
             description?: string
         }
     }
@@ -112,9 +113,12 @@ function createIsSameCallPredicate(
 }
 
 function updatePlace(place: Place, updatedCall: UpdatedEstimatedCall): Place {
+    if (!updatedCall?.quay) return place
+
     const { description, publicCode, stopPlace } = updatedCall.quay
 
     if (!place.quay) return place
+
     return {
         ...place,
         quay: {
@@ -123,7 +127,8 @@ function updatePlace(place: Place, updatedCall: UpdatedEstimatedCall): Place {
             publicCode,
             stopPlace: {
                 ...place.quay.stopPlace,
-                description: stopPlace.description,
+                description:
+                    stopPlace?.description || place.quay.stopPlace.description,
             },
         },
     }
@@ -272,7 +277,7 @@ function updateNonTransitLeg(
 
         const { toCall } = updatedCalls
         const { expectedDepartureTime: expectedStartTime, quay } = toCall
-        const { timezone: timeZone } = quay
+        const timeZone = quay?.timezone
 
         const expectedEndTime = toISOString(
             addSeconds(parseISO(expectedStartTime), duration),
@@ -287,7 +292,7 @@ function updateNonTransitLeg(
 
         const { fromCall } = updatedCalls
         const { expectedArrivalTime: expectedEndTime, quay } = fromCall
-        const { timezone: timeZone } = quay
+        const timeZone = quay?.timezone
 
         const expectedStartTime = toISOString(
             subSeconds(parseISO(expectedEndTime), duration),
@@ -318,8 +323,13 @@ export async function updateTripPattern(
 
     const { legs, startTime, endTime, duration } = tripPattern
 
-    const legsWithUpdateInfo = await Promise.all(
-        legs.map((leg) => updateLeg(leg).catch(() => ({ leg }))),
+    const legsWithUpdateInfo: LegWithUpdate[] = await Promise.all(
+        legs.map((leg) =>
+            updateLeg(leg).catch((error) => {
+                logger.warning('Failed to update leg', error)
+                return { leg }
+            }),
+        ),
     )
     const updatedLegs = mergeLegsWithUpdateInfo(legsWithUpdateInfo)
 
