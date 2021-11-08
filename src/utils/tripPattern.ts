@@ -1,4 +1,4 @@
-import { isCar, LegMode, TripPattern } from '@entur/sdk'
+import { LegMode, TripPattern } from '@entur/sdk'
 import { v4 as uuid } from 'uuid'
 import { differenceInHours, parseISO } from 'date-fns'
 
@@ -102,9 +102,11 @@ function isFlexibleTripsInCombination({ legs }: TripPattern): boolean {
 }
 
 function isCarAlternative({ legs }: TripPattern): boolean {
-    return (legs || []).some(({ mode }) => isCar(mode))
+    return (legs || []).some(({ mode }) => mode === LegMode.CAR)
 }
 
 function isCarOnlyAlternative({ legs }: TripPattern): boolean {
-    return Boolean(legs?.length) && legs.every(({ mode }) => isCar(mode))
+    return (
+        Boolean(legs?.length) && legs.every(({ mode }) => mode === LegMode.CAR)
+    )
 }
