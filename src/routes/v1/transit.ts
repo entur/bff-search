@@ -118,6 +118,10 @@ function searchQualifiesForAreaScenario(params: SearchParams): boolean {
 }
 
 function shouldUseOtp2(params: SearchParams): boolean {
+    if (ENVIRONMENT !== 'prod') {
+        return true
+    }
+
     return (
         searchQualifiesForDistanceScenario(params) ||
         searchQualifiesForAreaScenario(params)
