@@ -1,4 +1,4 @@
-import { isBicycle, isCar, isFoot, Leg, LegMode } from '@entur/sdk'
+import { Leg, LegMode } from '@entur/sdk'
 
 export function parseLeg(leg: Leg): Leg {
     const { fromPlace, fromEstimatedCall } = leg
@@ -22,7 +22,11 @@ export function isFlexibleLeg({ line }: Leg): boolean {
 }
 
 export function isTransitLeg({ mode }: Leg): boolean {
-    return !isFoot(mode) && !isBicycle(mode) && !isCar(mode)
+    return (
+        mode !== LegMode.FOOT &&
+        mode !== LegMode.BICYCLE &&
+        mode !== LegMode.CAR
+    )
 }
 
 export function isBikeRentalLeg(leg: Leg): boolean {
