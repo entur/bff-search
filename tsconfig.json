@@ -16,10 +16,6 @@
         "target": "es2020",
         "useUnknownInCatchVariables": false
     },
-    "include": [
-        "src/**/*",
-    ],
-    "exclude": [
-        "node_modules/*",
-    ],
+    "include": ["src/**/*"],
+    "exclude": ["node_modules/*"]
 }

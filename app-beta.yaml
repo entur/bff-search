@@ -3,6 +3,6 @@ service: default
 inbound_services:
     - warmup
 automatic_scaling:
-  min_idle_instances: 1
+    min_idle_instances: 1
 vpc_access_connector:
-  name: "projects/entur-beta/locations/us-central1/connectors/bff-search-redis"
+    name: 'projects/entur-beta/locations/us-central1/connectors/bff-search-redis'
