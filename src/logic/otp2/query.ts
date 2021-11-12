@@ -16,7 +16,6 @@ query (
     $banned: InputBanned,
     $whiteListed: InputWhiteListed,
     $debugItineraryFilter: Boolean,
-    $walkReluctance: Float,
     $searchWindow: Int,
 ) {
     trip(
@@ -32,7 +31,6 @@ query (
         banned: $banned,
         whiteListed: $whiteListed,
         debugItineraryFilter: $debugItineraryFilter,
-        walkReluctance: $walkReluctance,
         searchWindow: $searchWindow
     ) {
         metadata {
