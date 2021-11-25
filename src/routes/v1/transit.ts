@@ -1,20 +1,11 @@
 import { Router, Request } from 'express'
-import { FeatureCollection, Polygon } from 'geojson'
-import distance from 'haversine-distance'
-import booleanContains from '@turf/boolean-contains'
-import { point } from '@turf/helpers'
 import { parseJSON } from 'date-fns'
 
 import trace from '../../tracer'
 import { set as cacheSet } from '../../cache'
 import logger from '../../logger'
 
-import {
-    RawSearchParams,
-    SearchParams,
-    SearchFilter,
-    GraphqlQuery,
-} from '../../types'
+import { RawSearchParams, SearchParams, GraphqlQuery } from '../../types'
 
 import {
     searchTransitWithTaxi,
@@ -39,19 +30,6 @@ import { ENVIRONMENT } from '../../config'
 import { logTransitAnalytics, logTransitResultStats } from '../../bigquery'
 import { RoutingErrorsError } from '../../errors'
 
-let otp2Areas: FeatureCollection<Polygon> | undefined
-
-import(ENVIRONMENT === 'prod' ? './otp2Areas.prod' : './otp2Areas.staging')
-    .then(({ default: geojson }) => {
-        otp2Areas = geojson
-    })
-    .catch((error) =>
-        logger.error('Failed to import otp2Areas', {
-            message: error.message,
-            stack: error.stack,
-        }),
-    )
-
 const SEARCH_PARAMS_EXPIRE_IN_SECONDS = 2 * 60 * 60 // two hours
 
 const router = Router()
@@ -67,65 +45,6 @@ function getHeadersFromClient(req: Request): ExtraHeaders {
         'X-Correlation-Id': req.get('X-Correlation-Id'),
         'ET-Client-Name': clientName ? `${clientName}-bff` : 'entur-search',
     })
-}
-
-/*
- * OTP 2 Distance Scenario
- * Use OTP 2 if distance between from and to > 50 km
- * and Rail filter is turned off
- */
-function searchQualifiesForDistanceScenario(params: SearchParams): boolean {
-    const { from, to } = params
-    if (!from.coordinates || !to.coordinates) return false
-
-    const blacklistedFilters = [SearchFilter.RAIL]
-
-    if (
-        blacklistedFilters.some((filter) =>
-            params.searchFilter?.includes(filter),
-        )
-    ) {
-        return false
-    }
-
-    const distanceBetweenFromAndTo = distance(from.coordinates, to.coordinates)
-    const distanceLimit = 50000
-    return distanceBetweenFromAndTo >= distanceLimit
-}
-
-/*
- * OTP 2 Area Scenario
- * Use OTP 2 if both from and to are within any polygon in the GeoJSON feature collection
- */
-function searchQualifiesForAreaScenario(params: SearchParams): boolean {
-    const { from, to } = params
-
-    if (!from.coordinates || !to.coordinates || !otp2Areas?.features) {
-        return false
-    }
-
-    const fromPoint = point([
-        from.coordinates.longitude,
-        from.coordinates.latitude,
-    ])
-    const toPoint = point([to.coordinates.longitude, to.coordinates.latitude])
-
-    return otp2Areas.features.some(
-        (polygonFeature) =>
-            booleanContains(polygonFeature, fromPoint) &&
-            booleanContains(polygonFeature, toPoint),
-    )
-}
-
-function shouldUseOtp2(params: SearchParams): boolean {
-    if (ENVIRONMENT !== 'prod') {
-        return true
-    }
-
-    return (
-        searchQualifiesForDistanceScenario(params) ||
-        searchQualifiesForAreaScenario(params)
-    )
 }
 
 function getParams(params: RawSearchParams): SearchParams {
@@ -185,9 +104,7 @@ router.post('/', async (req, res, next) => {
                 enableTaxiSearch: ENVIRONMENT !== 'prod',
             }
 
-        useOtp2 =
-            res.locals.forceOtp2 ||
-            (!res.locals.forceOtp1 && shouldUseOtp2(params))
+        useOtp2 = !res.locals.forceOtp1
 
         if (useOtp2) {
             // @ts-ignore searchTransitOtp2 expects a slightly different SearchParams type
