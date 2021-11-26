@@ -253,10 +253,10 @@ fragment serviceJourneyFields on ServiceJourney {
 fragment interchangeFields on Interchange {
     guaranteed
     staySeated
-    FromServiceJourney {
+    fromServiceJourney {
         id
     }
-    ToServiceJourney {
+    toServiceJourney {
         id
     }
 }
