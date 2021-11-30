@@ -36,6 +36,7 @@ import { RoutingErrorsError } from '../../errors'
 
 import JOURNEY_PLANNER_QUERY from './query'
 import { filterModesAndSubModes, Mode } from './modes'
+import logger from '../../logger'
 
 const sdk = createEnturService({
     clientName: 'entur-search',
@@ -220,13 +221,20 @@ export function legMapper(leg: Leg): Leg {
 async function getTripPatterns(
     params: any,
 ): Promise<[Otp2TripPattern[], Metadata | undefined, RoutingError[]]> {
+    const variables = getTripPatternsVariables(params)
     const res = await sdk.queryJourneyPlanner<{
         trip: {
             metadata: Metadata
             tripPatterns: any[]
             routingErrors: RoutingError[]
         }
-    }>(JOURNEY_PLANNER_QUERY, getTripPatternsVariables(params))
+    }>(JOURNEY_PLANNER_QUERY, variables)
+
+    logger.debug('Ran search against OTP2', {
+        variables,
+        query: JOURNEY_PLANNER_QUERY,
+        res
+    })
 
     const { metadata, routingErrors } = res.trip
 
