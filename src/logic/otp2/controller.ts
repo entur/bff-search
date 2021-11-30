@@ -69,7 +69,7 @@ const HOPELESS_ROUTING_ERRORS = [
     RoutingErrorCode.outsideServicePeriod,
     RoutingErrorCode.outsideBounds,
     RoutingErrorCode.locationNotFound,
-//    RoutingErrorCode.walkingBetterThanTransit,
+    // RoutingErrorCode.walkingBetterThanTransit,
     RoutingErrorCode.systemError,
 ]
 
