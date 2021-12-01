@@ -69,7 +69,7 @@ const HOPELESS_ROUTING_ERRORS = [
     RoutingErrorCode.outsideServicePeriod,
     RoutingErrorCode.outsideBounds,
     RoutingErrorCode.locationNotFound,
-    // RoutingErrorCode.walkingBetterThanTransit,
+    RoutingErrorCode.walkingBetterThanTransit,
     RoutingErrorCode.systemError,
 ]
 
@@ -324,11 +324,10 @@ export async function searchTransit(
         modes: filteredModes,
     }
 
+    const isFirstSearchIteration = initialSearchDate === searchDate
     const [flexibleResults, [response, initialMetadata, routingErrors]] =
         await Promise.all([
-            initialSearchDate === searchDate
-                ? searchFlexible(params)
-                : undefined,
+            isFirstSearchIteration ? searchFlexible(params) : undefined,
             getTripPatterns(getTripPatternsParams),
         ])
 
@@ -340,7 +339,7 @@ export async function searchTransit(
 
     if (
         options?.enableTaxiSearch &&
-        initialSearchDate === searchDate &&
+        isFirstSearchIteration &&
         noStopsInRangeErrors.length > 0
     ) {
         taxiResults = await searchTaxiFrontBack(params, {
@@ -369,7 +368,8 @@ export async function searchTransit(
         ? getNextSearchDateFromMetadata(metadata, arriveBy)
         : undefined
 
-    if (flexibleResults && flexibleTripPattern && !tripPatterns.length) {
+    const hasFlexibleResultsOnly = flexibleTripPattern && !tripPatterns.length
+    if (hasFlexibleResultsOnly) {
         const transitSearchDate = nextSearchDateFromMetadata || searchDate
 
         const searchWindow = getMinutesBetweenDates(
@@ -466,17 +466,33 @@ async function searchFlexible(params: Otp2SearchParams): Promise<{
         numTripPatterns: 1,
     }
 
-    const [returnedTripPatterns] = await getTripPatterns(getTripPatternsParams)
     const queries = [getTripPatternsQuery(getTripPatternsParams)]
+    try {
+        const [returnedTripPatterns] = await getTripPatterns(
+            getTripPatternsParams,
+        )
 
-    const tripPatterns = returnedTripPatterns.filter(({ legs }) => {
-        const isFootOnly = legs.length === 1 && legs[0].mode === LegMode.FOOT
-        return !isFootOnly
-    })
+        const tripPatterns = returnedTripPatterns.filter(({ legs }) => {
+            const isFootOnly =
+                legs.length === 1 && legs[0].mode === LegMode.FOOT
+            return !isFootOnly
+        })
 
-    return {
-        tripPatterns,
-        queries,
+        return {
+            tripPatterns,
+            queries,
+        }
+    } catch (error) {
+        // If we let a flexible search throw this error it will
+        // block the 'normal' search from completing and
+        // finding valid suggestions.
+        if (error instanceof RoutingErrorsError) {
+            return {
+                tripPatterns: [],
+                queries,
+            }
+        }
+        throw error
     }
 }
 
