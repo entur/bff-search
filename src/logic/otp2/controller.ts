@@ -105,6 +105,7 @@ function parseTripPattern(rawTripPattern: any): Otp2TripPattern {
     }
 }
 
+// TODO Why is this duplicated from modes.ts? and a shorter list?
 type StreetMode =
     | 'foot'
     | 'bicycle'
@@ -115,6 +116,7 @@ type StreetMode =
     | 'taxi'
     | 'car_rental'
 
+// TODO Why is this duplicated from modes.ts?
 interface Modes {
     accessMode: StreetMode
     egressMode: StreetMode
@@ -122,6 +124,7 @@ interface Modes {
     transportModes: Mode[]
 }
 
+// TODO Why is this duplicated from modes.ts but shorter?
 const DEFAULT_MODES: Modes = {
     accessMode: 'foot',
     egressMode: 'foot',
@@ -461,7 +464,7 @@ export async function searchTransit(
     // reach the maximum retries/maximum days back/forwards
     return searchTransitUntilMaxRetries(
         initialSearchDate,
-        getTripPatternsParams,
+        getTripPatternsParams, // TODO: This doesn't work because types are duplicated
         extraHeaders,
         queries,
     )
@@ -540,7 +543,7 @@ export async function searchTransitUntilMaxRetries(
             // any trip patterns. Give up.
             return {
                 tripPatterns: [],
-                metadata,
+                metadata, // TODO: Metadata will be undefined here but this code is copied from master
                 hasFlexibleTripPattern: false,
                 queries,
             }
