@@ -22,11 +22,6 @@ export interface CursorData {
     params: SearchParams
 }
 
-export interface SearchResults {
-    transitTripPatterns: TransitTripPatterns
-    nonTransitTripPatterns: NonTransitTripPatterns
-}
-
 export interface GraphqlQuery {
     query: string
     variables?: Record<string, unknown>
