@@ -106,6 +106,7 @@ router.post('/', async (req, res, next) => {
 
         useOtp2 = !res.locals.forceOtp1
 
+        //TODO: Hvorfor er denne her og ikke før vi setter searchMethod????
         if (useOtp2) {
             // @ts-ignore searchTransitOtp2 expects a slightly different SearchParams type
             searchMethod = searchTransitOtp2
