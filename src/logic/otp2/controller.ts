@@ -57,6 +57,8 @@ interface Otp2SearchParams extends Omit<SearchParams, 'modes'> {
 }
 
 // The stuff we actually send to journey planner
+// TODO: This should probably be directly based on GetTripPatternsParams, unless we need anything inbetween:
+// - cursor, searchFilter, searchDate, initialSearchDate, searchWindow, modes (different from the SDK one)
 type Otp2BackendSearchParams = Omit<
     Otp2SearchParams,
     'initialSearchDate' | 'searchFilter'
@@ -234,7 +236,8 @@ async function getTripPatterns(
     try {
         res = await sdk.queryJourneyPlanner<{
             trip: {
-                metadata: Metadata
+                // metadata will be undefined if routingErrors is not empty
+                metadata: Metadata | undefined
                 tripPatterns: any[]
                 routingErrors: RoutingError[]
             }
@@ -253,8 +256,7 @@ async function getTripPatterns(
 
     const parse = createParseTripPattern()
     return [
-        // TODO: trip cannot be null here, if it was routingErrors.some would crash above
-        (res.trip?.tripPatterns || [])
+        (res.trip.tripPatterns || [])
             .map((pattern: any) => ({
                 ...pattern,
                 legs: pattern.legs.map(legMapper),
@@ -324,14 +326,11 @@ function combineAndSortFlexibleAndTransitTripPatterns(
 }
 
 async function searchBeforeFlexible(
-    nextSearchDateFromMetadata: Date | undefined,
     searchDate: Date,
     arriveBy = false,
     flexibleTripPattern: Otp2TripPattern,
     searchParams: any,
-) {
-    const transitSearchDate = nextSearchDateFromMetadata || searchDate
-
+): Promise<TransitTripPatterns> {
     // TODO: What is changed here, increased range?
     const searchWindow = getMinutesBetweenDates(
         parseISO(
@@ -339,136 +338,30 @@ async function searchBeforeFlexible(
                 ? flexibleTripPattern.expectedEndTime
                 : flexibleTripPattern.expectedStartTime,
         ),
-        transitSearchDate,
+        searchDate,
         { min: 60 },
     )
 
     const nextSearchParams = {
         ...searchParams,
-        searchDate: transitSearchDate,
+        searchDate,
         searchWindow,
     }
 
-    const [transitResultsBeforeFlexible, beforeFlexibleMetadata] =
-        await getTripPatterns(nextSearchParams)
+    const [transitResultsBeforeFlexible, metadata] = await getTripPatterns(
+        nextSearchParams,
+    )
 
-    const beforeFlexibleTripPatterns = transitResultsBeforeFlexible.filter(
+    const tripPatterns = transitResultsBeforeFlexible.filter(
         isValidTransitAlternative,
     )
 
-    const beforeFlexibleQueries = getTripPatternsQuery(nextSearchParams)
+    const queries = [getTripPatternsQuery(nextSearchParams)]
     return {
-        beforeFlexibleQueries,
-        beforeFlexibleMetadata,
-        beforeFlexibleTripPatterns,
-    }
-}
-
-export async function searchTransit(
-    // TODO inialSearchDate and searchFilter should be completely separate.
-    { initialSearchDate, searchFilter, ...searchParams }: Otp2SearchParams,
-    extraHeaders: { [key: string]: string },
-    // TODO This should be removed but is part of the interface at the moment.
-    completelyUnusedParameter: undefined,
-    options: { enableTaxiSearch?: boolean },
-): Promise<TransitTripPatterns> {
-    const { searchDate, arriveBy } = searchParams
-
-    const getTripPatternsParams = {
-        ...searchParams,
-        modes: filterModesAndSubModes(searchFilter),
-    }
-
-    // TODO: Explain to joakim why are we doing two searches, what does flexible do
-    const [flexibleResults, [response, initialMetadata, routingErrors]] =
-        await Promise.all([
-            searchFlexible(searchParams),
-            getTripPatterns(getTripPatternsParams),
-        ])
-
-    // TODO: Can there be multiple noStopsInRangeErrors or could we assume one
-    // and use that one instead of using .some later?
-    const noStopsInRangeErrors = routingErrors.filter(
-        ({ code }) => code === RoutingErrorCode.noStopsInRange,
-    )
-
-    let taxiResults: TransitTripPatterns | undefined
-    if (options.enableTaxiSearch && noStopsInRangeErrors.length > 0) {
-        taxiResults = await searchTaxiFrontBack(searchParams, {
-            access: noStopsInRangeErrors.some((e) => e.inputField === 'from'),
-            egress: noStopsInRangeErrors.some((e) => e.inputField === 'to'),
-        })
-    }
-
-    let tripPatterns = response
-        .filter(isValidTransitAlternative)
-        // No, this hack doesn't feel good. But we get wrong data from the backend and
-        // customers keep getting stuck on the wrong platform (31st of May 2021)
-        .map(replaceQuay1ForOsloSWithUnknown)
-
-    let metadata = initialMetadata
-
-    // TODO: Spiller rekkefølgen her noen rolle??? For det første så UTFØRER vi det i en annen rekkefølge,
-    // for det andre legger vi ting i resultatlisten i en tredje rekkefølge.
-    let queries = [
-        ...flexibleResults.queries,
-        ...(taxiResults?.queries || []),
-        getTripPatternsQuery(getTripPatternsParams),
-    ]
-
-    const nextSearchDateFromMetadata = metadata
-        ? getNextSearchDateFromMetadata(metadata, arriveBy)
-        : undefined
-
-    // TODO: Why is this not possibly undefined?
-    const flexibleTripPattern = flexibleResults.tripPatterns[0]
-    const hasFlexibleResultsOnly = flexibleTripPattern && !tripPatterns.length
-    if (hasFlexibleResultsOnly) {
-        const {
-            beforeFlexibleQueries,
-            beforeFlexibleMetadata,
-            beforeFlexibleTripPatterns,
-        } = await searchBeforeFlexible(
-            nextSearchDateFromMetadata,
-            searchDate,
-            arriveBy,
-            flexibleTripPattern,
-            getTripPatternsParams,
-        )
-        tripPatterns = beforeFlexibleTripPatterns
-        metadata = beforeFlexibleMetadata
-        queries = [...queries, beforeFlexibleQueries]
-    }
-
-    tripPatterns = [
-        ...(taxiResults?.tripPatterns || []),
-        // TODO: Denne kan risikere å ikke inkludere flexibleTripPattern.
-        // MEN hasFlexibleTripPattern vil fortsatt returnere true. Er ikke det litt rart?
-        ...combineAndSortFlexibleAndTransitTripPatterns(
-            tripPatterns,
-            nextSearchDateFromMetadata,
-            flexibleTripPattern,
-            arriveBy,
-        ),
-    ]
-
-    if (tripPatterns.length) {
-        return {
-            tripPatterns,
-            metadata,
-            hasFlexibleTripPattern: Boolean(flexibleTripPattern),
-            queries,
-        }
-    }
-
-    // Try again without taxi and flex searches until we either find something or
-    // reach the maximum retries/maximum days back/forwards
-    return searchTransitUntilMaxRetries(
-        initialSearchDate,
-        getTripPatternsParams, // TODO: This doesn't work because types are duplicated
-        extraHeaders,
         queries,
-    )
+        metadata,
+        tripPatterns,
+    }
 }
 
 export async function searchTransitUntilMaxRetries(
@@ -497,9 +390,8 @@ export async function searchTransitUntilMaxRetries(
         }
     }
 
-    // No trip patterns found so far, try again with a wider time range
-    // TODO: Will metadata ever suddenly appear or disappear? If not, could we just make a loop
-    // for each instead?
+    // Metadata will be null if routingErrors is not empty, because searchWindow cannot be
+    // calculated.
     if (metadata) {
         // TODO: Why do we use 15 queries here but not when we don't have metadata?
         if (queries.length > 15) {
@@ -533,7 +425,6 @@ export async function searchTransitUntilMaxRetries(
             queries,
         )
     } else {
-        // TODO: When do we not have metadata?
         const nextMidnight = arriveBy
             ? endOfDay(subDays(searchDate, 1))
             : startOfDay(addDays(searchDate, 1))
@@ -638,6 +529,113 @@ async function searchTaxiFrontBack(
         tripPatterns: taxiResults,
         queries,
     }
+}
+
+export async function searchTransit(
+    // TODO initialSearchDate and searchFilter should be completely separate.
+    { initialSearchDate, searchFilter, ...searchParams }: Otp2SearchParams,
+    extraHeaders: { [key: string]: string },
+    // TODO This should be removed but is part of the interface at the moment.
+    completelyUnusedParameter: undefined,
+    options: { enableTaxiSearch?: boolean },
+): Promise<TransitTripPatterns> {
+    const { searchDate, arriveBy } = searchParams
+
+    // TODO: Unless we forward modes to journeyPlanner, we should split this object?
+    const getTripPatternsParams = {
+        ...searchParams,
+        modes: filterModesAndSubModes(searchFilter),
+    }
+
+    // TODO: Explain to joakim why are we doing two searches, what does flexible do
+    const [flexibleResults, [response, initialMetadata, routingErrors]] =
+        await Promise.all([
+            searchFlexible(searchParams),
+            getTripPatterns(getTripPatternsParams),
+        ])
+    let metadata = initialMetadata
+
+    const noStopsInRangeErrors = routingErrors.filter(
+        ({ code }) => code === RoutingErrorCode.noStopsInRange,
+    )
+
+    let taxiResults: TransitTripPatterns | undefined
+    if (options.enableTaxiSearch && noStopsInRangeErrors.length > 0) {
+        const noFromStopInRange = noStopsInRangeErrors.some(
+            (e) => e.inputField === 'from',
+        )
+        const noToStopInRange = noStopsInRangeErrors.some(
+            (e) => e.inputField === 'to',
+        )
+
+        taxiResults = await searchTaxiFrontBack(searchParams, {
+            access: noFromStopInRange,
+            egress: noToStopInRange,
+        })
+    }
+
+    let tripPatterns = response
+        .filter(isValidTransitAlternative)
+        // No, this hack doesn't feel good. But we get wrong data from the backend and
+        // customers keep getting stuck on the wrong platform (31st of May 2021)
+        .map(replaceQuay1ForOsloSWithUnknown)
+
+    // TODO: Spiller rekkefølgen her noen rolle??? For det første så UTFØRER vi det i en annen rekkefølge,
+    // for det andre legger vi ting i resultatlisten i en tredje rekkefølge.
+    let queries = [
+        ...flexibleResults.queries,
+        ...(taxiResults?.queries || []),
+        getTripPatternsQuery(getTripPatternsParams),
+    ]
+
+    const nextSearchDateFromMetadata = metadata
+        ? getNextSearchDateFromMetadata(metadata, arriveBy)
+        : undefined
+
+    // TODO: Why does not TypeScript say that this is possibly undefined?
+    const flexibleTripPattern = flexibleResults.tripPatterns[0]
+    const hasFlexibleResultsOnly = flexibleTripPattern && !tripPatterns.length
+    if (hasFlexibleResultsOnly) {
+        const beforeFlexibleResult = await searchBeforeFlexible(
+            nextSearchDateFromMetadata || searchDate,
+            arriveBy,
+            flexibleTripPattern,
+            getTripPatternsParams,
+        )
+        tripPatterns = beforeFlexibleResult.tripPatterns
+        metadata = beforeFlexibleResult.metadata
+        queries = [...queries, ...beforeFlexibleResult.queries]
+    }
+
+    tripPatterns = [
+        ...(taxiResults?.tripPatterns || []),
+        // TODO: Denne kan risikere å ikke inkludere flexibleTripPattern.
+        // MEN hasFlexibleTripPattern vil fortsatt returnere true. Er ikke det litt rart?
+        ...combineAndSortFlexibleAndTransitTripPatterns(
+            tripPatterns,
+            nextSearchDateFromMetadata,
+            flexibleTripPattern,
+            arriveBy,
+        ),
+    ]
+
+    if (tripPatterns.length) {
+        return {
+            tripPatterns,
+            metadata,
+            hasFlexibleTripPattern: Boolean(flexibleTripPattern),
+            queries,
+        }
+    }
+
+    // Try again without taxi and flex searches until we either find something or
+    // reach the maximum retries/maximum days back/forwards
+    return searchTransitUntilMaxRetries(
+        initialSearchDate,
+        getTripPatternsParams, // TODO: This doesn't work because types are duplicated
+        extraHeaders,
+        queries,
+    )
 }
 
 export type NonTransitMode = 'foot' | 'bicycle' | 'car' | 'bike_rental'
