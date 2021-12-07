@@ -569,17 +569,19 @@ export async function searchTransit(
     const nextSearchDateFromMetadata =
         metadata && getNextSearchDateFromMetadata(metadata, arriveBy)
 
+    // Flexible may return results in the future that are outside the
+    // original search window. There may still exist normal transport in the
+    // time between the search window end and the first suggested flexible
+    // result. For example, if  the search window ends on midnight Friday, and
+    // the first suggested flexible result is on Monday morning, we can probably
+    // still find a normal transport option on Saturday.
+
+    // To find these so we do a new search if we found no regular trip patterns
+    // within the original search window.
     const flexibleTripPattern = flexibleResults.tripPatterns[0]
     const hasFlexibleResultsOnly =
         flexibleTripPattern && !regularTripPatterns.length
     if (hasFlexibleResultsOnly) {
-        // Flexible may return results in the future that are outside the
-        // original search window. There may still exist normal transport in the
-        // time between the search window end and the first suggested flexible
-        // result, so we do a new search to try to find those. For example, if
-        // the search window ends on midnight Friday, and the first suggested
-        // flexible result is on Monday morning, we can probably still find a
-        // normal transport option on Saturday.
         const beforeFlexibleResult = await searchBeforeFlexible(
             nextSearchDateFromMetadata || searchDate,
             arriveBy,
