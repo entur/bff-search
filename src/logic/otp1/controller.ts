@@ -308,7 +308,7 @@ async function searchTaxiFrontBack(
         ),
     ])
 
-    return [...pickup, ...dropoff].filter(
+    return [...(pickup || []), ...(dropoff || [])].filter(
         isValidTaxiAlternative(
             initialSearchDate,
             car,
