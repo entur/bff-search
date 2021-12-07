@@ -75,7 +75,8 @@ interface TransitTripPatterns {
     metadata?: Metadata
 }
 
-// There is no point in continuing the search if any of these routing errors are received
+// There is no point in continuing the search if any of these routing errors
+// are received
 const HOPELESS_ROUTING_ERRORS = [
     RoutingErrorCode.noTransitConnection,
     RoutingErrorCode.outsideServicePeriod,
@@ -296,9 +297,12 @@ function combineAndSortFlexibleAndTransitTripPatterns(
     return sortedTripPatterns
 }
 
-// Search for results in the time between the end of a search window and the first available flexible trip. This is
-// necessary as we may get a flexible trip suggestion a few days in the future. Normal transport that would be a better
-// suggestion to the traveler may be available in that time period.
+/**
+ * Search for results in the time between the end of a search window and the
+ * first available flexible trip. This is necessary as we may get a flexible
+ * trip suggestion a few days in the future. Normal transport that would be a
+ * better suggestion to the traveler may be available in that time period.
+ */
 async function searchBeforeFlexible(
     searchDate: Date,
     arriveBy = false,
@@ -360,11 +364,12 @@ export async function searchTransitUntilMaxRetries(
         }
     }
 
-    // Metadata will be null if routingErrors is not empty, because searchWindow cannot be
-    // calculated.
+    // Metadata will be null if routingErrors is not empty, because searchWindow
+    // cannot be calculated.
     //
-    // When we have metadata, we limit by the number of queries as each result may only be for parts of a day.
-    // Queries where metadata is missing is limited by a set number of days, and each query spans a full day, as we
+    // When we have metadata, we limit by the number of queries as each result
+    // may only be for parts of a day. Queries where metadata is missing is
+    // limited by a set number of days, and each query spans a full day, as we
     // have no information about the next search window to use.
     if (metadata) {
         if (queries.length > 15) {
@@ -422,18 +427,23 @@ export async function searchTransitUntilMaxRetries(
     }
 }
 
-// A flexible search includes modes of transport (bus or other) where the traveler has to book a call in advance -
-// if not, the bus may either drive past or not show up at all.
-//
-// Such services do not run at all hours of the day, but we will still return the first available match, even if it
-// is outside the requested search window.
-//
-// For example, if you do a search on a Friday evening at 8pm, but the service is not available after 6pm, you may
-// get a suggestion Monday morning at 8am when the service starts again.
-//
-// This is kind of a catch, as there may be other, better suggestions using normal transport in the time between
-// your search window - for example, if your normal search window ends Friday at midnight, there still may be
-// transport available all of Saturday. This must be handled separately.
+/**
+ * A flexible search includes modes of transport (bus or other) where the
+ * traveler has to book a call in advance - if not, the bus may either drive
+ * past or not show up at all.
+ *
+ * Such services do not run at all hours of the day, but we will still return
+ * the first available match, even if it is outside the requested search window.
+ *
+ * For example, if you do a search on a Friday evening at 8pm, but the service
+ * is not available after 6pm, you may get a suggestion Monday morning at 8am
+ * when the service starts again.
+ *
+ * This is kind of a catch, as there may be other, better suggestions using
+ * normal transport in the time between your search window - for example, if
+ * your normal search window ends Friday at midnight, there still may be
+ * transport available all of Saturday. This must be handled separately.
+ */
 async function searchFlexible(searchParams: Otp2GetTripPatternParams): Promise<{
     tripPatterns: Otp2TripPattern[]
     queries: GraphqlQuery[]
@@ -477,12 +487,16 @@ async function searchFlexible(searchParams: Otp2GetTripPatternParams): Promise<{
     }
 }
 
-// Have you ever wondered what access or egress means? Well, you're lucky - here's the definition for you:
-// - access - the means or opportunity to approach or enter a place
-// - egress - the action of going out of or leaving a place.
-//
-// So if access is true, try to find a taxi at the start of the trip, if egress is true, do the same at the
-// end of the trip. Domain specific language is fun!
+/**
+ * Have you ever wondered what access or egress means? Well, you're lucky -
+ * here's the definition for you:
+ *  - access - the means or opportunity to approach or enter a place
+ *  - egress - the action of going out of or leaving a place.
+ *
+ * So if access is true, try to find a taxi at the start of the trip, if
+ * egress is true, do the same at the end of the trip. Domain specific language
+ * is fun!
+ */
 async function searchTaxiFrontBack(
     searchParams: Otp2GetTripPatternParams,
     options: { access: boolean; egress: boolean },
@@ -515,9 +529,12 @@ async function searchTaxiFrontBack(
     }
 }
 
-// TODO 7/12-21: Clean up function signature and types once OTP1 is gone.
-// As we have removed recursion, initialSearchDate can be replaced with searchDate. searchFilter could
-// be kept separate from Otp2SearchParams.
+/**
+ * TODO 7/12-21: Clean up function signature and types once OTP1 is gone.
+ * As we have removed recursion, initialSearchDate can be replaced with
+ * searchDate. searchFilter could
+ * be kept separate from Otp2SearchParams.
+ */
 export async function searchTransit(
     { initialSearchDate, searchFilter, ...searchParams }: Otp2SearchParams,
     extraHeaders: { [key: string]: string },
@@ -529,9 +546,10 @@ export async function searchTransit(
         modes: filterModesAndSubModes(searchFilter),
     }
 
-    // We do two searches in parallel here to speed things up a bit. One is a flexible search where
-    // we explicitly look for trips that may include means of transport that has to be booked in advance,
-    // the second is a regular search.
+    // We do two searches in parallel here to speed things up a bit. One is a
+    // flexible search where we explicitly look for trips that may include means
+    // of transport that has to be booked in advance the second is a regular
+    // search.
     const [
         flexibleResults,
         [regularTripPatternsUnfiltered, initialMetadata, routingErrors],
@@ -547,12 +565,42 @@ export async function searchTransit(
 
     let metadata = initialMetadata
 
+    let regularTripPatterns = regularTripPatternsUnfiltered
+        .filter(isValidTransitAlternative)
+        .map(replaceQuay1ForOsloSWithUnknown)
+
+    const nextSearchDateFromMetadata =
+        metadata && getNextSearchDateFromMetadata(metadata, arriveBy)
+
+    const flexibleTripPattern = flexibleResults.tripPatterns[0]
+    const hasFlexibleResultsOnly =
+        flexibleTripPattern && !regularTripPatterns.length
+    if (hasFlexibleResultsOnly) {
+        // Flexible may return results in the future that are outside the
+        // original search window. There may still exist normal transport in the
+        // time between the search window end and the first suggested flexible
+        // result, so we do a new search to try to find those. For example, if
+        // the search window ends on midnight Friday, and the first suggested
+        // flexible result is on Monday morning, we can probably still find a
+        // normal transport option on Saturday.
+        const beforeFlexibleResult = await searchBeforeFlexible(
+            nextSearchDateFromMetadata || searchDate,
+            arriveBy,
+            flexibleTripPattern,
+            getTripPatternsParams,
+        )
+        regularTripPatterns = beforeFlexibleResult.tripPatterns
+        metadata = beforeFlexibleResult.metadata
+        queries = [...queries, ...beforeFlexibleResult.queries]
+    }
+
+    // If we have any noStopsInRange errors, we couldn't find a means of
+    // transport from where the traveler wants to start or end the trip. Try to
+    // find an option using taxi for those parts instead.
     const noStopsInRangeErrors = routingErrors.filter(
         ({ code }) => code === RoutingErrorCode.noStopsInRange,
     )
 
-    // If we have any noStopsInRange errors, we couldn't find a means of transport from where the
-    // traveler wants to start or end the trip. Try to find an option using taxi for those parts instead.
     let taxiTripPatterns: Otp2TripPattern[] = []
     if (noStopsInRangeErrors.length > 0) {
         const noFromStopInRange = noStopsInRangeErrors.some(
@@ -568,34 +616,6 @@ export async function searchTransit(
         })
         taxiTripPatterns = taxiResults.tripPatterns
         queries = [...taxiResults.queries]
-    }
-
-    let regularTripPatterns = regularTripPatternsUnfiltered
-        .filter(isValidTransitAlternative)
-        .map(replaceQuay1ForOsloSWithUnknown)
-
-    const nextSearchDateFromMetadata = metadata
-        ? getNextSearchDateFromMetadata(metadata, arriveBy)
-        : undefined
-
-    const flexibleTripPattern = flexibleResults.tripPatterns[0]
-    const hasFlexibleResultsOnly =
-        flexibleTripPattern && !regularTripPatterns.length
-    if (hasFlexibleResultsOnly) {
-        // Flexible may return results in the future that are outside the original search window. There may still
-        // exist normal transport in the time between the search window end and the first suggested flexible result,
-        // so we do a new search to try to find those. For example, if the search window ends on midnight Friday,
-        // and the first suggested flexible result is on Monday morning, we can probably still find a normal transport
-        // option on Saturday.
-        const beforeFlexibleResult = await searchBeforeFlexible(
-            nextSearchDateFromMetadata || searchDate,
-            arriveBy,
-            flexibleTripPattern,
-            getTripPatternsParams,
-        )
-        regularTripPatterns = beforeFlexibleResult.tripPatterns
-        metadata = beforeFlexibleResult.metadata
-        queries = [...queries, ...beforeFlexibleResult.queries]
     }
 
     const tripPatterns = [
@@ -616,8 +636,8 @@ export async function searchTransit(
         }
     }
 
-    // Try again without taxi and flex searches until we either find something or
-    // reach the maximum retries/maximum days back/forwards
+    // Try again without taxi and flex searches until we either find something
+    // or reach the maximum retries/maximum days back/forwards
     return searchTransitUntilMaxRetries(
         initialSearchDate,
         getTripPatternsParams,
