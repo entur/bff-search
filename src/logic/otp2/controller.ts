@@ -440,9 +440,10 @@ export async function searchTransitUntilMaxRetries(
  * when the service starts again.
  *
  * This is kind of a catch, as there may be other, better suggestions using
- * normal transport in the time between your search window - for example, if
- * your normal search window ends Friday at midnight, there still may be
- * transport available all of Saturday. This must be handled separately.
+ * normal transport in the time between your search window and the flexible
+ * suggestion - for example, if your normal search window ends Friday at
+ * midnight, there still may be transport available all of Saturday. This must
+ * be handled separately.
  */
 async function searchFlexible(searchParams: Otp2GetTripPatternParams): Promise<{
     tripPatterns: Otp2TripPattern[]
