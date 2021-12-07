@@ -350,7 +350,6 @@ export async function searchTransitUntilMaxRetries(
         return {
             tripPatterns,
             metadata,
-            hasFlexibleTripPattern: false,
             queries,
         }
     }
@@ -368,7 +367,6 @@ export async function searchTransitUntilMaxRetries(
             return {
                 tripPatterns: [],
                 metadata: undefined, // TODO: Why is metadata undefined here - Kanskje for å stoppe cursor-generering? Sjekk kode.
-                hasFlexibleTripPattern: false,
                 queries,
             }
         }
@@ -474,6 +472,12 @@ async function searchFlexible(searchParams: Otp2GetTripPatternParams): Promise<{
     }
 }
 
+// Have you ever wondered what access or egress means? Well, you're lucky - here's the definition for you:
+// - access - the means or opportunity to approach or enter a place
+// - egress - the action of going out of or leaving a place.
+//
+// So if access is true, try to find a taxi at the start of the trip, if egress is true, do the same at the
+// end of the trip. Domain specific language is fun!
 async function searchTaxiFrontBack(
     searchParams: Otp2GetTripPatternParams,
     options: { access: boolean; egress: boolean },
@@ -520,6 +524,9 @@ export async function searchTransit(
         modes: filterModesAndSubModes(searchFilter),
     }
 
+    // We do two searches in parallel here to speed things up a bit. One is a flexible search where
+    // we explicitly look for trips that may include means of transport that has to be booked in advance, the second
+    // is a normal search.
     const [flexibleResults, [response, initialMetadata, routingErrors]] =
         await Promise.all([
             searchFlexible(searchParams),
@@ -537,7 +544,8 @@ export async function searchTransit(
         ({ code }) => code === RoutingErrorCode.noStopsInRange,
     )
 
-    // TODO: will we have any results above or could we just return taxiResults if we find any?
+    // If we have any noStopsInRange errors, we couldn't find a means of transport from where the
+    // traveler wants to start or end the trip. Try to find an option using taxi for those parts instead.
     let taxiResults: TransitTripPatterns | undefined
     if (noStopsInRangeErrors.length > 0) {
         const noFromStopInRange = noStopsInRangeErrors.some(
