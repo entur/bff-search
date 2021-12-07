@@ -13,6 +13,7 @@ export type StreetMode =
     | 'taxi'
     | 'car_rental'
     | 'car_pickup'
+    | 'flexible'
 
 export interface Mode {
     transportMode: TransportMode
@@ -20,8 +21,8 @@ export interface Mode {
 }
 
 export interface Modes {
-    accessMode: StreetMode
-    egressMode: StreetMode
+    accessMode?: StreetMode
+    egressMode?: StreetMode
     directMode?: StreetMode
     transportModes: Mode[]
 }
