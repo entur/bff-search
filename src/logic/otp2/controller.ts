@@ -5,7 +5,7 @@ import createEnturService, {
     Leg,
     Notice,
     Authority,
-    TransportMode,
+    GetTripPatternsParams,
 } from '@entur/sdk'
 import { v4 as uuid } from 'uuid'
 import {
@@ -35,7 +35,7 @@ import { TRANSIT_HOST_OTP2 } from '../../config'
 import { RoutingErrorsError } from '../../errors'
 
 import JOURNEY_PLANNER_QUERY from './query'
-import { filterModesAndSubModes, Mode } from './modes'
+import { DEFAULT_MODES, filterModesAndSubModes, Modes } from './modes'
 
 const sdk = createEnturService({
     clientName: 'entur-search',
@@ -51,18 +51,18 @@ interface Otp2TripPattern extends TripPattern {
     }[]
 }
 
-interface Otp2SearchParams extends Omit<SearchParams, 'modes'> {
+interface AdditionalOtp2TripPatternParams {
     searchWindow?: number
     modes: Modes
 }
 
-// The stuff we actually send to journey planner
-// TODO: This should probably be directly based on GetTripPatternsParams, unless we need anything inbetween:
-// - cursor, searchFilter, searchDate, initialSearchDate, searchWindow, modes (different from the SDK one)
-type Otp2BackendSearchParams = Omit<
-    Otp2SearchParams,
-    'initialSearchDate' | 'searchFilter'
->
+// function signature type, to match signature for OTP1 searchTransit.
+type Otp2SearchParams = Omit<SearchParams, 'modes'> &
+    AdditionalOtp2TripPatternParams
+
+// GetTripPatternsParams is an OTP1 type, we need to tweak it to match OTP2
+type Otp2GetTripPatternParams = Omit<GetTripPatternsParams, 'modes'> &
+    AdditionalOtp2TripPatternParams
 
 interface TransitTripPatterns {
     tripPatterns: Otp2TripPattern[]
@@ -71,7 +71,7 @@ interface TransitTripPatterns {
     metadata?: Metadata
 }
 
-// If any of these routing errors are received, there is no point in continuing the search.
+// There is no point in continuing the search if any of these routing errors are received
 const HOPELESS_ROUTING_ERRORS = [
     RoutingErrorCode.noTransitConnection,
     RoutingErrorCode.outsideServicePeriod,
@@ -107,40 +107,7 @@ function parseTripPattern(rawTripPattern: any): Otp2TripPattern {
     }
 }
 
-// TODO Why is this duplicated from modes.ts? and a shorter list?
-type StreetMode =
-    | 'foot'
-    | 'bicycle'
-    | 'bike_park'
-    | 'bike_rental'
-    | 'car'
-    | 'car_park'
-    | 'taxi'
-    | 'car_rental'
-
-// TODO Why is this duplicated from modes.ts?
-interface Modes {
-    accessMode: StreetMode
-    egressMode: StreetMode
-    directMode?: StreetMode
-    transportModes: Mode[]
-}
-
-// TODO Why is this duplicated from modes.ts but shorter?
-const DEFAULT_MODES: Modes = {
-    accessMode: 'foot',
-    egressMode: 'foot',
-    transportModes: [
-        { transportMode: TransportMode.BUS },
-        { transportMode: TransportMode.TRAM },
-        { transportMode: TransportMode.RAIL },
-        { transportMode: TransportMode.METRO },
-        { transportMode: TransportMode.WATER },
-        { transportMode: TransportMode.AIR },
-    ],
-}
-
-function getTripPatternsVariables(params: any): any {
+function getTripPatternsVariables(params: Otp2GetTripPatternParams): any {
     const {
         from,
         to,
@@ -162,7 +129,7 @@ function getTripPatternsVariables(params: any): any {
     }
 }
 
-function getTripPatternsQuery(params: Record<string, unknown>): GraphqlQuery {
+function getTripPatternsQuery(params: Otp2GetTripPatternParams): GraphqlQuery {
     return {
         query: JOURNEY_PLANNER_QUERY,
         variables: getTripPatternsVariables(params),
@@ -321,13 +288,15 @@ function combineAndSortFlexibleAndTransitTripPatterns(
     return sortedTripPatterns
 }
 
+// Search for results in the time between the end of a search window and the first available flexible trip. This is
+// necessary as we may get a flexible trip suggestion a few days in the future. Normal transport may be available
+// in that time period that would be a better suggestion to the traveler.
 async function searchBeforeFlexible(
     searchDate: Date,
     arriveBy = false,
     flexibleTripPattern: Otp2TripPattern,
     searchParams: any,
 ): Promise<TransitTripPatterns> {
-    // TODO: What is changed here, increased range?
     const searchWindow = getMinutesBetweenDates(
         parseISO(
             arriveBy
@@ -362,7 +331,7 @@ async function searchBeforeFlexible(
 
 export async function searchTransitUntilMaxRetries(
     initialSearchDate: Date,
-    searchParams: Otp2BackendSearchParams,
+    searchParams: Otp2GetTripPatternParams,
     extraHeaders: { [key: string]: string },
     prevQueries: GraphqlQuery[],
 ): Promise<TransitTripPatterns> {
@@ -388,20 +357,22 @@ export async function searchTransitUntilMaxRetries(
 
     // Metadata will be null if routingErrors is not empty, because searchWindow cannot be
     // calculated.
+    //
+    // When we have metadata, we limit by the number of queries as each result may only be for parts of a day.
+    // Queries where metadata is missing is limited by a set number of days, and each query spans a full day, as we
+    // have no information about the next search window to use.
     if (metadata) {
-        // TODO: Why do we use 15 queries here but not when we don't have metadata?
         if (queries.length > 15) {
             // We have tried as many times as we should but could not find
             // any trip patterns. Give up.
             return {
                 tripPatterns: [],
-                metadata: undefined, // TODO: Why is metadata undefined here
+                metadata: undefined, // TODO: Why is metadata undefined here - Kanskje for å stoppe cursor-generering? Sjekk kode.
                 hasFlexibleTripPattern: false,
                 queries,
             }
         }
 
-        // TODO: What is changed here, backwards/forwards in time
         const dateTime = arriveBy
             ? metadata.prevDateTime
             : metadata.nextDateTime
@@ -412,8 +383,6 @@ export async function searchTransitUntilMaxRetries(
             searchDate: parseISO(dateTime),
         }
 
-        // TODO: We should split out the parts of searchTransit that only run the first
-        // time and have a cleaner method body that does not need all the checks
         return searchTransitUntilMaxRetries(
             initialSearchDate,
             nextSearchParams,
@@ -422,16 +391,15 @@ export async function searchTransitUntilMaxRetries(
         )
     } else {
         const nextMidnight = arriveBy
-            ? endOfDay(subDays(searchDate, 1))
-            : startOfDay(addDays(searchDate, 1))
+            ? endOfDay(subDays(searchDate || new Date(), 1))
+            : startOfDay(addDays(searchDate || new Date(), 1))
 
-        // TODO: Why do we use 7 here but not above?
         if (Math.abs(differenceInDays(nextMidnight, initialSearchDate)) >= 7) {
             // We have tried as far back as we should but could not find
             // any trip patterns. Give up.
             return {
                 tripPatterns: [],
-                metadata, // TODO: Metadata will be undefined here but this code is copied from master
+                metadata: undefined,
                 hasFlexibleTripPattern: false,
                 queries,
             }
@@ -451,13 +419,26 @@ export async function searchTransitUntilMaxRetries(
     }
 }
 
-async function searchFlexible(searchParams: Otp2BackendSearchParams): Promise<{
+// A flexible search includes modes of transport (bus or other) where the traveler has to book a call in advance -
+// if not, the bus may either drive past or not show up at all.
+//
+// Such services do not run at all hours of the day, but we will still return the first available match, even if it
+// is outside the requested search window.
+//
+// For example, if you do a search on a Friday evening at 8pm, but the service is not available after 6pm, you may
+// get a suggestion Monday morning at 8am when the service starts again.
+//
+// This is kind of a catch, as there may be other, better suggestions using normal transport in the time between
+// your search window - for example, if your normal search window ends Friday at midnight, there still may be
+// transport available all of Saturday. This must be handled separately.
+async function searchFlexible(searchParams: Otp2GetTripPatternParams): Promise<{
     tripPatterns: Otp2TripPattern[]
     queries: GraphqlQuery[]
 }> {
     const getTripPatternsParams = {
         ...searchParams,
         modes: {
+            transportModes: [],
             directMode: 'flexible',
         },
         numTripPatterns: 1,
@@ -494,7 +475,7 @@ async function searchFlexible(searchParams: Otp2BackendSearchParams): Promise<{
 }
 
 async function searchTaxiFrontBack(
-    searchParams: Otp2BackendSearchParams,
+    searchParams: Otp2GetTripPatternParams,
     options: { access: boolean; egress: boolean },
 ): Promise<TransitTripPatterns> {
     const { access, egress } = options
@@ -512,11 +493,9 @@ async function searchTaxiFrontBack(
     const [tripPatterns] = await getTripPatterns(getTripPatternsParams)
     const queries = [getTripPatternsQuery(getTripPatternsParams)]
 
-    /**
-     * If no access or egress leg is necessary, we can get trip patterns with
-     * no car legs. We therefore filter the results to prevent it from
-     * returning results that the normal search also might return.
-     */
+    // If no access or egress leg is necessary, we can get trip patterns with
+    // no car legs. We therefore filter the results to prevent it from
+    // returning results that the normal search also might return.
     const taxiResults = tripPatterns.filter(({ legs }) =>
         legs.some(({ mode }) => mode === LegMode.CAR),
     )
@@ -527,36 +506,40 @@ async function searchTaxiFrontBack(
     }
 }
 
+// TODO 7/12-21: Clean up function signature and types once OTP1 is gone.
+// As we have removed recursion, initialSearchDate can be replaced with searchDate. searchFilter could
+// be kept separate from Otp2SearchParams.
 export async function searchTransit(
-    // TODO initialSearchDate and searchFilter should be completely separate.
     { initialSearchDate, searchFilter, ...searchParams }: Otp2SearchParams,
     extraHeaders: { [key: string]: string },
-    // TODO This should be removed but is part of the interface at the moment.
-    completelyUnusedParameter: undefined,
-    options: { enableTaxiSearch?: boolean },
 ): Promise<TransitTripPatterns> {
     const { searchDate, arriveBy } = searchParams
 
-    // TODO: Unless we forward modes to journeyPlanner, we should split this object?
     const getTripPatternsParams = {
         ...searchParams,
         modes: filterModesAndSubModes(searchFilter),
     }
 
-    // TODO: Explain to joakim why are we doing two searches, what does flexible do
     const [flexibleResults, [response, initialMetadata, routingErrors]] =
         await Promise.all([
             searchFlexible(searchParams),
             getTripPatterns(getTripPatternsParams),
         ])
+
+    let queries = [
+        ...flexibleResults.queries,
+        getTripPatternsQuery(getTripPatternsParams),
+    ]
+
     let metadata = initialMetadata
 
     const noStopsInRangeErrors = routingErrors.filter(
         ({ code }) => code === RoutingErrorCode.noStopsInRange,
     )
 
+    // TODO: will we have any results above or could we just return taxiResults if we find any?
     let taxiResults: TransitTripPatterns | undefined
-    if (options.enableTaxiSearch && noStopsInRangeErrors.length > 0) {
+    if (noStopsInRangeErrors.length > 0) {
         const noFromStopInRange = noStopsInRangeErrors.some(
             (e) => e.inputField === 'from',
         )
@@ -568,6 +551,7 @@ export async function searchTransit(
             access: noFromStopInRange,
             egress: noToStopInRange,
         })
+        queries = [...taxiResults.queries]
     }
 
     let tripPatterns = response
@@ -576,22 +560,20 @@ export async function searchTransit(
         // customers keep getting stuck on the wrong platform (31st of May 2021)
         .map(replaceQuay1ForOsloSWithUnknown)
 
-    // TODO: Spiller rekkefølgen her noen rolle??? For det første så UTFØRER vi det i en annen rekkefølge,
-    // for det andre legger vi ting i resultatlisten i en tredje rekkefølge.
-    let queries = [
-        ...flexibleResults.queries,
-        ...(taxiResults?.queries || []),
-        getTripPatternsQuery(getTripPatternsParams),
-    ]
-
     const nextSearchDateFromMetadata = metadata
         ? getNextSearchDateFromMetadata(metadata, arriveBy)
         : undefined
 
     // TODO: Why does not TypeScript say that this is possibly undefined?
+    // TODO: Kanskje skru på ts-config undefined her?
     const flexibleTripPattern = flexibleResults.tripPatterns[0]
     const hasFlexibleResultsOnly = flexibleTripPattern && !tripPatterns.length
     if (hasFlexibleResultsOnly) {
+        // Flexible may return results in the future that are outside the original search window. There may still
+        // exist normal transport in the time between the search window end and the first suggested flexible result,
+        // so we do a new search to try to find those. For example, if the search window ends on midnight Friday,
+        // and the first suggested flexible result is on Monday morning, we can probably still find a normal transport
+        // option on Saturday.
         const beforeFlexibleResult = await searchBeforeFlexible(
             nextSearchDateFromMetadata || searchDate,
             arriveBy,
@@ -619,7 +601,7 @@ export async function searchTransit(
         return {
             tripPatterns,
             metadata,
-            hasFlexibleTripPattern: Boolean(flexibleTripPattern),
+            hasFlexibleTripPattern: Boolean(flexibleTripPattern), // TODO: Sjekk om dette er legacy og om vi kan fjerne.
             queries,
         }
     }
@@ -628,7 +610,7 @@ export async function searchTransit(
     // reach the maximum retries/maximum days back/forwards
     return searchTransitUntilMaxRetries(
         initialSearchDate,
-        getTripPatternsParams, // TODO: This doesn't work because types are duplicated
+        getTripPatternsParams,
         extraHeaders,
         queries,
     )
@@ -655,8 +637,6 @@ export async function searchNonTransit(
                 limit: 1,
                 allowBikeRental: mode === 'bike_rental',
                 modes: {
-                    accessMode: null,
-                    egressMode: null,
                     directMode: mode,
                     transportModes: [],
                 },

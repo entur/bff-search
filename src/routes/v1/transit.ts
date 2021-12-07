@@ -99,14 +99,9 @@ router.post('/', async (req, res, next) => {
         }
 
         let searchMethod = cursorData ? searchTransit : searchTransitWithTaxi
-        const searchOptions: { runOnce?: boolean; enableTaxiSearch?: boolean } =
-            {
-                enableTaxiSearch: ENVIRONMENT !== 'prod',
-            }
 
         useOtp2 = !res.locals.forceOtp1
 
-        //TODO: Hvorfor er denne her og ikke før vi setter searchMethod????
         if (useOtp2) {
             // @ts-ignore searchTransitOtp2 expects a slightly different SearchParams type
             searchMethod = searchTransitOtp2
@@ -120,7 +115,7 @@ router.post('/', async (req, res, next) => {
             cursorData ? 'searchTransit' : 'searchTransitWithTaxi',
         )
         const { tripPatterns, metadata, hasFlexibleTripPattern, queries } =
-            await searchMethod(params, extraHeaders, undefined, searchOptions)
+            await searchMethod(params, extraHeaders)
         stopTrace()
 
         if (!cursorData) {
