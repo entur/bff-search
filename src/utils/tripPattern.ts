@@ -98,7 +98,11 @@ function isFlexibleTripsInCombination({ legs }: TripPattern): boolean {
 
     const transitLegs = legs.filter(isTransitLeg)
 
-    return transitLegs.length === 1 && isFlexibleLeg(transitLegs[0])
+    return (
+        transitLegs[0] !== undefined &&
+        transitLegs.length === 1 &&
+        isFlexibleLeg(transitLegs[0])
+    )
 }
 
 function isCarAlternative({ legs }: TripPattern): boolean {
