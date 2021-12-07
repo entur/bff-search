@@ -1,30 +1,30 @@
 import createEnturService, {
-    LegMode,
-    TripPattern,
-    IntermediateEstimatedCall,
-    Leg,
-    Notice,
     Authority,
     GetTripPatternsParams,
+    IntermediateEstimatedCall,
+    Leg,
+    LegMode,
+    Notice,
+    TripPattern,
 } from '@entur/sdk'
 import { v4 as uuid } from 'uuid'
 import {
     addDays,
     differenceInDays,
+    differenceInMinutes,
     endOfDay,
+    parseISO,
     startOfDay,
     subDays,
-    parseISO,
-    differenceInMinutes,
 } from 'date-fns'
 
 import {
-    SearchParams,
-    NonTransitTripPatterns,
     GraphqlQuery,
     Metadata,
+    NonTransitTripPatterns,
     RoutingError,
     RoutingErrorCode,
+    SearchParams,
 } from '../../types'
 
 import { isValidTransitAlternative } from '../../utils/tripPattern'
@@ -35,7 +35,12 @@ import { TRANSIT_HOST_OTP2 } from '../../config'
 import { GetTripPatternError, RoutingErrorsError } from '../../errors'
 
 import JOURNEY_PLANNER_QUERY from './query'
-import { DEFAULT_MODES, filterModesAndSubModes, Modes } from './modes'
+import {
+    DEFAULT_MODES,
+    filterModesAndSubModes,
+    Modes,
+    StreetMode,
+} from './modes'
 
 const sdk = createEnturService({
     clientName: 'entur-search',
@@ -66,7 +71,6 @@ type Otp2GetTripPatternParams = Omit<GetTripPatternsParams, 'modes'> &
 
 interface TransitTripPatterns {
     tripPatterns: Otp2TripPattern[]
-    hasFlexibleTripPattern?: boolean
     queries: GraphqlQuery[]
     metadata?: Metadata
 }
@@ -182,7 +186,7 @@ function authorityMapper(authority?: Authority): Authority | undefined {
     return {
         id: authority.id,
         name: authority.name,
-        codeSpace: authority.id.split(':')[0],
+        codeSpace: authority.id.split(':')[0] || '',
         url: authority.url,
     }
 }
@@ -293,8 +297,8 @@ function combineAndSortFlexibleAndTransitTripPatterns(
 }
 
 // Search for results in the time between the end of a search window and the first available flexible trip. This is
-// necessary as we may get a flexible trip suggestion a few days in the future. Normal transport may be available
-// in that time period that would be a better suggestion to the traveler.
+// necessary as we may get a flexible trip suggestion a few days in the future. Normal transport that would be a better
+// suggestion to the traveler may be available in that time period.
 async function searchBeforeFlexible(
     searchDate: Date,
     arriveBy = false,
@@ -370,7 +374,7 @@ export async function searchTransitUntilMaxRetries(
             // any trip patterns. Give up.
             return {
                 tripPatterns: [],
-                metadata: undefined, // TODO: Why is metadata undefined here - Kanskje for å stoppe cursor-generering? Sjekk kode.
+                metadata: undefined, // Returning metadata undefined will stop generation of a new cursor
                 queries,
             }
         }
@@ -401,8 +405,7 @@ export async function searchTransitUntilMaxRetries(
             // any trip patterns. Give up.
             return {
                 tripPatterns: [],
-                metadata: undefined,
-                hasFlexibleTripPattern: false,
+                metadata: undefined, // Returning metadata undefined will stop generation of a new cursor
                 queries,
             }
         }
@@ -441,7 +444,7 @@ async function searchFlexible(searchParams: Otp2GetTripPatternParams): Promise<{
         ...searchParams,
         modes: {
             transportModes: [],
-            directMode: 'flexible',
+            directMode: StreetMode.FLEXIBLE,
         },
         numTripPatterns: 1,
     }
@@ -454,7 +457,7 @@ async function searchFlexible(searchParams: Otp2GetTripPatternParams): Promise<{
 
         const tripPatterns = returnedTripPatterns.filter(({ legs }) => {
             const isFootOnly =
-                legs.length === 1 && legs[0].mode === LegMode.FOOT
+                legs.length === 1 && legs[0]?.mode === LegMode.FOOT
             return !isFootOnly
         })
 
@@ -492,8 +495,8 @@ async function searchTaxiFrontBack(
         ...searchParams,
         modes: {
             ...DEFAULT_MODES,
-            accessMode: access ? 'car_pickup' : 'foot',
-            egressMode: egress ? 'car_pickup' : 'foot',
+            accessMode: access ? StreetMode.CAR_PICKUP : StreetMode.FOOT,
+            egressMode: egress ? StreetMode.CAR_PICKUP : StreetMode.FOOT,
         },
         numTripPatterns: egress && access ? 2 : 1,
     }
@@ -529,13 +532,15 @@ export async function searchTransit(
     }
 
     // We do two searches in parallel here to speed things up a bit. One is a flexible search where
-    // we explicitly look for trips that may include means of transport that has to be booked in advance, the second
-    // is a normal search.
-    const [flexibleResults, [response, initialMetadata, routingErrors]] =
-        await Promise.all([
-            searchFlexible(searchParams),
-            getTripPatterns(getTripPatternsParams),
-        ])
+    // we explicitly look for trips that may include means of transport that has to be booked in advance,
+    // the second is a regular search.
+    const [
+        flexibleResults,
+        [regularTripPatterns, initialMetadata, routingErrors],
+    ] = await Promise.all([
+        searchFlexible(searchParams),
+        getTripPatterns(getTripPatternsParams),
+    ])
 
     let queries = [
         ...flexibleResults.queries,
@@ -550,7 +555,7 @@ export async function searchTransit(
 
     // If we have any noStopsInRange errors, we couldn't find a means of transport from where the
     // traveler wants to start or end the trip. Try to find an option using taxi for those parts instead.
-    let taxiResults: TransitTripPatterns | undefined
+    let taxiTripPatterns: Otp2TripPattern[] = []
     if (noStopsInRangeErrors.length > 0) {
         const noFromStopInRange = noStopsInRangeErrors.some(
             (e) => e.inputField === 'from',
@@ -559,14 +564,15 @@ export async function searchTransit(
             (e) => e.inputField === 'to',
         )
 
-        taxiResults = await searchTaxiFrontBack(searchParams, {
+        const taxiResults = await searchTaxiFrontBack(searchParams, {
             access: noFromStopInRange,
             egress: noToStopInRange,
         })
+        taxiTripPatterns = taxiResults.tripPatterns
         queries = [...taxiResults.queries]
     }
 
-    let tripPatterns = response
+    let tripPatterns = regularTripPatterns
         .filter(isValidTransitAlternative)
         // No, this hack doesn't feel good. But we get wrong data from the backend and
         // customers keep getting stuck on the wrong platform (31st of May 2021)
@@ -576,8 +582,6 @@ export async function searchTransit(
         ? getNextSearchDateFromMetadata(metadata, arriveBy)
         : undefined
 
-    // TODO: Why does not TypeScript say that this is possibly undefined?
-    // TODO: Kanskje skru på ts-config undefined her?
     const flexibleTripPattern = flexibleResults.tripPatterns[0]
     const hasFlexibleResultsOnly = flexibleTripPattern && !tripPatterns.length
     if (hasFlexibleResultsOnly) {
@@ -598,9 +602,7 @@ export async function searchTransit(
     }
 
     tripPatterns = [
-        ...(taxiResults?.tripPatterns || []),
-        // TODO: Denne kan risikere å ikke inkludere flexibleTripPattern.
-        // MEN hasFlexibleTripPattern vil fortsatt returnere true. Er ikke det litt rart?
+        ...taxiTripPatterns,
         ...combineAndSortFlexibleAndTransitTripPatterns(
             tripPatterns,
             nextSearchDateFromMetadata,
@@ -613,7 +615,6 @@ export async function searchTransit(
         return {
             tripPatterns,
             metadata,
-            hasFlexibleTripPattern: Boolean(flexibleTripPattern), // TODO: Sjekk om dette er legacy og om vi kan fjerne.
             queries,
         }
     }
@@ -628,15 +629,19 @@ export async function searchTransit(
     )
 }
 
-export type NonTransitMode = 'foot' | 'bicycle' | 'car' | 'bike_rental'
+export type NonTransitMode =
+    | StreetMode.FOOT
+    | StreetMode.BICYCLE
+    | StreetMode.CAR
+    | StreetMode.BIKE_RENTAL
 
 export async function searchNonTransit(
     params: SearchParams,
     modes: NonTransitMode[] = [
-        LegMode.FOOT,
-        LegMode.BICYCLE,
-        LegMode.CAR,
-        'bike_rental',
+        StreetMode.FOOT,
+        StreetMode.BICYCLE,
+        StreetMode.CAR,
+        StreetMode.BIKE_RENTAL,
     ],
 ): Promise<{
     tripPatterns: NonTransitTripPatterns
@@ -647,7 +652,7 @@ export async function searchNonTransit(
             const getTripPatternsParams = {
                 ...params,
                 limit: 1,
-                allowBikeRental: mode === 'bike_rental',
+                allowBikeRental: mode === StreetMode.BIKE_RENTAL,
                 modes: {
                     directMode: mode,
                     transportModes: [],
@@ -665,7 +670,7 @@ export async function searchNonTransit(
 
     return results.reduce(
         (acc, { mode, tripPattern, query }) => {
-            const m = mode === 'bike_rental' ? 'bicycle_rent' : mode
+            const m = mode === StreetMode.BIKE_RENTAL ? 'bicycle_rent' : mode
             return {
                 tripPatterns: {
                     ...acc.tripPatterns,

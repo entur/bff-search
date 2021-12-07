@@ -3,17 +3,18 @@ import { uniq } from '../../utils/array'
 import { SearchFilter } from '../../types'
 import { ALL_BUS_SUBMODES, ALL_RAIL_SUBMODES } from '../../constants'
 
-export type StreetMode =
-    | 'foot'
-    | 'bicycle'
-    | 'bike_park'
-    | 'bike_rental'
-    | 'car'
-    | 'car_park'
-    | 'taxi'
-    | 'car_rental'
-    | 'car_pickup'
-    | 'flexible'
+export declare enum StreetMode {
+    FOOT = 'foot',
+    BICYCLE = 'bicycle',
+    BIKE_PARK = 'bike_park',
+    BIKE_RENTAL = 'bike_rental',
+    CAR = 'car',
+    CAR_PARK = 'car_park',
+    TAXI = 'taxi',
+    CAR_RENTAL = 'car_rental',
+    CAR_PICKUP = 'car_pickup',
+    FLEXIBLE = 'flexible',
+}
 
 export interface Mode {
     transportMode: TransportMode
@@ -28,8 +29,8 @@ export interface Modes {
 }
 
 export const DEFAULT_MODES: Modes = {
-    accessMode: 'foot',
-    egressMode: 'foot',
+    accessMode: StreetMode.FOOT,
+    egressMode: StreetMode.FOOT,
     transportModes: [
         { transportMode: TransportMode.BUS },
         { transportMode: TransportMode.TRAM },
