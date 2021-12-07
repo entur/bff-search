@@ -35,7 +35,8 @@ export interface Metadata {
 
 export interface TransitTripPatterns {
     tripPatterns: TripPattern[]
-    hasFlexibleTripPattern: boolean
+    // TODO 7/12-21: Only used by OTP1, and no client uses it anymore. Can be removed once OTP1 is removed
+    hasFlexibleTripPattern?: boolean
     queries: GraphqlQuery[]
     metadata?: Metadata
     nextSearchParams?: SearchParams
