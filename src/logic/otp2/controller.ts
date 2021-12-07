@@ -269,15 +269,15 @@ function getNextSearchDateFromMetadata(
 }
 
 function combineAndSortFlexibleAndTransitTripPatterns(
-    tripPatterns: Otp2TripPattern[],
-    nextDateTime?: Date,
+    regularTripPatterns: Otp2TripPattern[],
     flexibleTripPattern?: Otp2TripPattern,
+    nextDateTime?: Date,
     arriveBy = false,
 ): Otp2TripPattern[] {
-    if (!flexibleTripPattern) return tripPatterns
+    if (!flexibleTripPattern) return regularTripPatterns
 
     const sortedTripPatterns = sortTripPatternsByExpectedTime(
-        [flexibleTripPattern, ...tripPatterns],
+        [flexibleTripPattern, ...regularTripPatterns],
         arriveBy,
     )
 
@@ -290,7 +290,7 @@ function combineAndSortFlexibleAndTransitTripPatterns(
         : parseISO(flexibleTripPattern.expectedStartTime) > nextDateTime
 
     if (flexIsOutsideTransitSearchWindowUsed) {
-        return tripPatterns
+        return regularTripPatterns
     }
 
     return sortedTripPatterns
@@ -325,9 +325,9 @@ async function searchBeforeFlexible(
         nextSearchParams,
     )
 
-    const tripPatterns = transitResultsBeforeFlexible.filter(
-        isValidTransitAlternative,
-    )
+    const tripPatterns = transitResultsBeforeFlexible
+        .filter(isValidTransitAlternative)
+        .map(replaceQuay1ForOsloSWithUnknown)
 
     const queries = [getTripPatternsQuery(nextSearchParams)]
     return {
@@ -350,8 +350,6 @@ export async function searchTransitUntilMaxRetries(
 
     const tripPatterns = response
         .filter(isValidTransitAlternative)
-        // No, this hack doesn't feel good. But we get wrong data from the backend and
-        // customers keep getting stuck on the wrong platform (31st of May 2021)
         .map(replaceQuay1ForOsloSWithUnknown)
 
     if (tripPatterns.length) {
@@ -536,7 +534,7 @@ export async function searchTransit(
     // the second is a regular search.
     const [
         flexibleResults,
-        [regularTripPatterns, initialMetadata, routingErrors],
+        [regularTripPatternsUnfiltered, initialMetadata, routingErrors],
     ] = await Promise.all([
         searchFlexible(searchParams),
         getTripPatterns(getTripPatternsParams),
@@ -572,10 +570,8 @@ export async function searchTransit(
         queries = [...taxiResults.queries]
     }
 
-    let tripPatterns = regularTripPatterns
+    let regularTripPatterns = regularTripPatternsUnfiltered
         .filter(isValidTransitAlternative)
-        // No, this hack doesn't feel good. But we get wrong data from the backend and
-        // customers keep getting stuck on the wrong platform (31st of May 2021)
         .map(replaceQuay1ForOsloSWithUnknown)
 
     const nextSearchDateFromMetadata = metadata
@@ -583,7 +579,8 @@ export async function searchTransit(
         : undefined
 
     const flexibleTripPattern = flexibleResults.tripPatterns[0]
-    const hasFlexibleResultsOnly = flexibleTripPattern && !tripPatterns.length
+    const hasFlexibleResultsOnly =
+        flexibleTripPattern && !regularTripPatterns.length
     if (hasFlexibleResultsOnly) {
         // Flexible may return results in the future that are outside the original search window. There may still
         // exist normal transport in the time between the search window end and the first suggested flexible result,
@@ -596,17 +593,17 @@ export async function searchTransit(
             flexibleTripPattern,
             getTripPatternsParams,
         )
-        tripPatterns = beforeFlexibleResult.tripPatterns
+        regularTripPatterns = beforeFlexibleResult.tripPatterns
         metadata = beforeFlexibleResult.metadata
         queries = [...queries, ...beforeFlexibleResult.queries]
     }
 
-    tripPatterns = [
+    const tripPatterns = [
         ...taxiTripPatterns,
         ...combineAndSortFlexibleAndTransitTripPatterns(
-            tripPatterns,
-            nextSearchDateFromMetadata,
+            regularTripPatterns,
             flexibleTripPattern,
+            nextSearchDateFromMetadata,
             arriveBy,
         ),
     ]

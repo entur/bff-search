@@ -29,6 +29,8 @@ const replaceQuay1ForOsloSInLeg = (leg: Leg): Leg => {
     }
 }
 
+// This is a hack and it doesn't feel good. We get wrong data from the backend and
+// customers keep getting stuck on the wrong platform (31st of May 2021)
 export function replaceQuay1ForOsloSWithUnknown<T extends TripPattern>(
     tripPattern: T,
 ): T {
