@@ -210,7 +210,7 @@ export function legMapper(leg: Leg): Leg {
 }
 
 async function getTripPatterns(
-    params: any,
+    params: Otp2GetTripPatternParams,
 ): Promise<[Otp2TripPattern[], Metadata | undefined, RoutingError[]]> {
     const res = await sdk.queryJourneyPlanner<{
         trip: {
@@ -394,7 +394,9 @@ async function searchTransitUntilMaxRetries(
         ...prevQueries,
         getTripPatternsQuery(
             nextSearchParams,
-            `Search again ${previousMetadata ? 'with' : 'without'} metadata`,
+            `Search again (${prevQueries.length + 1}) ${
+                previousMetadata ? 'with' : 'without'
+            } metadata`,
         ),
     ]
 
@@ -420,8 +422,7 @@ async function searchTransitUntilMaxRetries(
     // limited by a set number of days, and each query spans a full day, as we
     // have no information about the next search window to use.
     const shouldSearchAgain =
-        (metadata && prevQueries.length <= 15) ||
-        (!metadata && daysSearched < 7)
+        (metadata && queries.length <= 15) || (!metadata && daysSearched < 7)
     if (shouldSearchAgain) {
         return searchTransitUntilMaxRetries(
             initialSearchDate,
@@ -615,7 +616,7 @@ export async function searchTransit(
             egress: noToStopInRange,
         })
         taxiTripPatterns = taxiResults.tripPatterns
-        queries = [...taxiResults.queries]
+        queries = [...queries, ...taxiResults.queries]
     }
 
     // Flexible may return results in the future that are outside the
@@ -663,11 +664,13 @@ export async function searchTransit(
     // Searching for normal transport options again will not suddenly make new
     // stops magically appear, so we abort further searching.
     if (!noStopsInRange) {
+        /*
         return {
             tripPatterns: [],
             metadata: undefined,
             queries,
         }
+        */
     }
 
     // Try again without taxi and flex searches until we either find something
