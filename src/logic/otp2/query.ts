@@ -253,6 +253,7 @@ fragment serviceJourneyFields on ServiceJourney {
 fragment interchangeFields on Interchange {
     guaranteed
     staySeated
+    maximumWaitTime
     fromServiceJourney {
         id
     }
