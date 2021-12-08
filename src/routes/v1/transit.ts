@@ -91,7 +91,7 @@ router.post('/', async (req, res, next) => {
 
         const params = cursorData?.params || getParams(req.body)
         const extraHeaders = getHeadersFromClient(req)
-        const clientName = extraHeaders['ET-Client-Name']
+        const clientName = extraHeaders['ET-Client-Name'] || 'Unknown client'
 
         if (cursorData) {
             // Restrict flex results only to the initial search
