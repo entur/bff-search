@@ -28,7 +28,7 @@ import { filterModesAndSubModes } from '../../utils/modes'
 
 import { ENVIRONMENT } from '../../config'
 import { logTransitAnalytics, logTransitResultStats } from '../../bigquery'
-import { RoutingErrorsError } from '../../errors'
+import { GetTripPatternError, RoutingErrorsError } from '../../errors'
 
 const SEARCH_PARAMS_EXPIRE_IN_SECONDS = 2 * 60 * 60 // two hours
 
@@ -194,6 +194,11 @@ router.post('/', async (req, res, next) => {
                 hasFlexibleTripPattern: false,
                 queries: mapQueries(error.getQueries(), useOtp2),
                 routingErrors: error.getRoutingErrors(),
+            })
+        } else if (error instanceof GetTripPatternError) {
+            return res.status(500).json({
+                tripPatterns: [],
+                queries: mapQueries([error.getQuery()], useOtp2),
             })
         }
         next(error)

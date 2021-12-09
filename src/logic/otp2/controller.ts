@@ -32,7 +32,7 @@ import { parseLeg } from '../../utils/leg'
 import { replaceQuay1ForOsloSWithUnknown } from '../../utils/osloSTrack1Replacer'
 
 import { TRANSIT_HOST_OTP2 } from '../../config'
-import { RoutingErrorsError } from '../../errors'
+import { GetTripPatternError, RoutingErrorsError } from '../../errors'
 
 import JOURNEY_PLANNER_QUERY from './query'
 import { filterModesAndSubModes, Mode } from './modes'
@@ -220,22 +220,26 @@ export function legMapper(leg: Leg): Leg {
 async function getTripPatterns(
     params: any,
 ): Promise<[Otp2TripPattern[], Metadata | undefined, RoutingError[]]> {
-    const res = await sdk.queryJourneyPlanner<{
-        trip: {
-            metadata: Metadata
-            tripPatterns: any[]
-            routingErrors: RoutingError[]
-        }
-    }>(JOURNEY_PLANNER_QUERY, getTripPatternsVariables(params))
+    const query = getTripPatternsQuery(params)
+    let res
+    try {
+        res = await sdk.queryJourneyPlanner<{
+            trip: {
+                metadata: Metadata
+                tripPatterns: any[]
+                routingErrors: RoutingError[]
+            }
+        }>(JOURNEY_PLANNER_QUERY, getTripPatternsVariables(params))
+    } catch (error) {
+        throw new GetTripPatternError(error, query)
+    }
 
     const { metadata, routingErrors } = res.trip
 
     if (
         routingErrors.some(({ code }) => HOPELESS_ROUTING_ERRORS.includes(code))
     ) {
-        throw new RoutingErrorsError(routingErrors, [
-            getTripPatternsQuery(params),
-        ])
+        throw new RoutingErrorsError(routingErrors, [query])
     }
 
     const parse = createParseTripPattern()
