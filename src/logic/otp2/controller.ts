@@ -609,7 +609,7 @@ export async function searchTransit(
     const noStopsInRangeErrors = routingErrors.filter(
         ({ code }) => code === RoutingErrorCode.noStopsInRange,
     )
-    const hasStopsInRange = noStopsInRangeErrors.length > 0
+    const hasStopsInRange = noStopsInRangeErrors.length === 0
     let taxiTripPatterns: Otp2TripPattern[] = []
     if (!hasStopsInRange) {
         const noFromStopInRange = noStopsInRangeErrors.some(
