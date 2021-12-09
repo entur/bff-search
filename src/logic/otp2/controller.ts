@@ -57,7 +57,7 @@ interface Otp2TripPattern extends TripPattern {
 }
 
 interface AdditionalOtp2TripPatternParams {
-    // This is found on TripPatternParams too, but in our case it
+    // searchDate is found on TripPatternParams too, but in our case it
     // is never undefined.
     searchDate: Date
     searchWindow?: number
@@ -631,7 +631,7 @@ export async function searchTransit(
     const flexibleTripPattern = flexibleResults?.tripPatterns[0]
     const hasFlexibleResultsOnly =
         flexibleTripPattern && !regularTripPatterns.length
-    if (hasFlexibleResultsOnly && !noStopsInRange) {
+    if (hasFlexibleResultsOnly) {
         const beforeFlexibleResult = await searchBeforeFlexible(
             nextSearchDateFromMetadata || searchDate,
             arriveBy,
@@ -659,18 +659,6 @@ export async function searchTransit(
             metadata,
             queries,
         }
-    }
-
-    // Searching for normal transport options again will not suddenly make new
-    // stops magically appear, so we abort further searching.
-    if (!noStopsInRange) {
-        /*
-        return {
-            tripPatterns: [],
-            metadata: undefined,
-            queries,
-        }
-        */
     }
 
     // Try again without taxi and flex searches until we either find something
