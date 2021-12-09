@@ -601,9 +601,9 @@ export async function searchTransit(
     const noStopsInRangeErrors = routingErrors.filter(
         ({ code }) => code === RoutingErrorCode.noStopsInRange,
     )
-    const noStopsInRange = noStopsInRangeErrors.length > 0
+    const hasStopsInRange = noStopsInRangeErrors.length > 0
     let taxiTripPatterns: Otp2TripPattern[] = []
-    if (noStopsInRange) {
+    if (!hasStopsInRange) {
         const noFromStopInRange = noStopsInRangeErrors.some(
             (e) => e.inputField === 'from',
         )
@@ -631,7 +631,7 @@ export async function searchTransit(
     const flexibleTripPattern = flexibleResults?.tripPatterns[0]
     const hasFlexibleResultsOnly =
         flexibleTripPattern && !regularTripPatterns.length
-    if (hasFlexibleResultsOnly) {
+    if (hasFlexibleResultsOnly && hasStopsInRange) {
         const beforeFlexibleResult = await searchBeforeFlexible(
             nextSearchDateFromMetadata || searchDate,
             arriveBy,
@@ -657,6 +657,16 @@ export async function searchTransit(
         return {
             tripPatterns,
             metadata,
+            queries,
+        }
+    }
+
+    // Searching for normal transport options again will not suddenly make new
+    // stops magically appear, so we abort further searching.
+    if (!hasStopsInRange) {
+        return {
+            tripPatterns: [],
+            metadata: undefined,
             queries,
         }
     }
