@@ -25,6 +25,7 @@ export interface CursorData {
 export interface GraphqlQuery {
     query: string
     variables?: Record<string, unknown>
+    comment?: string
 }
 
 export interface Metadata {

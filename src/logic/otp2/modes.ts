@@ -3,7 +3,7 @@ import { uniq } from '../../utils/array'
 import { SearchFilter } from '../../types'
 import { ALL_BUS_SUBMODES, ALL_RAIL_SUBMODES } from '../../constants'
 
-export declare enum StreetMode {
+export enum StreetMode {
     FOOT = 'foot',
     BICYCLE = 'bicycle',
     BIKE_PARK = 'bike_park',

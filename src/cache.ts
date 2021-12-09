@@ -35,7 +35,7 @@ export async function get<T>(
 ): Promise<T | null> {
     const entry = await hgetall(key)
 
-    if (entry === null) {
+    if (entry === null || entry.data === undefined) {
         return null
     }
     await expire(key, expireInSeconds)
