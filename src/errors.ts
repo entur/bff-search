@@ -34,6 +34,26 @@ export class RoutingErrorsError extends Error {
     }
 }
 
+export class GetTripPatternError extends Error {
+    private error: Error
+    private query: GraphqlQuery
+
+    public constructor(error: Error, query: GraphqlQuery) {
+        super()
+        this.message = 'Error while searching for trip patterns'
+        this.error = error
+        this.query = query
+    }
+
+    public getError(): Error {
+        return this.error
+    }
+
+    public getQuery(): GraphqlQuery {
+        return this.query
+    }
+}
+
 export class NotFoundError extends Error {}
 export class InvalidArgumentError extends Error {}
 export class JourneyPlannerError extends Error {}
