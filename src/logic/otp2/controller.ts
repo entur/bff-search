@@ -145,8 +145,8 @@ function getTripPatternsQuery(
         query: JOURNEY_PLANNER_QUERY,
         variables: {
             ...getTripPatternsVariables(params),
-            comment,
         },
+        comment,
     }
 }
 
