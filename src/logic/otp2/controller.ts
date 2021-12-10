@@ -191,12 +191,13 @@ function getNotices(leg: Leg): Notice[] {
 }
 
 function authorityMapper(authority?: Authority): Authority | undefined {
-    if (!authority) return undefined
+    const codeSpace = authority?.id.split(':')[0]
+    if (!authority || !codeSpace) return undefined
 
     return {
         id: authority.id,
         name: authority.name,
-        codeSpace: authority.id.split(':')[0] || '',
+        codeSpace,
         url: authority.url,
     }
 }
