@@ -576,20 +576,18 @@ export async function searchTransit(
     // search.
     const [
         flexibleResults,
-        [regularTripPatternsUnfiltered, initialMetadata, routingErrors],
+        [regularTripPatternsUnfiltered, metadata, routingErrors],
     ] = await Promise.all([
         isFirstSearchIteration ? searchFlexible(searchParams) : undefined,
         getTripPatterns(getTripPatternsParams),
     ])
 
-    let queries = [
+    const queries = [
         ...(flexibleResults?.queries || []),
         getTripPatternsQuery(getTripPatternsParams, 'First regular search'),
     ]
 
-    let metadata = initialMetadata
-
-    let regularTripPatterns = regularTripPatternsUnfiltered
+    const regularTripPatterns = regularTripPatternsUnfiltered
         .filter(isValidTransitAlternative)
         .map(replaceQuay1ForOsloSWithUnknown)
 
@@ -598,13 +596,56 @@ export async function searchTransit(
 
     // If we have any noStopsInRange errors, we couldn't find a means of
     // transport from where the traveler wants to start or end the trip. Try to
-    // find an option using taxi for those parts instead.
+    // find an option using taxi for those parts instead later.
     const noStopsInRangeErrors = routingErrors.filter(
         ({ code }) => code === RoutingErrorCode.noStopsInRange,
     )
     const hasStopsInRange = noStopsInRangeErrors.length === 0
-    let taxiTripPatterns: Otp2TripPattern[] = []
+
+    // Flexible may return results in the future that are outside the
+    // original search window. There may still exist normal transport in the
+    // time between the search window end and the first suggested flexible
+    // result. For example, if  the search window ends on midnight Friday, and
+    // the first suggested flexible result is on Monday morning, we can probably
+    // still find a normal transport option on Saturday.
+
+    // To find these so we do a new search if we found no regular trip patterns
+    // within the original search window. As we have at least one trip pattern
+    // (the flexible result) we can return without the taxi.
+    const flexibleTripPattern = flexibleResults?.tripPatterns[0]
+    const hasFlexibleResultsOnly =
+        flexibleTripPattern && !regularTripPatterns.length
+    if (hasFlexibleResultsOnly && hasStopsInRange) {
+        const beforeFlexibleResult = await searchBeforeFlexible(
+            nextSearchDateFromMetadata || searchDate,
+            arriveBy,
+            flexibleTripPattern,
+            getTripPatternsParams,
+        )
+
+        // TODO: Verify this!
+        // This should return at least one pattern
+        const combinedTripPatterns =
+            combineAndSortFlexibleAndTransitTripPatterns(
+                beforeFlexibleResult.tripPatterns,
+                flexibleTripPattern,
+                nextSearchDateFromMetadata,
+                arriveBy,
+            )
+        return {
+            tripPatterns: combinedTripPatterns,
+            metadata: beforeFlexibleResult.metadata,
+            queries: [...queries, ...beforeFlexibleResult.queries],
+        }
+    }
+
+    // TODO: This also means that no taxi is ever suggested if we have a flexible
+    // result, even if it is outside the search window.
+    // TODO: To be clear, there may be flexi patterns even if the normal
+    // search has no stops in range.
     if (!hasStopsInRange) {
+        // In this case we won't have regular trip patterns either, but
+        // we may have flexible.
         const noFromStopInRange = noStopsInRangeErrors.some(
             (e) => e.inputField === 'from',
         )
@@ -616,58 +657,30 @@ export async function searchTransit(
             access: noFromStopInRange,
             egress: noToStopInRange,
         })
-        taxiTripPatterns = taxiResults.tripPatterns
-        queries = [...queries, ...taxiResults.queries]
-    }
 
-    // Flexible may return results in the future that are outside the
-    // original search window. There may still exist normal transport in the
-    // time between the search window end and the first suggested flexible
-    // result. For example, if  the search window ends on midnight Friday, and
-    // the first suggested flexible result is on Monday morning, we can probably
-    // still find a normal transport option on Saturday.
+        // We may have a flexible trip pattern but we don't have a regular one.
+        const combinedTripPatterns = [
+            ...taxiResults.tripPatterns,
+            ...(flexibleResults?.tripPatterns || []),
+        ]
 
-    // To find these so we do a new search if we found no regular trip patterns
-    // within the original search window.
-    const flexibleTripPattern = flexibleResults?.tripPatterns[0]
-    const hasFlexibleResultsOnly =
-        flexibleTripPattern && !regularTripPatterns.length
-    if (hasFlexibleResultsOnly && hasStopsInRange) {
-        const beforeFlexibleResult = await searchBeforeFlexible(
-            nextSearchDateFromMetadata || searchDate,
-            arriveBy,
-            flexibleTripPattern,
-            getTripPatternsParams,
-        )
-        regularTripPatterns = beforeFlexibleResult.tripPatterns
-        metadata = beforeFlexibleResult.metadata
-        queries = [...queries, ...beforeFlexibleResult.queries]
-    }
+        const combinedQueries = [...queries, ...taxiResults.queries]
 
-    const tripPatterns = [
-        ...taxiTripPatterns,
-        ...combineAndSortFlexibleAndTransitTripPatterns(
-            regularTripPatterns,
-            flexibleTripPattern,
-            nextSearchDateFromMetadata,
-            arriveBy,
-        ),
-    ]
-
-    if (tripPatterns.length) {
+        // Searching for normal transport options again will not suddenly make
+        // new stops magically appear, so we stop further searching even
+        // if we have no trip patterns.
         return {
-            tripPatterns,
+            tripPatterns: combinedTripPatterns,
             metadata,
-            queries,
+            queries: combinedQueries,
         }
     }
 
-    // Searching for normal transport options again will not suddenly make new
-    // stops magically appear, so we abort further searching.
-    if (!hasStopsInRange) {
+    // TODO: Må slå sammen første søk her!
+    if (flexibleResults?.tripPatterns.length) {
         return {
-            tripPatterns: [],
-            metadata: undefined,
+            tripPatterns: flexibleResults?.tripPatterns,
+            metadata,
             queries,
         }
     }
