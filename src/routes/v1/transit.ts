@@ -114,8 +114,15 @@ router.post('/', async (req, res, next) => {
         stopTrace = trace(
             cursorData ? 'searchTransit' : 'searchTransitWithTaxi',
         )
-        const { tripPatterns, metadata, hasFlexibleTripPattern, queries } =
-            await searchMethod(params, extraHeaders)
+
+        // OTP2 does not return hasFlexibleTripPattern, but we still have
+        // to return it because old versions of the app require it for logging
+        const {
+            tripPatterns,
+            metadata,
+            hasFlexibleTripPattern = false,
+            queries,
+        } = await searchMethod(params, extraHeaders)
         stopTrace()
 
         if (!cursorData) {
