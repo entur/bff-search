@@ -13,7 +13,9 @@ import {
     differenceInDays,
     differenceInMinutes,
     endOfDay,
+    isEqual,
     parseISO,
+    setMilliseconds,
     startOfDay,
     subDays,
 } from 'date-fns'
@@ -41,6 +43,7 @@ import {
     Modes,
     StreetMode,
 } from './modes'
+import logger from '../../logger'
 
 const sdk = createEnturService({
     clientName: 'entur-search',
@@ -576,19 +579,42 @@ export async function searchTransit(
 
     // initial search date may differ from search date if this is a
     // continuation search using a cursor.
-    const isFirstSearchIteration = initialSearchDate === searchDate
+    const isFirstSearchIteration = isEqual(
+        setMilliseconds(initialSearchDate, 0),
+        setMilliseconds(searchDate, 0),
+    )
 
     // We do two searches in parallel here to speed things up a bit. One is a
     // flexible search where we explicitly look for trips that may include means
     // of transport that has to be booked in advance the second is a regular
     // search.
+    let getTripPatternsError
     const [
         flexibleResults,
-        [regularTripPatternsUnfiltered, initialMetadata, routingErrors],
+        [regularTripPatternsUnfiltered = [], initialMetadata, routingErrors],
     ] = await Promise.all([
         isFirstSearchIteration ? searchFlexible(searchParams) : undefined,
-        getTripPatterns(getTripPatternsParams),
+        getTripPatterns(getTripPatternsParams).catch((error) => {
+            getTripPatternsError = error
+            return []
+        }),
     ])
+
+    // This is not particularly elegant, but in order to run the flexible and
+    // 'normal' searches in parallel without errors in the normal search
+    // blocking the flex search, we have to store the error and check it
+    // later.
+    if (getTripPatternsError) {
+        if (flexibleResults?.tripPatterns?.length) {
+            return {
+                tripPatterns: flexibleResults.tripPatterns,
+                metadata: undefined,
+                queries: flexibleResults.queries,
+            }
+        } else {
+            throw getTripPatternsError
+        }
+    }
 
     let queries = [
         ...(flexibleResults?.queries || []),
