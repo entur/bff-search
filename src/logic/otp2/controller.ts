@@ -505,16 +505,7 @@ async function searchFlexible(searchParams: Otp2GetTripPatternParams): Promise<{
         getTripPatternsQuery(getTripPatternsParams, 'Search flexible'),
     ]
 
-    const [returnedTripPatterns, , routingErrors] = await getTripPatterns(
-        getTripPatternsParams,
-    )
-
-    if (hasHopelessRoutingError(routingErrors)) {
-        return {
-            tripPatterns: [],
-            queries,
-        }
-    }
+    const [returnedTripPatterns] = await getTripPatterns(getTripPatternsParams)
 
     const tripPatterns = returnedTripPatterns.filter(({ legs }) => {
         const isFootOnly = legs.length === 1 && legs[0]?.mode === LegMode.FOOT
@@ -751,9 +742,7 @@ export async function searchNonTransit(
                 },
             }
 
-            const [result] = await getAndVerifyTripPatterns(
-                getTripPatternsParams,
-            )
+            const [result] = await getTripPatterns(getTripPatternsParams)
             const query = getTripPatternsQuery(
                 getTripPatternsParams,
                 'Search non transit',
