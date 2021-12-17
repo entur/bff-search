@@ -210,6 +210,33 @@ export function legMapper(leg: Leg): Leg {
     }
 }
 
+function hasHopelessRoutingError(routingErrors: RoutingError[]): boolean {
+    return routingErrors.some(({ code }) =>
+        HOPELESS_ROUTING_ERRORS.includes(code),
+    )
+}
+
+function verifyRoutingErrors(
+    routingErrors: RoutingError[],
+    params: Otp2GetTripPatternParams,
+): void {
+    if (hasHopelessRoutingError(routingErrors)) {
+        throw new RoutingErrorsError(routingErrors, [
+            getTripPatternsQuery(params, 'Routing error'),
+        ])
+    }
+}
+
+async function getAndVerifyTripPatterns(
+    params: Otp2GetTripPatternParams,
+): Promise<[Otp2TripPattern[], Metadata | undefined, RoutingError[]]> {
+    const [tripPatterns, metadata, routingErrors] = await getTripPatterns(
+        params,
+    )
+    verifyRoutingErrors(routingErrors, params)
+    return [tripPatterns, metadata, routingErrors]
+}
+
 async function getTripPatterns(
     params: Otp2GetTripPatternParams,
 ): Promise<[Otp2TripPattern[], Metadata | undefined, RoutingError[]]> {
@@ -231,15 +258,6 @@ async function getTripPatterns(
     }
 
     const { metadata, routingErrors } = res.trip
-
-    if (
-        routingErrors.some(({ code }) => HOPELESS_ROUTING_ERRORS.includes(code))
-    ) {
-        throw new RoutingErrorsError(routingErrors, [
-            getTripPatternsQuery(params, 'Routing error'),
-        ])
-    }
-
     const parse = createParseTripPattern()
     return [
         (res.trip.tripPatterns || [])
@@ -339,9 +357,8 @@ async function searchBeforeFlexible(
         searchWindow,
     }
 
-    const [transitResultsBeforeFlexible, metadata] = await getTripPatterns(
-        nextSearchParams,
-    )
+    const [transitResultsBeforeFlexible, metadata] =
+        await getAndVerifyTripPatterns(nextSearchParams)
 
     const tripPatterns = transitResultsBeforeFlexible
         .filter(isValidTransitAlternative)
@@ -409,7 +426,10 @@ async function searchTransitUntilMaxRetries(
         ),
     ]
 
-    const [response, metadata] = await getTripPatterns(nextSearchParams)
+    const [response, metadata] = await getAndVerifyTripPatterns(
+        nextSearchParams,
+    )
+
     const tripPatterns = response
         .filter(isValidTransitAlternative)
         .map(replaceQuay1ForOsloSWithUnknown)
@@ -484,32 +504,26 @@ async function searchFlexible(searchParams: Otp2GetTripPatternParams): Promise<{
     const queries = [
         getTripPatternsQuery(getTripPatternsParams, 'Search flexible'),
     ]
-    try {
-        const [returnedTripPatterns] = await getTripPatterns(
-            getTripPatternsParams,
-        )
 
-        const tripPatterns = returnedTripPatterns.filter(({ legs }) => {
-            const isFootOnly =
-                legs.length === 1 && legs[0]?.mode === LegMode.FOOT
-            return !isFootOnly
-        })
+    const [returnedTripPatterns, , routingErrors] = await getTripPatterns(
+        getTripPatternsParams,
+    )
 
+    if (hasHopelessRoutingError(routingErrors)) {
         return {
-            tripPatterns,
+            tripPatterns: [],
             queries,
         }
-    } catch (error) {
-        // If we let a flexible search throw this error it will
-        // block the 'normal' search from completing and
-        // finding valid suggestions.
-        if (error instanceof RoutingErrorsError) {
-            return {
-                tripPatterns: [],
-                queries,
-            }
-        }
-        throw error
+    }
+
+    const tripPatterns = returnedTripPatterns.filter(({ legs }) => {
+        const isFootOnly = legs.length === 1 && legs[0]?.mode === LegMode.FOOT
+        return !isFootOnly
+    })
+
+    return {
+        tripPatterns,
+        queries,
     }
 }
 
@@ -539,7 +553,7 @@ async function searchTaxiFrontBack(
         numTripPatterns: egress && access ? 2 : 1,
     }
 
-    const [tripPatterns] = await getTripPatterns(getTripPatternsParams)
+    const [tripPatterns] = await getAndVerifyTripPatterns(getTripPatternsParams)
     const queries = [
         getTripPatternsQuery(getTripPatternsParams, 'Search taxi front back'),
     ]
@@ -576,7 +590,8 @@ export async function searchTransit(
 
     // initial search date may differ from search date if this is a
     // continuation search using a cursor.
-    const isFirstSearchIteration = initialSearchDate === searchDate
+    const isFirstSearchIteration =
+        differenceInMinutes(initialSearchDate, searchDate) < 1
 
     // We do two searches in parallel here to speed things up a bit. One is a
     // flexible search where we explicitly look for trips that may include means
@@ -594,6 +609,21 @@ export async function searchTransit(
         ...(flexibleResults?.queries || []),
         getTripPatternsQuery(getTripPatternsParams, 'First regular search'),
     ]
+
+    // If the normal search failed with a hopeless error, indicating we shouldn't
+    // continue with normal searches, we may still have a flexible result.
+    // If so, return that instead of aborting by throwing an exception
+    if (hasHopelessRoutingError(routingErrors)) {
+        if (flexibleResults?.tripPatterns?.length) {
+            return {
+                tripPatterns: flexibleResults.tripPatterns,
+                metadata: undefined,
+                queries,
+            }
+        } else {
+            throw new RoutingErrorsError(routingErrors, queries)
+        }
+    }
 
     let metadata = initialMetadata
 
@@ -721,7 +751,9 @@ export async function searchNonTransit(
                 },
             }
 
-            const [result] = await getTripPatterns(getTripPatternsParams)
+            const [result] = await getAndVerifyTripPatterns(
+                getTripPatternsParams,
+            )
             const query = getTripPatternsQuery(
                 getTripPatternsParams,
                 'Search non transit',
