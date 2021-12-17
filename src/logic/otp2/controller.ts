@@ -13,9 +13,7 @@ import {
     differenceInDays,
     differenceInMinutes,
     endOfDay,
-    isEqual,
     parseISO,
-    setMilliseconds,
     startOfDay,
     subDays,
 } from 'date-fns'
@@ -43,7 +41,6 @@ import {
     Modes,
     StreetMode,
 } from './modes'
-import logger from '../../logger'
 
 const sdk = createEnturService({
     clientName: 'entur-search',
@@ -579,10 +576,8 @@ export async function searchTransit(
 
     // initial search date may differ from search date if this is a
     // continuation search using a cursor.
-    const isFirstSearchIteration = isEqual(
-        setMilliseconds(initialSearchDate, 0),
-        setMilliseconds(searchDate, 0),
-    )
+    const isFirstSearchIteration =
+        differenceInMinutes(initialSearchDate, searchDate) < 1
 
     // We do two searches in parallel here to speed things up a bit. One is a
     // flexible search where we explicitly look for trips that may include means
@@ -609,7 +604,13 @@ export async function searchTransit(
             return {
                 tripPatterns: flexibleResults.tripPatterns,
                 metadata: undefined,
-                queries: flexibleResults.queries,
+                queries: [
+                    ...flexibleResults.queries,
+                    getTripPatternsQuery(
+                        getTripPatternsParams,
+                        'Backend error',
+                    ),
+                ],
             }
         } else {
             throw getTripPatternsError
