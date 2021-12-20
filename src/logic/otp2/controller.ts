@@ -62,6 +62,7 @@ interface AdditionalOtp2TripPatternParams {
     searchDate: Date
     searchWindow?: number
     modes: Modes
+    numTripPatterns?: number
 }
 
 // function signature type, to match signature for OTP1 searchTransit.
@@ -69,7 +70,7 @@ type Otp2SearchParams = Omit<SearchParams, 'modes'> &
     AdditionalOtp2TripPatternParams
 
 // GetTripPatternsParams is an OTP1 type, we need to tweak it to match OTP2
-type Otp2GetTripPatternParams = Omit<GetTripPatternsParams, 'modes'> &
+type Otp2GetTripPatternParams = Omit<GetTripPatternsParams, 'modes' | 'limit'> &
     AdditionalOtp2TripPatternParams
 
 interface TransitTripPatterns {
@@ -239,6 +240,7 @@ async function getAndVerifyTripPatterns(
 
 async function getTripPatterns(
     params: Otp2GetTripPatternParams,
+    extraHeaders?: Record<string, string>,
 ): Promise<[Otp2TripPattern[], Metadata | undefined, RoutingError[]]> {
     let res
     try {
@@ -249,7 +251,9 @@ async function getTripPatterns(
                 tripPatterns: any[]
                 routingErrors: RoutingError[]
             }
-        }>(JOURNEY_PLANNER_QUERY, getTripPatternsVariables(params))
+        }>(JOURNEY_PLANNER_QUERY, getTripPatternsVariables(params), {
+            headers: extraHeaders,
+        })
     } catch (error) {
         throw new GetTripPatternError(
             error,
@@ -492,7 +496,7 @@ async function searchFlexible(searchParams: Otp2GetTripPatternParams): Promise<{
     tripPatterns: Otp2TripPattern[]
     queries: GraphqlQuery[]
 }> {
-    const getTripPatternsParams = {
+    const getTripPatternsParams: Otp2GetTripPatternParams = {
         ...searchParams,
         modes: {
             transportModes: [],
@@ -719,7 +723,8 @@ export type NonTransitMode =
     | StreetMode.BIKE_RENTAL
 
 export async function searchNonTransit(
-    params: SearchParams,
+    params: Pick<SearchParams, 'from' | 'to' | 'searchDate'>,
+    extraHeaders: Record<string, string>,
     modes: NonTransitMode[] = [
         StreetMode.FOOT,
         StreetMode.BICYCLE,
@@ -732,25 +737,47 @@ export async function searchNonTransit(
 }> {
     const results = await Promise.all(
         modes.map(async (mode) => {
-            const getTripPatternsParams = {
+            const getTripPatternsParams: Otp2GetTripPatternParams = {
                 ...params,
-                limit: 1,
-                allowBikeRental: mode === StreetMode.BIKE_RENTAL,
+                numTripPatterns: 1,
                 modes: {
                     directMode: mode,
                     transportModes: [],
                 },
             }
 
-            const [result] = await getTripPatterns(getTripPatternsParams)
+            const [result] = await getTripPatterns(
+                getTripPatternsParams,
+                extraHeaders,
+            )
+
+            /**
+             * Although we specify a specific mode in the query params, we
+             * might still get foot-only trip patterns, since OTP will fall
+             * back to this if there are no possible results for the given
+             * mode. Especially relevant for bike_rental.
+             */
+            const candidate = result.find(({ legs }) => {
+                const modeToCheck =
+                    mode === StreetMode.BIKE_RENTAL ? LegMode.BICYCLE : mode
+
+                const matchesMode = (leg: Leg): boolean =>
+                    leg.mode === modeToCheck
+
+                return (
+                    legs.some(matchesMode) &&
+                    legs.every(
+                        (leg) => leg.mode === LegMode.FOOT || matchesMode(leg),
+                    )
+                )
+            })
+
             const query = getTripPatternsQuery(
                 getTripPatternsParams,
                 'Search non transit',
             )
 
-            const tripPattern = result[0]
-
-            return { mode, tripPattern, query }
+            return { mode, tripPattern: candidate, query }
         }),
     )
 

@@ -2,11 +2,8 @@ import { Router, Request } from 'express'
 import { parseJSON } from 'date-fns'
 
 import { RawSearchParams, SearchParams } from '../../types'
-
 import { clean } from '../../utils/object'
-import { filterModesAndSubModes } from '../../utils/modes'
-
-import { searchNonTransit } from '../../logic/otp1'
+import { searchNonTransit } from '../../logic/otp2'
 
 const router = Router()
 
@@ -23,22 +20,17 @@ function getHeadersFromClient(req: Request): ExtraHeaders {
     })
 }
 
-function getParams(params: RawSearchParams): SearchParams {
+function getParams(
+    params: RawSearchParams,
+): Pick<SearchParams, 'from' | 'to' | 'searchDate'> {
     const searchDate = params.searchDate
         ? parseJSON(params.searchDate)
         : new Date()
-    const { filteredModes, subModesFilter, banned, whiteListed } =
-        filterModesAndSubModes(params.searchFilter)
 
     return {
-        ...params,
+        from: params.from,
+        to: params.to,
         searchDate,
-        initialSearchDate: searchDate,
-        modes: filteredModes,
-        transportSubmodes: subModesFilter,
-        banned,
-        whiteListed,
-        useFlex: true,
     }
 }
 
@@ -47,9 +39,9 @@ router.post('/', async (req, res, next) => {
         const params = getParams(req.body)
         const extraHeaders = getHeadersFromClient(req)
 
-        const tripPatterns = await searchNonTransit(params, extraHeaders)
+        const result = await searchNonTransit(params, extraHeaders)
 
-        res.json({ tripPatterns })
+        res.json(result)
     } catch (error) {
         next(error)
     }

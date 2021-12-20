@@ -1,4 +1,4 @@
-export { searchTransit } from './controller'
+export { searchTransit, searchNonTransit } from './controller'
 
 export { generateCursor } from './cursor'
 
