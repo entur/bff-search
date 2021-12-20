@@ -15,11 +15,8 @@ import { verifyPartnerToken } from '../../auth'
 
 import { RawSearchParams, SearchParams } from '../../types'
 
-import {
-    updateTripPattern,
-    getExpires,
-    getAlternativeTripPatterns,
-} from '../../logic/otp1'
+import { getAlternativeTripPatterns } from '../../logic/otp1'
+import { updateTripPattern, getExpires } from '../../logic/otp2'
 
 import { filterModesAndSubModes } from '../../utils/modes'
 import { uniq } from '../../utils/array'
