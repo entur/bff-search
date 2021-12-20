@@ -183,7 +183,7 @@ export async function searchTransit(
 
 type NonTransitMode = 'foot' | 'bicycle' | 'car' | 'bicycle_rent'
 
-export async function searchNonTransit(
+async function searchNonTransit(
     params: SearchParams,
     extraHeaders: { [key: string]: string },
     modes: NonTransitMode[] = [

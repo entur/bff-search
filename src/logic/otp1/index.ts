@@ -1,8 +1,4 @@
-export {
-    searchTransitWithTaxi,
-    searchTransit,
-    searchNonTransit,
-} from './controller'
+export { searchTransitWithTaxi, searchTransit } from './controller'
 export { updateTripPattern, getExpires } from './updateTrip'
 
 export { parseCursor, generateCursor } from './cursor'
