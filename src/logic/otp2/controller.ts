@@ -750,14 +750,34 @@ export async function searchNonTransit(
                 getTripPatternsParams,
                 extraHeaders,
             )
+
+            /**
+             * Although we specify a specific mode in the query params, we
+             * might still get foot-only trip patterns, since OTP will fall
+             * back to this if there are no possible results for the given
+             * mode. Especially relevant for bike_rental.
+             */
+            const candidate = result.find(({ legs }) => {
+                const modeToCheck =
+                    mode === StreetMode.BIKE_RENTAL ? LegMode.BICYCLE : mode
+
+                const matchesMode = (leg: Leg): boolean =>
+                    leg.mode === modeToCheck
+
+                return (
+                    legs.some(matchesMode) &&
+                    legs.every(
+                        (leg) => leg.mode === LegMode.FOOT || matchesMode(leg),
+                    )
+                )
+            })
+
             const query = getTripPatternsQuery(
                 getTripPatternsParams,
                 'Search non transit',
             )
 
-            const tripPattern = result[0]
-
-            return { mode, tripPattern, query }
+            return { mode, tripPattern: candidate, query }
         }),
     )
 
