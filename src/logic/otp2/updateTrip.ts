@@ -28,12 +28,12 @@ const sdk = createEnturService({
 })
 
 interface UpdatedEstimatedCall {
-    quay: {
+    quay?: {
         id: string
         name: string
         description: string
         publicCode: string
-        stopPlace: {
+        stopPlace?: {
             description?: string
         }
     }
@@ -125,7 +125,8 @@ function updatePlace(place: Place, updatedCall: UpdatedEstimatedCall): Place {
             publicCode,
             stopPlace: {
                 ...place.quay.stopPlace,
-                description: stopPlace.description,
+                description:
+                    stopPlace?.description || place.quay.stopPlace.description,
             },
         },
     }
