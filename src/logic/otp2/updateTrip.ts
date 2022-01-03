@@ -28,13 +28,12 @@ const sdk = createEnturService({
 })
 
 interface UpdatedEstimatedCall {
-    quay?: {
+    quay: {
         id: string
         name: string
-        timezone: string
         description: string
         publicCode: string
-        stopPlace?: {
+        stopPlace: {
             description?: string
         }
     }
@@ -66,7 +65,6 @@ async function getCallsForServiceJourney(
                 quay {
                     id
                     name
-                    timezone
                     description
                     publicCode
                     stopPlace {
@@ -127,8 +125,7 @@ function updatePlace(place: Place, updatedCall: UpdatedEstimatedCall): Place {
             publicCode,
             stopPlace: {
                 ...place.quay.stopPlace,
-                description:
-                    stopPlace?.description || place.quay.stopPlace.description,
+                description: stopPlace.description,
             },
         },
     }
@@ -276,12 +273,11 @@ function updateNonTransitLeg(
         if (!updatedCalls) return leg
 
         const { toCall } = updatedCalls
-        const { expectedDepartureTime: expectedStartTime, quay } = toCall
-        const timeZone = quay?.timezone
+        const { expectedArrivalTime: expectedStartTime } = toCall
 
         const expectedEndTime = toISOString(
             addSeconds(parseISO(expectedStartTime), duration),
-            { timeZone },
+            { timeZone: 'Europe/Oslo' },
         )
         return { ...leg, expectedStartTime, expectedEndTime }
     }
@@ -291,12 +287,11 @@ function updateNonTransitLeg(
         if (!updatedCalls) return leg
 
         const { fromCall } = updatedCalls
-        const { expectedArrivalTime: expectedEndTime, quay } = fromCall
-        const timeZone = quay?.timezone
+        const { expectedDepartureTime: expectedEndTime } = fromCall
 
         const expectedStartTime = toISOString(
             subSeconds(parseISO(expectedEndTime), duration),
-            { timeZone },
+            { timeZone: 'Europe/Oslo' },
         )
         return { ...leg, expectedStartTime, expectedEndTime }
     }
