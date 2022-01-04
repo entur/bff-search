@@ -67,7 +67,7 @@ function reqResLoggerMiddleware(
     const startTime = new Date()
     const { method, url } = req
 
-    logger.info(`Request ${req.method} ${req.url}`, {
+    logger.info(`Request ${method} ${url}`, {
         body: reqBodyMapper(req),
         headers: reqHeadersMapper(req),
         method,
@@ -85,7 +85,7 @@ function reqResLoggerMiddleware(
 
         let level = 'info'
         let response = undefined
-        let message = `Response ${res.statusCode} ${req.method} ${req.url}`
+        let message = `Response ${res.statusCode} ${method} ${url}`
 
         if (res.statusCode >= 400) {
             level = 'warning'
@@ -99,7 +99,7 @@ function reqResLoggerMiddleware(
                 }
 
                 if (response?.message) {
-                    message += ` – ${response?.message || ''}`
+                    message += ` - ${response?.message || ''}`
                 }
             }
         }
