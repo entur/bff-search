@@ -199,6 +199,7 @@ router.post('/', async (req, res, next) => {
                 routingErrors: error.getRoutingErrors(),
             })
         } else if (error instanceof GetTripPatternError) {
+            logger.error(error.message, error)
             return res.status(500).json({
                 tripPatterns: [],
                 queries: mapQueries([error.getQuery()], useOtp2),
