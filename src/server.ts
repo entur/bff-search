@@ -87,6 +87,11 @@ app.use(
             statusCode = 400
         }
 
+        logger.log({
+            ...error,
+            level: statusCode >= 500 ? 'error' : 'warning',
+        })
+
         res.status(statusCode).json({
             error: error.message,
             name,
