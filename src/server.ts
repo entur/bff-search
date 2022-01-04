@@ -73,7 +73,6 @@ app.use(
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         _2: express.NextFunction,
     ) => {
-        logger.error(error.message, error)
         const name = error.constructor?.name || 'Error'
         let statusCode = 500
         if (error instanceof TripPatternExpiredError) {
@@ -87,6 +86,11 @@ app.use(
         } else if (error instanceof InvalidArgumentError) {
             statusCode = 400
         }
+
+        logger.log({
+            ...error,
+            level: statusCode >= 500 ? 'error' : 'warning',
+        })
 
         res.status(statusCode).json({
             error: error.message,
