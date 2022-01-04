@@ -73,6 +73,7 @@ app.use(
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         _2: express.NextFunction,
     ) => {
+        logger.error(error.message, error)
         const name = error.constructor?.name || 'Error'
         let statusCode = 500
         if (error instanceof TripPatternExpiredError) {
