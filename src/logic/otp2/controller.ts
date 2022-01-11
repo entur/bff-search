@@ -38,7 +38,6 @@ import JOURNEY_PLANNER_QUERY from './query'
 import { filterModesAndSubModes, Mode } from './modes'
 
 const sdk = createEnturService({
-    clientName: 'entur-search',
     hosts: {
         journeyPlanner: TRANSIT_HOST_OTP2,
     },
