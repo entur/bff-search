@@ -1,7 +1,7 @@
 import { TransportMode, TransportSubmode } from '@entur/sdk'
 import { uniq } from '../../utils/array'
 import { SearchFilter } from '../../types'
-import { ALL_BUS_SUBMODES, ALL_RAIL_SUBMODES } from '../../constants'
+import { ALL_BUS_SUBMODES, ALL_RAIL_SUBMODES, ALL_WATER_SUBMODES, ALL_CAR_FERRY_SUBMODES } from '../../constants'
 
 export enum StreetMode {
     FOOT = 'foot',
@@ -33,6 +33,7 @@ export const DEFAULT_MODES: Modes = {
     egressMode: StreetMode.FOOT,
     transportModes: [
         { transportMode: TransportMode.BUS },
+        { transportMode: TransportMode.COACH },
         { transportMode: TransportMode.TRAM },
         { transportMode: TransportMode.RAIL },
         { transportMode: TransportMode.METRO },
@@ -140,6 +141,39 @@ function filterModesForAirportLinkRail(
     return undefined
 }
 
+function filterModesForCarFerry(
+    filters: SearchFilter[],
+): Mode | undefined {
+    const carFerries = ALL_CAR_FERRY_SUBMODES
+
+    if (
+        filters.includes(SearchFilter.CAR_FERRY) &&
+        !filters.includes(SearchFilter.WATER)
+    ) {
+        return {
+            transportMode: TransportMode.WATER,
+            transportSubModes: carFerries,
+        }
+    }
+
+    if (
+        filters.includes(SearchFilter.WATER) &&
+        !filters.includes(SearchFilter.CAR_FERRY)
+    ) {
+        const allOtherWaterSubModes: TransportSubmode[] =
+            ALL_WATER_SUBMODES.filter(
+                (mode: TransportSubmode) => !carFerries.includes(mode),
+            )
+
+        return {
+            transportMode: TransportMode.WATER,
+            transportSubModes: allOtherWaterSubModes,
+        }
+    }
+
+    return undefined
+}
+
 function filterModesForAirportLinkBus(
     filters: SearchFilter[],
     previousBusSubModes: TransportSubmode[],
@@ -231,6 +265,15 @@ export function filterModesAndSubModes(filters?: SearchFilter[]): Modes {
     )
     if (modeForAirportLinkBus) {
         filteredModes = updateMode(filteredModes, modeForAirportLinkBus)
+    }
+
+    /*
+     * Handle the 'CAR_FERRY' mode as the 'internationalCarFerry', 'localCarFerry', 'nationalCarFerry' and 'regionalCarFerry' sub mode.
+     * Merge car-ferry-related sub modes with ferry-related sub modes.
+     */
+    const modeForCarFerry = filterModesForCarFerry(filters)
+    if (modeForCarFerry) {
+        filteredModes = updateMode(filteredModes, modeForCarFerry)
     }
 
     return {
