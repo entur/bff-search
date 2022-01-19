@@ -44,6 +44,8 @@ function getHeadersFromClient(req: Request): ExtraHeaders {
     return clean({
         'X-Correlation-Id': req.get('X-Correlation-Id'),
         'ET-Client-Name': clientName ? `${clientName}-bff` : 'entur-search',
+        'ET-Client-Version': req.get('ET-Client-Version'),
+        'ET-Client-Platform': req.get('ET-Client-Platform'),
     })
 }
 

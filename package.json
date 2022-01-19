@@ -41,6 +41,7 @@
         "lz-string": "^1.4.4",
         "node-fetch": "^2.6.1",
         "redis": "^3.1.2",
+        "semver": "^7.3.5",
         "timezone-support": "^2.0.2",
         "uuid": "^7.0.3",
         "winston": "^3.3.3"
@@ -53,6 +54,7 @@
         "@types/node": "^16.11.6",
         "@types/node-fetch": "^2.5.12",
         "@types/redis": "^2.8.32",
+        "@types/semver": "^7.3.9",
         "@types/uuid": "^8.3.1",
         "@typescript-eslint/eslint-plugin": "^5.3.0",
         "@typescript-eslint/parser": "^5.3.0",
