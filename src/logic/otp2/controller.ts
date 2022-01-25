@@ -580,7 +580,11 @@ export async function searchTransit(
 
     const getTripPatternsParams = {
         ...searchParams,
-        modes: filterModesAndSubModes(searchFilter),
+        modes: filterModesAndSubModes(
+            searchFilter,
+            extraHeaders['ET-Client-Version'],
+            extraHeaders['ET-Client-Platform'],
+        ),
     }
 
     // initial search date may differ from search date if this is a

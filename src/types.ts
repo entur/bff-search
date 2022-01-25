@@ -59,11 +59,13 @@ export interface FilteredModesAndSubModes {
 
 export enum SearchFilter {
     BUS = 'bus',
+    COACH = 'coach',
     RAIL = 'rail',
     TRAM = 'tram',
     METRO = 'metro',
     AIR = 'air',
     WATER = 'water',
+    CAR_FERRY = 'car_ferry',
     FLYTOG = 'flytog',
     FLYBUSS = 'flybuss',
 }

@@ -19,28 +19,6 @@ function getRailFilter(modes: Modes): Mode | undefined {
 }
 
 describe('filterModesAndSubModes', () => {
-    it('should include coach mode if bus mode is present', () => {
-        const modesWithBusWithoutCoach: SearchFilter[] = [
-            SearchFilter.RAIL,
-            SearchFilter.METRO,
-            SearchFilter.BUS,
-            SearchFilter.WATER,
-        ]
-        const modesWithBusAndCoach: any = [SearchFilter.BUS, 'coach']
-        const withoutCoach = filterModesAndSubModes(modesWithBusWithoutCoach)
-        const withCoach = filterModesAndSubModes(modesWithBusAndCoach)
-
-        const coach = withoutCoach.transportModes.some(
-            (m) => m.transportMode === TransportMode.COACH,
-        )
-        expect(coach).toBeTruthy()
-
-        const alreadyCoach = withCoach.transportModes.some(
-            (m) => m.transportMode === TransportMode.COACH,
-        )
-        expect(alreadyCoach).toEqual(true)
-    })
-
     it('should include bus mode and railReplacementBus sub mode if rail mode is present', () => {
         const modesWithRailWithoutBus: SearchFilter[] = [
             SearchFilter.RAIL,

@@ -1,7 +1,14 @@
+import { satisfies } from 'semver'
+
 import { TransportMode, TransportSubmode } from '@entur/sdk'
 import { uniq } from '../../utils/array'
 import { SearchFilter } from '../../types'
-import { ALL_BUS_SUBMODES, ALL_RAIL_SUBMODES } from '../../constants'
+import {
+    ALL_BUS_SUBMODES,
+    ALL_RAIL_SUBMODES,
+    ALL_WATER_SUBMODES,
+    ALL_CAR_FERRY_SUBMODES,
+} from '../../constants'
 
 export enum StreetMode {
     FOOT = 'foot',
@@ -33,6 +40,7 @@ export const DEFAULT_MODES: Modes = {
     egressMode: StreetMode.FOOT,
     transportModes: [
         { transportMode: TransportMode.BUS },
+        { transportMode: TransportMode.COACH },
         { transportMode: TransportMode.TRAM },
         { transportMode: TransportMode.RAIL },
         { transportMode: TransportMode.METRO },
@@ -69,12 +77,21 @@ function queryTransportModesReducer(
 
 function convertSearchFiltersToMode(
     searchFilters: SearchFilter[],
+    version?: string,
+    platform?: string,
 ): TransportMode[] {
-    const initialModes: TransportMode[] = searchFilters.includes(
-        SearchFilter.BUS,
-    )
-        ? [TransportMode.LIFT, TransportMode.COACH]
-        : [TransportMode.LIFT]
+    /*
+     * TODO: Odden 19.01.21 - Older app-versioons need to include coach when bus is enabled.
+     *  Remove version and platform check 2 weeks after release of 8.11.0
+     */
+    const shouldIncludeCoachInSearchFilter =
+        platform === 'APP' && version && satisfies(version, '<=8.10.1')
+
+    const initialModes: TransportMode[] =
+        searchFilters.includes(SearchFilter.BUS) &&
+        shouldIncludeCoachInSearchFilter
+            ? [TransportMode.LIFT, TransportMode.COACH]
+            : [TransportMode.LIFT]
 
     return uniq(searchFilters.reduce(queryTransportModesReducer, initialModes))
 }
@@ -140,6 +157,37 @@ function filterModesForAirportLinkRail(
     return undefined
 }
 
+function filterModesForCarFerry(filters: SearchFilter[]): Mode | undefined {
+    const carFerries = ALL_CAR_FERRY_SUBMODES
+
+    if (
+        filters.includes(SearchFilter.CAR_FERRY) &&
+        !filters.includes(SearchFilter.WATER)
+    ) {
+        return {
+            transportMode: TransportMode.WATER,
+            transportSubModes: carFerries,
+        }
+    }
+
+    if (
+        filters.includes(SearchFilter.WATER) &&
+        !filters.includes(SearchFilter.CAR_FERRY)
+    ) {
+        const allOtherWaterSubModes: TransportSubmode[] =
+            ALL_WATER_SUBMODES.filter(
+                (mode: TransportSubmode) => !carFerries.includes(mode),
+            )
+
+        return {
+            transportMode: TransportMode.WATER,
+            transportSubModes: allOtherWaterSubModes,
+        }
+    }
+
+    return undefined
+}
+
 function filterModesForAirportLinkBus(
     filters: SearchFilter[],
     previousBusSubModes: TransportSubmode[],
@@ -191,14 +239,20 @@ function updateMode(modes: Mode[], mode: Mode): Mode[] {
     return modes.map((m) => (isSameMode(m, mode) ? mode : m))
 }
 
-export function filterModesAndSubModes(filters?: SearchFilter[]): Modes {
+export function filterModesAndSubModes(
+    filters?: SearchFilter[],
+    version?: string,
+    platform?: string,
+): Modes {
     if (!filters) {
         return DEFAULT_MODES
     }
 
-    let filteredModes: Mode[] = convertSearchFiltersToMode(filters).map(
-        (transportMode) => ({ transportMode }),
-    )
+    let filteredModes: Mode[] = convertSearchFiltersToMode(
+        filters,
+        version,
+        platform,
+    ).map((transportMode) => ({ transportMode }))
 
     /*
      * Handle the 'railReplacementBus' sub mode as either a rail-related sub mode
@@ -231,6 +285,24 @@ export function filterModesAndSubModes(filters?: SearchFilter[]): Modes {
     )
     if (modeForAirportLinkBus) {
         filteredModes = updateMode(filteredModes, modeForAirportLinkBus)
+    }
+
+    /*
+     * Handle the 'CAR_FERRY' mode as the 'internationalCarFerry', 'localCarFerry', 'nationalCarFerry' and 'regionalCarFerry' sub mode.
+     * Merge car-ferry-related sub modes with ferry-related sub modes.
+     */
+    const shouldExcludeCarFerryAsSearchFilter =
+        platform === 'APP' && version && satisfies(version, '<=8.10.1')
+
+    const modeForCarFerry = shouldExcludeCarFerryAsSearchFilter
+        ? undefined
+        : filterModesForCarFerry(filters)
+    /*
+     * TODO: Odden 19.01.21 - Older app-versioons need to include coach when bus is enabled.
+     *  Remove version and platform check 2 weeks after release of 8.11.0
+     */
+    if (modeForCarFerry) {
+        filteredModes = updateMode(filteredModes, modeForCarFerry)
     }
 
     return {
