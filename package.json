@@ -39,7 +39,7 @@
         "express-jwt": "^6.0.0",
         "jwks-rsa": "^1.12.3",
         "lz-string": "^1.4.4",
-        "node-fetch": "^2.6.1",
+        "node-fetch": "^2.6.7",
         "redis": "^3.1.2",
         "semver": "^7.3.5",
         "timezone-support": "^2.0.2",
