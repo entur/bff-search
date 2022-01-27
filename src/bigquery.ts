@@ -72,7 +72,6 @@ export async function logTransitAnalytics(
             arriveBy = false,
             walkSpeed,
             minimumTransferTime,
-            useFlex = false,
         } = params
 
         const searchDateParsed = searchDate
@@ -92,7 +91,7 @@ export async function logTransitAnalytics(
             arriveBy,
             walkSpeed,
             minimumTransferTime,
-            useFlex,
+            useFlex: false,
             useOtp2,
             platform,
             createdAt,

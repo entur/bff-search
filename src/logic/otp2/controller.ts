@@ -7,6 +7,8 @@ import createEnturService, {
     Notice,
     TripPattern,
 } from '@entur/sdk'
+import { Modes, StreetMode } from '@entur/sdk/lib/journeyPlanner/types'
+
 import { v4 as uuid } from 'uuid'
 import {
     addDays,
@@ -35,12 +37,7 @@ import { TRANSIT_HOST_OTP2 } from '../../config'
 import { GetTripPatternError, RoutingErrorsError } from '../../errors'
 
 import JOURNEY_PLANNER_QUERY from './query'
-import {
-    DEFAULT_MODES,
-    filterModesAndSubModes,
-    Modes,
-    StreetMode,
-} from './modes'
+import { DEFAULT_MODES, filterModesAndSubModes } from './modes'
 
 const sdk = createEnturService({
     clientName: 'entur-search',
@@ -64,10 +61,6 @@ interface AdditionalOtp2TripPatternParams {
     modes: Modes
     numTripPatterns?: number
 }
-
-// function signature type, to match signature for OTP1 searchTransit.
-type Otp2SearchParams = Omit<SearchParams, 'modes'> &
-    AdditionalOtp2TripPatternParams
 
 // GetTripPatternsParams is an OTP1 type, we need to tweak it to match OTP2
 type Otp2GetTripPatternParams = Omit<GetTripPatternsParams, 'modes' | 'limit'> &
@@ -500,7 +493,7 @@ async function searchFlexible(searchParams: Otp2GetTripPatternParams): Promise<{
         ...searchParams,
         modes: {
             transportModes: [],
-            directMode: StreetMode.FLEXIBLE,
+            directMode: StreetMode.Flexible,
         },
         numTripPatterns: 1,
     }
@@ -542,8 +535,8 @@ async function searchTaxiFrontBack(
         ...searchParams,
         modes: {
             ...DEFAULT_MODES,
-            accessMode: access ? StreetMode.CAR_PICKUP : StreetMode.FOOT,
-            egressMode: egress ? StreetMode.CAR_PICKUP : StreetMode.FOOT,
+            accessMode: access ? StreetMode.CarPickup : StreetMode.Foot,
+            egressMode: egress ? StreetMode.CarPickup : StreetMode.Foot,
         },
         numTripPatterns: egress && access ? 2 : 1,
     }
@@ -573,7 +566,7 @@ async function searchTaxiFrontBack(
  * be kept separate from Otp2SearchParams.
  */
 export async function searchTransit(
-    { initialSearchDate, searchFilter, ...searchParams }: Otp2SearchParams,
+    { initialSearchDate, searchFilter, ...searchParams }: SearchParams,
     extraHeaders: { [key: string]: string },
 ): Promise<TransitTripPatterns> {
     const { searchDate, arriveBy } = searchParams
@@ -721,19 +714,19 @@ export async function searchTransit(
 }
 
 export type NonTransitMode =
-    | StreetMode.FOOT
-    | StreetMode.BICYCLE
-    | StreetMode.CAR
-    | StreetMode.BIKE_RENTAL
+    | StreetMode.Foot
+    | StreetMode.Bicycle
+    | StreetMode.Car
+    | StreetMode.BikeRental
 
 export async function searchNonTransit(
     params: Pick<SearchParams, 'from' | 'to' | 'searchDate'>,
     extraHeaders: Record<string, string>,
     modes: NonTransitMode[] = [
-        StreetMode.FOOT,
-        StreetMode.BICYCLE,
-        StreetMode.CAR,
-        StreetMode.BIKE_RENTAL,
+        StreetMode.Foot,
+        StreetMode.Bicycle,
+        StreetMode.Car,
+        StreetMode.BikeRental,
     ],
 ): Promise<{
     tripPatterns: NonTransitTripPatterns
@@ -763,7 +756,7 @@ export async function searchNonTransit(
              */
             const candidate = result.find(({ legs }) => {
                 const modeToCheck =
-                    mode === StreetMode.BIKE_RENTAL ? LegMode.BICYCLE : mode
+                    mode === StreetMode.BikeRental ? LegMode.BICYCLE : mode
 
                 const matchesMode = (leg: Leg): boolean =>
                     leg.mode === modeToCheck
@@ -787,7 +780,7 @@ export async function searchNonTransit(
 
     return results.reduce(
         (acc, { mode, tripPattern, query }) => {
-            const m = mode === StreetMode.BIKE_RENTAL ? 'bicycle_rent' : mode
+            const m = mode === StreetMode.BikeRental ? 'bicycle_rent' : mode
             return {
                 tripPatterns: {
                     ...acc.tripPatterns,

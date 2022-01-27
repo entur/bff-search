@@ -8,23 +8,16 @@ import logger from '../../logger'
 import { RawSearchParams, SearchParams, GraphqlQuery } from '../../types'
 
 import {
-    searchTransitWithTaxi,
+    generateShamashLink,
     searchTransit,
     parseCursor,
-    generateShamashLink,
     generateCursor,
-} from '../../logic/otp1'
-
-import {
-    generateShamashLink as generateShamashLinkOtp2,
-    searchTransit as searchTransitOtp2,
-    generateCursor as generateCursorOtp2,
 } from '../../logic/otp2'
 
 import { uniq } from '../../utils/array'
 import { clean } from '../../utils/object'
 import { deriveSearchParamsId } from '../../utils/searchParams'
-import { filterModesAndSubModes } from '../../utils/modes'
+import { filterModesAndSubModes } from '../../logic/otp2/modes'
 
 import { ENVIRONMENT } from '../../config'
 import { logTransitAnalytics, logTransitResultStats } from '../../bigquery'
@@ -53,24 +46,18 @@ function getParams(params: RawSearchParams): SearchParams {
     const searchDate = params.searchDate
         ? parseJSON(params.searchDate)
         : new Date()
-    const { filteredModes, subModesFilter, banned, whiteListed } =
-        filterModesAndSubModes(params.searchFilter)
+    const modes = filterModesAndSubModes(params.searchFilter)
 
     return {
         ...params,
         searchDate,
         initialSearchDate: searchDate,
-        modes: filteredModes,
-        transportSubmodes: subModesFilter,
-        banned,
-        whiteListed,
-        useFlex: true,
+        modes,
     }
 }
 
 function mapQueries(
     queries: GraphqlQuery[],
-    useOtp2: boolean,
 ):
     | (GraphqlQuery & { algorithm: 'OTP1' | 'OTP2'; shamash: string })[]
     | undefined {
@@ -78,14 +65,12 @@ function mapQueries(
 
     return queries.map((q) => ({
         ...q,
-        algorithm: useOtp2 ? 'OTP2' : 'OTP1',
-        shamash: useOtp2 ? generateShamashLinkOtp2(q) : generateShamashLink(q),
+        algorithm: 'OTP2',
+        shamash: generateShamashLink(q),
     }))
 }
 
 router.post('/', async (req, res, next) => {
-    let useOtp2 = false
-
     try {
         let stopTrace = trace('parseCursor')
         const cursorData = parseCursor(req.body?.cursor)
@@ -95,41 +80,24 @@ router.post('/', async (req, res, next) => {
         const extraHeaders = getHeadersFromClient(req)
         const clientName = extraHeaders['ET-Client-Name'] || 'Unknown client'
 
-        if (cursorData) {
-            // Restrict flex results only to the initial search
-            params.useFlex = false
-        }
-
-        let searchMethod = cursorData ? searchTransit : searchTransitWithTaxi
-
-        useOtp2 = !res.locals.forceOtp1
-
-        if (useOtp2) {
-            // @ts-ignore searchTransitOtp2 expects a slightly different SearchParams type
-            searchMethod = searchTransitOtp2
-        }
-
-        logger.info(`Using OTP2 ${useOtp2}`, {
-            useOtp2,
-        })
-
         stopTrace = trace(
             cursorData ? 'searchTransit' : 'searchTransitWithTaxi',
         )
 
-        // OTP2 does not return hasFlexibleTripPattern, but we still have
-        // to return it because old versions of the app require it for logging
         const {
             tripPatterns,
             metadata,
+            // OTP2 does not return hasFlexibleTripPattern, but we still have
+            // to return it because old versions of the app require it for logging
+            // @ts-ignore
             hasFlexibleTripPattern = false,
             queries,
-        } = await searchMethod(params, extraHeaders)
+        } = await searchTransit(params, extraHeaders)
         stopTrace()
 
         if (!cursorData) {
             const stopLogTransitAnalyticsTrace = trace('logTransitAnalytics')
-            logTransitAnalytics(params, useOtp2, clientName)
+            logTransitAnalytics(params, true, clientName)
                 .then(stopLogTransitAnalyticsTrace)
                 .catch((error) => {
                     logger.error('Failed to log transit analytics', {
@@ -156,13 +124,11 @@ router.post('/', async (req, res, next) => {
         }
 
         stopTrace = trace('generateCursor')
-        const nextCursor = useOtp2
-            ? generateCursorOtp2(params, metadata)
-            : generateCursor(params, tripPatterns)
+        const nextCursor = generateCursor(params, metadata)
         stopTrace()
 
         stopTrace = trace('generateShamashLinks')
-        const mappedQueries = mapQueries(queries, useOtp2)
+        const mappedQueries = mapQueries(queries)
         stopTrace()
 
         const stopCacheTrace = trace('cache')
@@ -197,14 +163,14 @@ router.post('/', async (req, res, next) => {
             return res.json({
                 tripPatterns: [],
                 hasFlexibleTripPattern: false,
-                queries: mapQueries(error.getQueries(), useOtp2),
+                queries: mapQueries(error.getQueries()),
                 routingErrors: error.getRoutingErrors(),
             })
         } else if (error instanceof GetTripPatternError) {
             logger.error(error.message, error)
             return res.status(500).json({
                 tripPatterns: [],
-                queries: mapQueries([error.getQuery()], useOtp2),
+                queries: mapQueries([error.getQuery()]),
             })
         }
         next(error)

@@ -1,58 +1,43 @@
-import { QueryMode, TransportSubmode } from '@entur/sdk'
-
-export const DEFAULT_QUERY_MODES: QueryMode[] = [
-    QueryMode.AIR,
-    QueryMode.BUS,
-    QueryMode.COACH,
-    QueryMode.CABLEWAY,
-    QueryMode.FOOT,
-    QueryMode.FUNICULAR,
-    QueryMode.LIFT,
-    QueryMode.METRO,
-    QueryMode.RAIL,
-    QueryMode.TRAM,
-    QueryMode.TRANSIT,
-    QueryMode.WATER,
-]
+import { TransportSubmode } from '@entur/sdk/lib/journeyPlanner/types'
 
 export const ALL_BUS_SUBMODES: TransportSubmode[] = [
-    TransportSubmode.AIRPORT_LINK_BUS,
-    TransportSubmode.RAIL_REPLACEMENT_BUS,
-    TransportSubmode.EXPRESS_BUS,
-    TransportSubmode.LOCAL_BUS,
-    TransportSubmode.NIGHT_BUS,
-    TransportSubmode.REGIONAL_BUS,
-    TransportSubmode.SCHOOL_BUS,
-    TransportSubmode.SHUTTLE_BUS,
-    TransportSubmode.SIGHTSEEING_BUS,
-    TransportSubmode.NATIONAL_COACH,
+    TransportSubmode.AirportLinkBus,
+    TransportSubmode.RailReplacementBus,
+    TransportSubmode.ExpressBus,
+    TransportSubmode.LocalBus,
+    TransportSubmode.NightBus,
+    TransportSubmode.RegionalBus,
+    TransportSubmode.SchoolBus,
+    TransportSubmode.ShuttleBus,
+    TransportSubmode.SightseeingBus,
+    TransportSubmode.NationalCoach,
 ]
 
 export const ALL_RAIL_SUBMODES: TransportSubmode[] = [
-    TransportSubmode.AIRPORT_LINK_RAIL,
-    TransportSubmode.TOURIST_RAILWAY,
-    TransportSubmode.INTERNATIONAL,
-    TransportSubmode.INTERREGIONAL_RAIL,
-    TransportSubmode.LOCAL,
-    TransportSubmode.LONG_DISTANCE,
-    TransportSubmode.NIGHT_RAIL,
-    TransportSubmode.REGIONAL_RAIL,
+    TransportSubmode.AirportLinkRail,
+    TransportSubmode.TouristRailway,
+    TransportSubmode.International,
+    TransportSubmode.InterregionalRail,
+    TransportSubmode.Local,
+    TransportSubmode.LongDistance,
+    TransportSubmode.NightRail,
+    TransportSubmode.RegionalRail,
 ]
 
 export const ALL_WATER_SUBMODES: TransportSubmode[] = [
-    TransportSubmode.INTERNATIONAL_CAR_FERRY,
-    TransportSubmode.LOCAL_CAR_FERRY,
-    TransportSubmode.NATIONAL_CAR_FERRY,
-    TransportSubmode.REGIONAL_CAR_FERRY,
-    TransportSubmode.LOCAL_PASSENGER_FERRY,
-    TransportSubmode.INTERNATIONAL_PASSENGER_FERRY,
+    TransportSubmode.InternationalCarFerry,
+    TransportSubmode.LocalCarFerry,
+    TransportSubmode.NationalCarFerry,
+    TransportSubmode.RegionalCarFerry,
+    TransportSubmode.LocalPassengerFerry,
+    TransportSubmode.InternationalCarFerry,
 ]
 
 export const ALL_CAR_FERRY_SUBMODES: TransportSubmode[] = [
-    TransportSubmode.INTERNATIONAL_CAR_FERRY,
-    TransportSubmode.LOCAL_CAR_FERRY,
-    TransportSubmode.NATIONAL_CAR_FERRY,
-    TransportSubmode.REGIONAL_CAR_FERRY,
+    TransportSubmode.InternationalCarFerry,
+    TransportSubmode.LocalCarFerry,
+    TransportSubmode.NationalCarFerry,
+    TransportSubmode.RegionalCarFerry,
 ]
 
 export const TAXI_LIMITS = {
