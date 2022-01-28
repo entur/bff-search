@@ -17,8 +17,8 @@ import { RawSearchParams, SearchParams } from '../../types'
 
 import { getAlternativeTripPatterns } from '../../logic/otp1'
 import { updateTripPattern, getExpires } from '../../logic/otp2'
+import { filterModesAndSubModes } from '../../logic/otp2/modes'
 
-import { filterModesAndSubModes } from '../../utils/modes'
 import { uniq } from '../../utils/array'
 import { deriveSearchParamsId } from '../../utils/searchParams'
 
@@ -107,18 +107,13 @@ function getParams(params: RawSearchParams): SearchParams {
     const searchDate = params.searchDate
         ? parseJSON(params.searchDate)
         : new Date()
-    const { filteredModes, subModesFilter, banned, whiteListed } =
-        filterModesAndSubModes(params.searchFilter)
+    const modes = filterModesAndSubModes(params.searchFilter)
 
     return {
         ...params,
         searchDate,
         initialSearchDate: searchDate,
-        modes: filteredModes,
-        transportSubmodes: subModesFilter,
-        banned,
-        whiteListed,
-        useFlex: true,
+        modes,
     }
 }
 

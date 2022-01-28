@@ -1,20 +1,29 @@
-import { TransportMode, TransportSubmode } from '@entur/sdk'
+import {
+    TransportMode,
+    TransportModes,
+    TransportSubmode,
+    Modes,
+} from '@entur/sdk/lib/journeyPlanner/types'
 
-import { filterModesAndSubModes, Modes, Mode } from './modes'
+import { filterModesAndSubModes } from './modes'
 
 import { SearchFilter } from '../../types'
 
 import { ALL_BUS_SUBMODES, ALL_RAIL_SUBMODES } from '../../constants'
 
-function getBusFilter(modes: Modes): Mode | undefined {
-    return modes.transportModes.find(
-        (mode) => mode.transportMode === TransportMode.BUS,
+function getBusFilter(modes: Modes): TransportModes | undefined {
+    return (
+        modes.transportModes?.find(
+            (mode) => mode?.transportMode === TransportMode.Bus,
+        ) || undefined
     )
 }
 
-function getRailFilter(modes: Modes): Mode | undefined {
-    return modes.transportModes.find(
-        (mode) => mode.transportMode === TransportMode.RAIL,
+function getRailFilter(modes: Modes): TransportModes | undefined {
+    return (
+        modes.transportModes?.find(
+            (mode) => mode?.transportMode === TransportMode.Rail,
+        ) || undefined
     )
 }
 
@@ -31,7 +40,7 @@ describe('filterModesAndSubModes', () => {
 
         expect(busMode).toBeTruthy()
         expect(busMode?.transportSubModes).toContain(
-            TransportSubmode.RAIL_REPLACEMENT_BUS,
+            TransportSubmode.RailReplacementBus,
         )
     })
 
@@ -47,7 +56,7 @@ describe('filterModesAndSubModes', () => {
 
         expect(busMode).toBeTruthy()
         expect(busMode?.transportSubModes).toContain(
-            TransportSubmode.RAIL_REPLACEMENT_BUS,
+            TransportSubmode.RailReplacementBus,
         )
     })
 
@@ -66,7 +75,7 @@ describe('filterModesAndSubModes', () => {
             ALL_BUS_SUBMODES.length - 1,
         )
         expect(busMode?.transportSubModes).not.toContain(
-            TransportSubmode.RAIL_REPLACEMENT_BUS,
+            TransportSubmode.RailReplacementBus,
         )
     })
 
@@ -84,10 +93,10 @@ describe('filterModesAndSubModes', () => {
             ALL_BUS_SUBMODES.length - 2,
         )
         expect(busMode?.transportSubModes).not.toContain(
-            TransportSubmode.RAIL_REPLACEMENT_BUS,
+            TransportSubmode.RailReplacementBus,
         )
         expect(busMode?.transportSubModes).not.toContain(
-            TransportSubmode.AIRPORT_LINK_BUS,
+            TransportSubmode.AirportLinkBus,
         )
     })
 
@@ -103,7 +112,7 @@ describe('filterModesAndSubModes', () => {
 
         expect(railFilter).toBeTruthy()
         expect(railFilter?.transportSubModes).toContain(
-            TransportSubmode.AIRPORT_LINK_RAIL,
+            TransportSubmode.AirportLinkRail,
         )
     })
 
@@ -121,7 +130,7 @@ describe('filterModesAndSubModes', () => {
             ALL_RAIL_SUBMODES.length - 1,
         )
         expect(railFilter?.transportSubModes).not.toContain(
-            TransportSubmode.AIRPORT_LINK_RAIL,
+            TransportSubmode.AirportLinkRail,
         )
     })
 
@@ -151,7 +160,7 @@ describe('filterModesAndSubModes', () => {
         expect(busMode?.transportSubModes).toBeTruthy()
         expect(busMode?.transportSubModes).toHaveLength(1)
         expect(busMode?.transportSubModes).toContain(
-            TransportSubmode.AIRPORT_LINK_BUS,
+            TransportSubmode.AirportLinkBus,
         )
     })
 
@@ -170,7 +179,7 @@ describe('filterModesAndSubModes', () => {
             ALL_BUS_SUBMODES.length - 1,
         )
         expect(busMode?.transportSubModes).not.toContain(
-            TransportSubmode.AIRPORT_LINK_BUS,
+            TransportSubmode.AirportLinkBus,
         )
     })
 })

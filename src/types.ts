@@ -1,20 +1,37 @@
 import {
-    GetTripPatternsParams,
     TripPattern,
     QueryMode,
     TransportSubmodeParam,
     InputBanned,
     InputWhiteListed,
+    Location,
 } from '@entur/sdk'
 
-export type RawSearchParams = GetTripPatternsParams & {
+import { Modes } from '@entur/sdk/lib/journeyPlanner/types'
+
+/**
+ * The params sent by clients.
+ */
+export interface RawSearchParams {
+    from: Location
+    to: Location
+    arriveBy?: boolean
+    searchDate?: Date
+    walkSpeed?: number
+    minimumTransferTime?: number
     cursor?: string
     searchFilter?: SearchFilter[]
 }
 
+/**
+ * The parsed params for use internally.
+ */
 export type SearchParams = RawSearchParams & {
-    searchDate: Date
     initialSearchDate: Date
+    searchDate: Date
+    searchWindow?: number
+    modes: Modes
+    numTripPatterns?: number
 }
 
 export interface CursorData {
