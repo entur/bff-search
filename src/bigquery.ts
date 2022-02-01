@@ -60,7 +60,7 @@ export async function logTransitAnalytics(
     useOtp2: boolean,
     clientName: string,
 ): Promise<void> {
-    const table = `entur-${ENVIRONMENT}.analytics.transit_search`
+    const table = `entur-${ENVIRONMENT}.analytics_eu.transit_search`
     let query: string | undefined
 
     try {
@@ -112,7 +112,7 @@ export async function logTransitResultStats(
     numberOfOperators: number,
     clientName: string,
 ): Promise<void> {
-    const table = `entur-${ENVIRONMENT}.analytics.transit_result_stats`
+    const table = `entur-${ENVIRONMENT}.analytics_eu.transit_result_stats`
 
     try {
         const now = new Date().toISOString()
