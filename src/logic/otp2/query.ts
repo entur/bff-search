@@ -128,6 +128,7 @@ fragment bookingArrangementFields on BookingArrangement {
     bookingNote
     latestBookingTime
     minimumBookingPeriod
+    bookWhen
     bookingContact {
         phone
         url
