@@ -126,7 +126,9 @@ fragment legFields on Leg {
 fragment bookingArrangementFields on BookingArrangement {
     bookingMethods
     bookingNote
+    latestBookingTime
     minimumBookingPeriod
+    bookWhen
     bookingContact {
         phone
         url
