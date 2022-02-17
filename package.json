@@ -6,7 +6,7 @@
     "license": "EUPL-1.2",
     "private": true,
     "engines": {
-        "node": ">=14"
+        "node": ">=16"
     },
     "scripts": {
         "start": "node dist/server.js",

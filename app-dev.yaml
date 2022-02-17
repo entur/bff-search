@@ -1,4 +1,4 @@
-runtime: nodejs14
+runtime: nodejs16
 service: search
 inbound_services:
     - warmup
