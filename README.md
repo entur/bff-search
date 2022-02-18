@@ -29,7 +29,7 @@ The backend is a REST service which we would like to keep _stateless_. That mean
 
 ## 📦 Install
 
-Node.js version >= 14 is required, so make sure you have that installed.
+Node.js version 16 is required, so make sure you have that installed.
 
 ```
 npm install
