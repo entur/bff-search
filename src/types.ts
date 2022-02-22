@@ -1,11 +1,4 @@
-import {
-    TripPattern,
-    QueryMode,
-    TransportSubmodeParam,
-    InputBanned,
-    InputWhiteListed,
-    Location,
-} from '@entur/sdk'
+import { TripPattern, Location } from '@entur/sdk'
 
 import { Modes } from '@entur/sdk/lib/journeyPlanner/types'
 
@@ -51,27 +44,11 @@ export interface Metadata {
     prevDateTime: string
 }
 
-export interface TransitTripPatterns {
-    tripPatterns: TripPattern[]
-    // TODO 7/12-21: Only used by OTP1, and no client uses it anymore. Can be removed once OTP1 is removed
-    hasFlexibleTripPattern?: boolean
-    queries: GraphqlQuery[]
-    metadata?: Metadata
-    nextSearchParams?: SearchParams
-}
-
 export interface NonTransitTripPatterns {
     bicycle?: TripPattern
     bicycle_rent?: TripPattern
     car?: TripPattern
     foot?: TripPattern
-}
-
-export interface FilteredModesAndSubModes {
-    filteredModes: QueryMode[]
-    subModesFilter: TransportSubmodeParam[]
-    banned?: InputBanned
-    whiteListed?: InputWhiteListed
 }
 
 export enum SearchFilter {

@@ -83,9 +83,7 @@ const HOPELESS_ROUTING_ERRORS = [
     RoutingErrorCode.systemError,
 ]
 
-export function createParseTripPattern(): (
-    rawTripPattern: any,
-) => Otp2TripPattern {
+function createParseTripPattern(): (rawTripPattern: any) => Otp2TripPattern {
     let i = 0
     const sharedId = uuid()
     const baseId = sharedId.substring(0, 23)
@@ -196,7 +194,7 @@ function authorityMapper(authority?: Authority): Authority | undefined {
     }
 }
 
-export function legMapper(leg: Leg): Leg {
+function legMapper(leg: Leg): Leg {
     return {
         ...leg,
         authority: authorityMapper(leg.authority),
@@ -713,7 +711,7 @@ export async function searchTransit(
     )
 }
 
-export type NonTransitMode =
+type NonTransitMode =
     | StreetMode.Foot
     | StreetMode.Bicycle
     | StreetMode.Car

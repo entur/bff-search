@@ -32,7 +32,7 @@ export const DEFAULT_MODES: Modes = {
     ],
 }
 
-export function isTransportMode(mode: string): mode is TransportMode {
+function isTransportMode(mode: string): mode is TransportMode {
     return (
         mode === 'air' ||
         mode === 'bus' ||

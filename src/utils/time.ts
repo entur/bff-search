@@ -1,4 +1,4 @@
-import { findTimeZone, getZonedTime, getUTCOffset } from 'timezone-support'
+import { findTimeZone, getZonedTime } from 'timezone-support'
 
 function pad(num = 0): string {
     return String(num).padStart(2, '0')
@@ -28,13 +28,4 @@ export function toISOString(date: Date, options: Options): string {
     return `${year}-${pad(month)}-${pad(day)}T${pad(hours)}:${pad(
         minutes,
     )}:${pad(seconds)}${formatOffset(offset)}`
-}
-
-// Lifted from date-fns-timezone
-export function convertToTimeZone(date: Date, options: Options): Date {
-    if (!options.timeZone) return date
-    const timeZone = findTimeZone(options.timeZone)
-    const { offset } = getUTCOffset(date, timeZone)
-    const localOffset = offset - date.getTimezoneOffset()
-    return new Date(date.getTime() - localOffset * 60 * 1000)
 }
