@@ -286,6 +286,7 @@ fragment estimatedCallFields on EstimatedCall {
     notices {
         ...noticeFields
     }
+    predictionInaccurate
     quay {
         ...quayFields
     }
