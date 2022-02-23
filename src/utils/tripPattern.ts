@@ -4,18 +4,10 @@ import { differenceInHours, parseISO } from 'date-fns'
 
 import { TAXI_LIMITS } from '../constants'
 
-import { parseLeg, isFlexibleLeg, isTransitLeg, isBikeRentalLeg } from './leg'
+import { parseLeg, isFlexibleLeg, isTransitLeg } from './leg'
 
-export function isTransitAlternative({ legs }: TripPattern): boolean {
+function isTransitAlternative({ legs }: TripPattern): boolean {
     return (legs || []).some(isTransitLeg)
-}
-
-export function isBikeRentalAlternative({ legs }: TripPattern): boolean {
-    return (legs || []).some(isBikeRentalLeg)
-}
-
-export function isFlexibleAlternative({ legs }: TripPattern): boolean {
-    return (legs || []).some(isFlexibleLeg)
 }
 
 export function isValidTransitAlternative(pattern: TripPattern): boolean {
@@ -50,7 +42,7 @@ export function createParseTripPattern(): (rawTripPattern: any) => TripPattern {
     }
 }
 
-export function parseTripPattern(rawTripPattern: any): TripPattern {
+function parseTripPattern(rawTripPattern: any): TripPattern {
     return {
         ...rawTripPattern,
         id: rawTripPattern.id || uuid(),
