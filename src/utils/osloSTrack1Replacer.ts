@@ -1,4 +1,4 @@
-import { TripPattern, Leg, Place } from '@entur/sdk'
+import { TripPattern, Leg, Place } from '../types'
 
 // Yeah, so... in some cases we get Track 1 at Oslo S even if the train departs from God knows where, just not
 // track 1. This makes our customers fairly unhappy, as some of them - strangely enough - do not appreciate running from

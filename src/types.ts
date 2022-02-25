@@ -1,6 +1,21 @@
-import { TripPattern, Location } from '@entur/sdk'
+import { Location } from '@entur/sdk'
 
 import { Modes } from '@entur/sdk/lib/journeyPlanner/types'
+
+import { GetTripPatternsQuery } from './generated/graphql'
+
+export { RoutingError, RoutingErrorCode } from './generated/graphql'
+
+export type TripPattern = GetTripPatternsQuery['trip']['tripPatterns'][0]
+export type TripPatternParsed = TripPattern & { id: string }
+export type Leg = NonNullable<TripPattern['legs'][0]>
+export type EstimatedCall = NonNullable<Leg['fromEstimatedCall']>
+export type IntermediateEstimatedCall = NonNullable<
+    Leg['intermediateEstimatedCalls'][0]
+>
+export type Notice = NonNullable<IntermediateEstimatedCall['notices'][0]>
+export type Authority = NonNullable<Leg['authority']>
+export type Place = NonNullable<Leg['fromPlace']>
 
 /**
  * The params sent by clients.
@@ -68,36 +83,4 @@ export enum Platform {
     WEB = 'web',
     APP = 'app',
     WIDGET = 'widget',
-}
-
-export enum RoutingErrorCode {
-    // No transit connection was found between the origin and destination withing the operating day or the next day
-    noTransitConnection = 'noTransitConnection',
-
-    // Transit connection was found, but it was outside the search window, see metadata for the next search window
-    noTransitConnectionInSearchWindow = 'noTransitConnectionInSearchWindow',
-
-    // The date specified is outside the range of data currently loaded into the system
-    outsideServicePeriod = 'outsideServicePeriod',
-
-    // The coordinates are outside the bounds of the data currently loaded into the system
-    outsideBounds = 'outsideBounds',
-
-    // The specified location is not close to any streets or transit stops
-    locationNotFound = 'locationNotFound',
-
-    // No stops are reachable from the location specified. You can try searching using a different access or egress mode
-    noStopsInRange = 'noStopsInRange',
-
-    // The origin and destination are so close to each other, that walking is always better, but no direct mode was specified for the search
-    walkingBetterThanTransit = 'walkingBetterThanTransit',
-
-    // An unknown error happened during the search. The details have been logged to the server logs
-    systemError = 'systemError',
-}
-
-export interface RoutingError {
-    code: RoutingErrorCode
-    inputField?: 'dateTime' | 'from' | 'to'
-    description: string
 }

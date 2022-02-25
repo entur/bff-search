@@ -1,10 +1,11 @@
-import { LegMode, TripPattern } from '@entur/sdk'
-import { v4 as uuid } from 'uuid'
 import { differenceInHours, parseISO } from 'date-fns'
 
 import { TAXI_LIMITS } from '../constants'
+import { GetTripPatternsQuery, Mode } from '../generated/graphql'
 
-import { parseLeg, isFlexibleLeg, isTransitLeg } from './leg'
+import { isFlexibleLeg, isTransitLeg } from './leg'
+
+type TripPattern = GetTripPatternsQuery['trip']['tripPatterns'][0]
 
 function isTransitAlternative({ legs }: TripPattern): boolean {
     return (legs || []).some(isTransitLeg)
@@ -29,37 +30,13 @@ export function isValidTaxiAlternative(
             TAXI_LIMITS.DURATION_MAX_HOURS
 }
 
-export function createParseTripPattern(): (rawTripPattern: any) => TripPattern {
-    let i = 0
-    const sharedId = uuid()
-    const baseId = sharedId.substring(0, 23)
-    const iterator = parseInt(sharedId.substring(24), 16)
-
-    return (rawTripPattern: any): TripPattern => {
-        i++
-        const id = `${baseId}-${(iterator + i).toString(16).slice(-12)}`
-        return parseTripPattern({ id, ...rawTripPattern })
-    }
-}
-
-function parseTripPattern(rawTripPattern: any): TripPattern {
-    return {
-        ...rawTripPattern,
-        id: rawTripPattern.id || uuid(),
-        legs: rawTripPattern.legs.map(parseLeg),
-        genId: `${new Date().getTime()}:${Math.random()
-            .toString(36)
-            .slice(2, 12)}`,
-    }
-}
-
 export function hoursBetweenDateAndTripPattern(
     date: Date,
     tripPattern: TripPattern,
     arriveBy: boolean,
 ): number {
     const tripPatternDate = parseISO(
-        arriveBy ? tripPattern.endTime : tripPattern.startTime,
+        arriveBy ? tripPattern.expectedEndTime : tripPattern.expectedStartTime,
     )
 
     return Math.abs(differenceInHours(tripPatternDate, date))
@@ -69,7 +46,7 @@ function isTaxiAlternativeBetterThanCarAlternative(
     { legs }: TripPattern,
     carPattern?: TripPattern,
 ): boolean {
-    const taxiLeg = legs.find(({ mode }) => mode === LegMode.CAR)
+    const taxiLeg = legs.find((leg) => leg?.mode === Mode.Car)
 
     if (!taxiLeg || typeof taxiLeg.duration !== 'number') return true
 
@@ -98,11 +75,9 @@ function isFlexibleTripsInCombination({ legs }: TripPattern): boolean {
 }
 
 function isCarAlternative({ legs }: TripPattern): boolean {
-    return (legs || []).some(({ mode }) => mode === LegMode.CAR)
+    return (legs || []).some(({ mode }) => mode === Mode.Car)
 }
 
 function isCarOnlyAlternative({ legs }: TripPattern): boolean {
-    return (
-        Boolean(legs?.length) && legs.every(({ mode }) => mode === LegMode.CAR)
-    )
+    return Boolean(legs?.length) && legs.every(({ mode }) => mode === Mode.Car)
 }
