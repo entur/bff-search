@@ -5,7 +5,12 @@ import trace from '../../tracer'
 import { set as cacheSet } from '../../cache'
 import logger from '../../logger'
 
-import { RawSearchParams, SearchParams, GraphqlQuery } from '../../types'
+import {
+    RawSearchParams,
+    SearchParams,
+    GraphqlQuery,
+    RoutingError,
+} from '../../types'
 
 import {
     generateShamashLink,
@@ -17,6 +22,7 @@ import {
 import { uniq } from '../../utils/array'
 import { clean } from '../../utils/object'
 import { deriveSearchParamsId } from '../../utils/searchParams'
+import type { Otp2TripPattern } from '../../logic/otp2/controller'
 import { filterModesAndSubModes } from '../../logic/otp2/modes'
 
 import { ENVIRONMENT } from '../../config'
@@ -58,19 +64,30 @@ function getParams(params: RawSearchParams): SearchParams {
 
 function mapQueries(
     queries: GraphqlQuery[],
-):
-    | (GraphqlQuery & { algorithm: 'OTP1' | 'OTP2'; shamash: string })[]
-    | undefined {
+): (GraphqlQuery & { shamash: string })[] | undefined {
     if (ENVIRONMENT === 'prod') return
 
     return queries.map((q) => ({
         ...q,
-        algorithm: 'OTP2',
         shamash: generateShamashLink(q),
     }))
 }
 
-router.post('/', async (req, res, next) => {
+router.post<
+    '/',
+    Record<string, never>,
+    {
+        tripPatterns: Otp2TripPattern[]
+        hasFlexibleTripPattern?: boolean
+        isSameDaySearch?: boolean
+        nextCursor?: string
+        queries?: (GraphqlQuery & { shamash: string })[]
+        routingErrors?: RoutingError[]
+    },
+    RawSearchParams & {
+        cursor?: string
+    }
+>('/', async (req, res, next) => {
     try {
         let stopTrace = trace('parseCursor')
         const cursorData = parseCursor(req.body?.cursor)
