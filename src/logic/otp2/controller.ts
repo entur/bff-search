@@ -46,7 +46,7 @@ const sdk = createEnturService({
     },
 })
 
-interface Otp2TripPattern extends TripPattern {
+export interface Otp2TripPattern extends TripPattern {
     systemNotices: {
         tag: string
         text: string

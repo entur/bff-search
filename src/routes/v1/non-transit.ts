@@ -34,7 +34,12 @@ function getParams(
     }
 }
 
-router.post('/', async (req, res, next) => {
+router.post<
+    '/',
+    Record<string, never>,
+    Awaited<ReturnType<typeof searchNonTransit>>,
+    RawSearchParams
+>('/', async (req, res, next) => {
     try {
         const params = getParams(req.body)
         const extraHeaders = getHeadersFromClient(req)
