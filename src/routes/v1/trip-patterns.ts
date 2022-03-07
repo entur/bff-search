@@ -29,7 +29,15 @@ const SEARCH_PARAMS_EXPIRE_IN_SECONDS = 4 * 60 * 60 // four hours
 
 const router = Router()
 
-router.get('/:id', async (req, res, next) => {
+router.get<
+    '/:id',
+    { id: string },
+    {
+        tripPattern: TripPattern
+        searchParams?: SearchParams | null
+        expires?: Date
+    }
+>('/:id', async (req, res, next) => {
     try {
         const { id } = req.params
         const { update } = req.query
@@ -66,7 +74,12 @@ router.get('/:id', async (req, res, next) => {
     }
 })
 
-router.post('/', verifyPartnerToken, async (req, res, next) => {
+router.post<
+    '/',
+    Record<string, never>,
+    { tripPattern: TripPatternParsed },
+    { tripPattern: TripPatternParsed; searchParams: SearchParams }
+>('/', verifyPartnerToken, async (req, res, next) => {
     try {
         const { tripPattern, searchParams } = req.body
 
@@ -120,7 +133,12 @@ function getParams(params: RawSearchParams): SearchParams {
     }
 }
 
-router.post('/:id/replace-leg', async (req, res, next) => {
+router.post<
+    '/:id/replace-leg',
+    { id: string },
+    { tripPatterns: TripPattern[] },
+    { replaceLegServiceJourneyId: string }
+>('/:id/replace-leg', async (req, res, next) => {
     try {
         const { id } = req.params
         const { replaceLegServiceJourneyId } = req.body
