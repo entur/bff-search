@@ -1,4 +1,6 @@
-import { Leg, LegMode } from '@entur/sdk'
+import { Mode } from '../generated/graphql'
+
+import type { Leg } from '../types'
 
 export function parseLeg(leg: Leg): Leg {
     const { fromPlace, fromEstimatedCall } = leg
@@ -17,16 +19,13 @@ export function parseLeg(leg: Leg): Leg {
     return coachLegToBusLeg(parsedLeg)
 }
 
-export function isFlexibleLeg({ line }: Leg): boolean {
-    return line?.flexibleLineType === 'flexibleAreasOnly'
+export function isFlexibleLeg(leg: Leg): boolean {
+    return leg.line?.flexibleLineType === 'flexibleAreasOnly'
 }
 
-export function isTransitLeg({ mode }: Leg): boolean {
-    return (
-        mode !== LegMode.FOOT &&
-        mode !== LegMode.BICYCLE &&
-        mode !== LegMode.CAR
-    )
+export function isTransitLeg(leg: Leg): boolean {
+    const { mode } = leg
+    return mode !== Mode.Foot && mode !== Mode.Bicycle && mode !== Mode.Car
 }
 
 export function isBikeRentalLeg(leg: Leg): boolean {
@@ -41,6 +40,6 @@ export function isBikeRentalLeg(leg: Leg): boolean {
 function coachLegToBusLeg(leg: Leg): Leg {
     return {
         ...leg,
-        mode: leg.mode === LegMode.COACH ? LegMode.BUS : leg.mode,
+        mode: leg.mode === Mode.Coach ? Mode.Bus : leg.mode,
     }
 }

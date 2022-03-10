@@ -2,8 +2,6 @@ import { Router } from 'express'
 import { parseJSON } from 'date-fns'
 import { v4 as uuid } from 'uuid'
 
-import { TripPattern } from '@entur/sdk'
-
 import trace from '../../tracer'
 import { set as cacheSet, get as cacheGet } from '../../cache'
 import {
@@ -13,7 +11,12 @@ import {
 } from '../../errors'
 import { verifyPartnerToken } from '../../auth'
 
-import { RawSearchParams, SearchParams } from '../../types'
+import {
+    RawSearchParams,
+    SearchParams,
+    TripPattern,
+    TripPatternParsed,
+} from '../../types'
 
 import { getAlternativeTripPatterns } from '../../logic/otp1'
 import { updateTripPattern, getExpires } from '../../logic/otp2'
@@ -74,8 +77,8 @@ router.get<
 router.post<
     '/',
     Record<string, never>,
-    { tripPattern: TripPattern },
-    { tripPattern: TripPattern; searchParams: SearchParams }
+    { tripPattern: TripPatternParsed },
+    { tripPattern: TripPatternParsed; searchParams: SearchParams }
 >('/', verifyPartnerToken, async (req, res, next) => {
     try {
         const { tripPattern, searchParams } = req.body
@@ -142,7 +145,7 @@ router.post<
 
         let stopTrace = trace('retrieve from cache')
         const [tripPattern, searchParams] = await Promise.all([
-            cacheGet<TripPattern>(`trip-pattern:${id}`),
+            cacheGet<TripPatternParsed>(`trip-pattern:${id}`),
             cacheGet<SearchParams>(
                 `search-params:${deriveSearchParamsId(id)}`,
                 SEARCH_PARAMS_EXPIRE_IN_SECONDS,

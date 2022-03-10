@@ -1,14 +1,7 @@
-import createEnturService, {
-    Authority,
-    GetTripPatternsParams,
-    IntermediateEstimatedCall,
-    Leg,
-    LegMode,
-    Notice,
-    TripPattern,
-} from '@entur/sdk'
-import { Modes, StreetMode } from '@entur/sdk/lib/journeyPlanner/types'
+import { GetTripPatternsParams } from '@entur/sdk'
+import { Mode, Modes, StreetMode } from '@entur/sdk/lib/journeyPlanner/types'
 
+import { request as graphqlRequest } from 'graphql-request'
 import { v4 as uuid } from 'uuid'
 import {
     addDays,
@@ -27,8 +20,15 @@ import {
     RoutingError,
     RoutingErrorCode,
     SearchParams,
+    TripPattern,
+    Authority,
+    IntermediateEstimatedCall,
+    Leg,
+    Notice,
+    TripPatternParsed,
 } from '../../types'
 
+import { isNotNullOrUndefined } from '../../utils/misc'
 import { isValidTransitAlternative } from '../../utils/tripPattern'
 import { parseLeg } from '../../utils/leg'
 import { replaceQuay1ForOsloSWithUnknown } from '../../utils/osloSTrack1Replacer'
@@ -38,22 +38,12 @@ import { GetTripPatternError, RoutingErrorsError } from '../../errors'
 
 import JOURNEY_PLANNER_QUERY from './query'
 import { DEFAULT_MODES, filterModesAndSubModes } from './modes'
+import {
+    GetTripPatternsQuery,
+    GetTripPatternsQueryVariables,
+} from '../../generated/graphql'
 
-const sdk = createEnturService({
-    clientName: 'entur-search',
-    hosts: {
-        journeyPlanner: TRANSIT_HOST_OTP2,
-    },
-})
-
-export interface Otp2TripPattern extends TripPattern {
-    systemNotices: {
-        tag: string
-        text: string
-    }[]
-}
-
-interface AdditionalOtp2TripPatternParams {
+interface AdditionalTripPatternParams {
     // searchDate is found on TripPatternParams too, but in our case it
     // is never undefined.
     searchDate: Date
@@ -64,10 +54,10 @@ interface AdditionalOtp2TripPatternParams {
 
 // GetTripPatternsParams is an OTP1 type, we need to tweak it to match OTP2
 type Otp2GetTripPatternParams = Omit<GetTripPatternsParams, 'modes' | 'limit'> &
-    AdditionalOtp2TripPatternParams
+    AdditionalTripPatternParams
 
 interface TransitTripPatterns {
-    tripPatterns: Otp2TripPattern[]
+    tripPatterns: TripPatternParsed[]
     queries: GraphqlQuery[]
     metadata?: Metadata
 }
@@ -75,35 +65,36 @@ interface TransitTripPatterns {
 // There is no point in continuing the search if any of these routing errors
 // are received
 const HOPELESS_ROUTING_ERRORS = [
-    RoutingErrorCode.noTransitConnection,
-    RoutingErrorCode.outsideServicePeriod,
-    RoutingErrorCode.outsideBounds,
-    RoutingErrorCode.locationNotFound,
-    RoutingErrorCode.walkingBetterThanTransit,
-    RoutingErrorCode.systemError,
+    RoutingErrorCode.NoTransitConnection,
+    RoutingErrorCode.OutsideServicePeriod,
+    RoutingErrorCode.OutsideBounds,
+    RoutingErrorCode.LocationNotFound,
+    RoutingErrorCode.WalkingBetterThanTransit,
+    RoutingErrorCode.SystemError,
 ]
 
-function createParseTripPattern(): (rawTripPattern: any) => Otp2TripPattern {
+function createParseTripPattern(): (
+    rawTripPattern: TripPattern,
+) => TripPatternParsed {
     let i = 0
     const sharedId = uuid()
     const baseId = sharedId.substring(0, 23)
     const iterator = parseInt(sharedId.substring(24), 16)
 
-    return (rawTripPattern: any) => {
+    return (rawTripPattern: TripPattern): TripPatternParsed => {
         i++
         const id = `${baseId}-${(iterator + i).toString(16).slice(-12)}`
         return parseTripPattern({ id, ...rawTripPattern })
     }
 }
 
-function parseTripPattern(rawTripPattern: any): Otp2TripPattern {
+function parseTripPattern(
+    rawTripPattern: TripPatternParsed,
+): TripPatternParsed {
     return {
         ...rawTripPattern,
         id: rawTripPattern.id || uuid(),
         legs: rawTripPattern.legs.map(parseLeg),
-        genId: `${new Date().getTime()}:${Math.random()
-            .toString(36)
-            .slice(2, 12)}`,
     }
 }
 
@@ -134,6 +125,7 @@ function getTripPatternsQuery(
     comment: string,
 ): GraphqlQuery {
     return {
+        // @ts-ignore
         query: JOURNEY_PLANNER_QUERY,
         variables: {
             ...getTripPatternsVariables(params),
@@ -163,14 +155,14 @@ function getNoticesFromIntermediateEstimatedCalls(
 ): Notice[] {
     if (!estimatedCalls?.length) return []
     return estimatedCalls
-        .map(({ notices }) => notices || [])
-        .reduce((a, b) => [...a, ...b], [])
+        .flatMap(({ notices }) => notices)
+        .filter((notice): notice is Notice => Boolean(notice.text))
 }
 
 function getNotices(leg: Leg): Notice[] {
-    const notices = [
+    const notices: Notice[] = [
         ...getNoticesFromIntermediateEstimatedCalls(
-            leg.intermediateEstimatedCalls,
+            leg.intermediateEstimatedCalls?.filter(isNotNullOrUndefined) || [],
         ),
         ...(leg.serviceJourney?.notices || []),
         ...(leg.serviceJourney?.journeyPattern?.notices || []),
@@ -178,11 +170,14 @@ function getNotices(leg: Leg): Notice[] {
         ...(leg.fromEstimatedCall?.notices || []),
         ...(leg.toEstimatedCall?.notices || []),
         ...(leg.line?.notices || []),
-    ]
+    ].filter(isNotNullOrUndefined)
     return uniqBy(notices, (notice) => notice.text)
 }
 
-function authorityMapper(authority?: Authority): Authority | undefined {
+function authorityMapper(
+    authority?: Authority | null | undefined,
+): (Authority & { codeSpace: string }) | undefined {
+    if (!authority) return undefined
     const codeSpace = authority?.id.split(':')[0]
     if (!authority || !codeSpace) return undefined
 
@@ -194,7 +189,7 @@ function authorityMapper(authority?: Authority): Authority | undefined {
     }
 }
 
-function legMapper(leg: Leg): Leg {
+function legMapper(leg: Leg): Leg & { notices: Notice[] } {
     return {
         ...leg,
         authority: authorityMapper(leg.authority),
@@ -221,7 +216,7 @@ function verifyRoutingErrors(
 
 async function getAndVerifyTripPatterns(
     params: Otp2GetTripPatternParams,
-): Promise<[Otp2TripPattern[], Metadata | undefined, RoutingError[]]> {
+): Promise<[TripPatternParsed[], Metadata | undefined, RoutingError[]]> {
     const [tripPatterns, metadata, routingErrors] = await getTripPatterns(
         params,
     )
@@ -232,19 +227,18 @@ async function getAndVerifyTripPatterns(
 async function getTripPatterns(
     params: Otp2GetTripPatternParams,
     extraHeaders?: Record<string, string>,
-): Promise<[Otp2TripPattern[], Metadata | undefined, RoutingError[]]> {
-    let res
+): Promise<[TripPatternParsed[], Metadata | undefined, RoutingError[]]> {
+    let res: GetTripPatternsQuery
     try {
-        res = await sdk.queryJourneyPlanner<{
-            trip: {
-                // metadata will be undefined if routingErrors is not empty
-                metadata: Metadata | undefined
-                tripPatterns: any[]
-                routingErrors: RoutingError[]
-            }
-        }>(JOURNEY_PLANNER_QUERY, getTripPatternsVariables(params), {
-            headers: extraHeaders,
-        })
+        res = await graphqlRequest<
+            GetTripPatternsQuery,
+            GetTripPatternsQueryVariables
+        >(
+            `${TRANSIT_HOST_OTP2}/graphql`,
+            JOURNEY_PLANNER_QUERY,
+            getTripPatternsVariables(params),
+            extraHeaders,
+        )
     } catch (error) {
         throw new GetTripPatternError(
             error,
@@ -261,8 +255,11 @@ async function getTripPatterns(
                 legs: pattern.legs.map(legMapper),
             }))
             .map(parse),
-        metadata,
-        routingErrors,
+        (metadata as Metadata) || undefined,
+        routingErrors.map((routingError) => ({
+            ...routingError,
+            inputField: routingError.inputField || null,
+        })) || [],
     ]
 }
 
@@ -277,10 +274,10 @@ function getMinutesBetweenDates(
     return Math.max(min, Math.min(max, diff))
 }
 
-function sortTripPatternsByExpectedTime(
-    tripPatterns: Otp2TripPattern[],
+function sortTripPatternsByExpectedTime<T extends TripPattern>(
+    tripPatterns: T[],
     arriveBy: boolean,
-): Otp2TripPattern[] {
+): T[] {
     // eslint-disable-next-line fp/no-mutating-methods
     return tripPatterns.sort((a, b) => {
         if (arriveBy) return a.expectedEndTime > b.expectedEndTime ? -1 : 1
@@ -297,11 +294,11 @@ function getNextSearchDateFromMetadata(
 }
 
 function combineAndSortFlexibleAndTransitTripPatterns(
-    regularTripPatterns: Otp2TripPattern[],
-    flexibleTripPattern?: Otp2TripPattern,
+    regularTripPatterns: TripPatternParsed[],
+    flexibleTripPattern?: TripPatternParsed,
     nextDateTime?: Date,
     arriveBy = false,
-): Otp2TripPattern[] {
+): TripPatternParsed[] {
     if (!flexibleTripPattern) return regularTripPatterns
 
     const sortedTripPatterns = sortTripPatternsByExpectedTime(
@@ -333,7 +330,7 @@ function combineAndSortFlexibleAndTransitTripPatterns(
 async function searchBeforeFlexible(
     searchDate: Date,
     arriveBy = false,
-    flexibleTripPattern: Otp2TripPattern,
+    flexibleTripPattern: TripPattern,
     searchParams: any,
 ): Promise<TransitTripPatterns> {
     const searchWindow = getMinutesBetweenDates(
@@ -355,7 +352,7 @@ async function searchBeforeFlexible(
     const [transitResultsBeforeFlexible, metadata] =
         await getAndVerifyTripPatterns(nextSearchParams)
 
-    const tripPatterns = transitResultsBeforeFlexible
+    const tripPatterns: TripPatternParsed[] = transitResultsBeforeFlexible
         .filter(isValidTransitAlternative)
         .map(replaceQuay1ForOsloSWithUnknown)
 
@@ -484,7 +481,7 @@ async function searchTransitUntilMaxRetries(
  * be handled separately.
  */
 async function searchFlexible(searchParams: Otp2GetTripPatternParams): Promise<{
-    tripPatterns: Otp2TripPattern[]
+    tripPatterns: TripPatternParsed[]
     queries: GraphqlQuery[]
 }> {
     const getTripPatternsParams: Otp2GetTripPatternParams = {
@@ -503,7 +500,7 @@ async function searchFlexible(searchParams: Otp2GetTripPatternParams): Promise<{
     const [returnedTripPatterns] = await getTripPatterns(getTripPatternsParams)
 
     const tripPatterns = returnedTripPatterns.filter(({ legs }) => {
-        const isFootOnly = legs.length === 1 && legs[0]?.mode === LegMode.FOOT
+        const isFootOnly = legs.length === 1 && legs[0]?.mode === Mode.Foot
         return !isFootOnly
     })
 
@@ -548,7 +545,7 @@ async function searchTaxiFrontBack(
     // no car legs. We therefore filter the results to prevent it from
     // returning results that the normal search also might return.
     const taxiResults = tripPatterns.filter(({ legs }) =>
-        legs.some(({ mode }) => mode === LegMode.CAR),
+        legs.some(({ mode }) => mode === Mode.Car),
     )
 
     return {
@@ -628,10 +625,10 @@ export async function searchTransit(
     // transport from where the traveler wants to start or end the trip. Try to
     // find an option using taxi for those parts instead.
     const noStopsInRangeErrors = routingErrors.filter(
-        ({ code }) => code === RoutingErrorCode.noStopsInRange,
+        ({ code }) => code === RoutingErrorCode.NoStopsInRange,
     )
     const hasStopsInRange = noStopsInRangeErrors.length === 0
-    let taxiTripPatterns: Otp2TripPattern[] = []
+    let taxiTripPatterns: TripPatternParsed[] = []
     if (!hasStopsInRange) {
         const noFromStopInRange = noStopsInRangeErrors.some(
             (e) => e.inputField === 'from',
@@ -672,7 +669,7 @@ export async function searchTransit(
         queries = [...queries, ...beforeFlexibleResult.queries]
     }
 
-    const tripPatterns = [
+    const tripPatterns: TripPatternParsed[] = [
         ...taxiTripPatterns,
         ...combineAndSortFlexibleAndTransitTripPatterns(
             regularTripPatterns,
@@ -753,8 +750,18 @@ export async function searchNonTransit(
              * mode. Especially relevant for bike_rental.
              */
             const candidate = result.find(({ legs }) => {
-                const modeToCheck =
-                    mode === StreetMode.BikeRental ? LegMode.BICYCLE : mode
+                const modeToCheck = ((): Mode => {
+                    switch (mode) {
+                        case StreetMode.Foot:
+                            return Mode.Foot
+                        case StreetMode.Bicycle:
+                            return Mode.Bicycle
+                        case StreetMode.Car:
+                            return Mode.Car
+                        case StreetMode.BikeRental:
+                            return Mode.Bicycle
+                    }
+                })()
 
                 const matchesMode = (leg: Leg): boolean =>
                     leg.mode === modeToCheck
@@ -762,7 +769,7 @@ export async function searchNonTransit(
                 return (
                     legs.some(matchesMode) &&
                     legs.every(
-                        (leg) => leg.mode === LegMode.FOOT || matchesMode(leg),
+                        (leg) => leg.mode === Mode.Foot || matchesMode(leg),
                     )
                 )
             })

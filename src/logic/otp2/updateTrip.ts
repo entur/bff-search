@@ -6,12 +6,7 @@ import {
     differenceInSeconds,
     differenceInMinutes,
 } from 'date-fns'
-import createEnturService, {
-    TripPattern,
-    Leg,
-    EstimatedCall,
-    Place,
-} from '@entur/sdk'
+import createEnturService from '@entur/sdk'
 
 import { first, last } from '../../utils/array'
 import { isFlexibleLeg, isTransitLeg } from '../../utils/leg'
@@ -19,6 +14,8 @@ import { toISOString } from '../../utils/time'
 
 import { TRANSIT_HOST_OTP2 } from '../../config'
 import logger from '../../logger'
+
+import { TripPattern, Leg, EstimatedCall, Place } from '../../types'
 
 const sdk = createEnturService({
     clientName: 'entur-search',
@@ -100,8 +97,11 @@ async function getCallsForServiceJourney(
 }
 
 function createIsSameCallPredicate(
-    call: EstimatedCall,
+    call: EstimatedCall | null | undefined,
 ): (updatedCall: UpdatedEstimatedCall) => boolean {
+    if (!call) {
+        return () => false
+    }
     const { aimedDepartureTime } = call
     const quayId = call.quay?.id
     if (!quayId) return () => false
@@ -123,11 +123,14 @@ function updatePlace(place: Place, updatedCall: UpdatedEstimatedCall): Place {
             ...place.quay,
             description,
             publicCode,
-            stopPlace: {
-                ...place.quay.stopPlace,
-                description:
-                    stopPlace?.description || place.quay.stopPlace.description,
-            },
+            stopPlace: place.quay.stopPlace
+                ? {
+                      ...place.quay.stopPlace,
+                      description:
+                          stopPlace?.description ||
+                          place.quay.stopPlace.description,
+                  }
+                : undefined,
         },
     }
 }
@@ -171,10 +174,13 @@ interface LegWithUpdate {
     leg: Leg
     updatedCalls?: UpdatedCalls
 }
+
 async function updateLeg(leg: Leg): Promise<LegWithUpdate> {
+    const fromEstimatedCallDate = leg.fromEstimatedCall?.date
+
     if (
         !leg.serviceJourney?.id ||
-        !leg.fromEstimatedCall?.date ||
+        !fromEstimatedCallDate ||
         !leg.toEstimatedCall
     ) {
         return { leg }
@@ -183,7 +189,7 @@ async function updateLeg(leg: Leg): Promise<LegWithUpdate> {
     const { serviceJourney, fromEstimatedCall, toEstimatedCall } = leg
     const updatedEstimatedCalls = await getCallsForServiceJourney(
         serviceJourney.id,
-        fromEstimatedCall.date,
+        fromEstimatedCallDate,
     )
 
     const fromIndex = updatedEstimatedCalls.findIndex(
@@ -267,7 +273,7 @@ function updateNonTransitLeg(
     next?: LegWithUpdate,
     prev?: LegWithUpdate,
 ): Leg {
-    const { duration = 0 } = leg
+    const duration = leg.duration || 0
 
     if (prev) {
         const { updatedCalls } = prev
@@ -317,7 +323,12 @@ export async function updateTripPattern(
 ): Promise<TripPattern> {
     if (tripPattern.legs.some(isFlexibleLeg)) return tripPattern
 
-    const { legs, startTime, endTime, duration } = tripPattern
+    const {
+        legs,
+        expectedStartTime: startTime,
+        expectedEndTime: endTime,
+        duration,
+    } = tripPattern
 
     const legsWithUpdateInfo: LegWithUpdate[] = await Promise.all(
         legs.map((leg) =>
@@ -349,8 +360,8 @@ export async function updateTripPattern(
 
 export function getExpires(tripPattern: TripPattern): Date | undefined {
     const now = new Date()
-    const startTime = parseISO(tripPattern.startTime)
-    const endTime = parseISO(tripPattern.endTime)
+    const startTime = parseISO(tripPattern.expectedStartTime)
+    const endTime = parseISO(tripPattern.expectedEndTime)
 
     // trip has ended
     if (endTime < now) return

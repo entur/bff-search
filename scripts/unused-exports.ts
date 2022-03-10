@@ -87,8 +87,7 @@ async function main(): Promise<void> {
     const timeStart = Date.now()
 
     const result = analyzeTsConfig(tsConfigFilePath, [
-        '--excludePathsFromReport=src/index.ts',
-        '--ignoreFiles=types/Api',
+        '--excludePathsFromReport=src/generated/graphql.ts',
     ])
 
     const timeEnd = Date.now()

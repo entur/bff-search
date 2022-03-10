@@ -10,6 +10,7 @@ import {
     SearchParams,
     GraphqlQuery,
     RoutingError,
+    TripPattern,
 } from '../../types'
 
 import {
@@ -22,7 +23,6 @@ import {
 import { uniq } from '../../utils/array'
 import { clean } from '../../utils/object'
 import { deriveSearchParamsId } from '../../utils/searchParams'
-import type { Otp2TripPattern } from '../../logic/otp2/controller'
 import { filterModesAndSubModes } from '../../logic/otp2/modes'
 
 import { ENVIRONMENT } from '../../config'
@@ -77,7 +77,7 @@ router.post<
     '/',
     Record<string, never>,
     {
-        tripPatterns: Otp2TripPattern[]
+        tripPatterns: TripPattern[]
         hasFlexibleTripPattern?: boolean
         isSameDaySearch?: boolean
         nextCursor?: string

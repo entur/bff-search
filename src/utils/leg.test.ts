@@ -1,24 +1,24 @@
-import { Leg, LegMode, Place } from '@entur/sdk'
-
+import { Leg, Place } from '../types'
+import { Mode } from '../generated/graphql'
 import { parseLeg, isFlexibleLeg, isTransitLeg, isBikeRentalLeg } from './leg'
 
 describe('parseLeg', () => {
     it('should map coach legs to bus legs', () => {
-        const leg = { mode: LegMode.COACH } as Leg
+        const leg = { mode: Mode.Coach } as Leg
 
-        expect(parseLeg(leg).mode).toEqual(LegMode.BUS)
+        expect(parseLeg(leg).mode).toEqual(Mode.Bus)
     })
 
     it('should update the fromPlace name of transit legs', () => {
         const oldName = 'place name'
         const newName = 'quay name'
-        const buildLeg = (mode: LegMode): Leg =>
+        const buildLeg = (mode: Mode): Leg =>
             ({
                 fromPlace: { name: oldName, quay: { name: newName } },
                 mode,
             } as Leg)
-        const nonTransitLeg = buildLeg(LegMode.FOOT)
-        const transitLeg = buildLeg(LegMode.RAIL)
+        const nonTransitLeg = buildLeg(Mode.Foot)
+        const transitLeg = buildLeg(Mode.Rail)
 
         expect(parseLeg(nonTransitLeg).fromPlace.name).toEqual(oldName)
         expect(parseLeg(transitLeg).fromPlace.name).toEqual(newName)
@@ -39,12 +39,12 @@ describe('isFlexibleLeg', () => {
 
 describe('isTransitLeg', () => {
     it('should check if the leg has a transit mode', () => {
-        expect(isTransitLeg({ mode: LegMode.RAIL } as Leg)).toBeTruthy()
-        expect(isTransitLeg({ mode: LegMode.AIR } as Leg)).toBeTruthy()
-        expect(isTransitLeg({ mode: LegMode.FOOT } as Leg)).toBeFalsy()
-        expect(isTransitLeg({ mode: LegMode.BICYCLE } as Leg)).toBeFalsy()
-        expect(isTransitLeg({ mode: LegMode.CAR } as Leg)).toBeFalsy()
-        expect(isTransitLeg({ mode: LegMode.TRAM } as Leg)).toBeTruthy()
+        expect(isTransitLeg({ mode: Mode.Rail } as Leg)).toBeTruthy()
+        expect(isTransitLeg({ mode: Mode.Air } as Leg)).toBeTruthy()
+        expect(isTransitLeg({ mode: Mode.Foot } as Leg)).toBeFalsy()
+        expect(isTransitLeg({ mode: Mode.Bicycle } as Leg)).toBeFalsy()
+        expect(isTransitLeg({ mode: Mode.Car } as Leg)).toBeFalsy()
+        expect(isTransitLeg({ mode: Mode.Tram } as Leg)).toBeTruthy()
     })
 })
 
