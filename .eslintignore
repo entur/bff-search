@@ -3,3 +3,4 @@ api
 dist
 node_modules
 src/generated/graphql.ts
+typeDeclarations
