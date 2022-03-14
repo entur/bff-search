@@ -216,9 +216,11 @@ function verifyRoutingErrors(
 
 async function getAndVerifyTripPatterns(
     params: Otp2GetTripPatternParams,
+    extraHeaders: Record<string, string>,
 ): Promise<[TripPatternParsed[], Metadata | undefined, RoutingError[]]> {
     const [tripPatterns, metadata, routingErrors] = await getTripPatterns(
         params,
+        extraHeaders,
     )
     verifyRoutingErrors(routingErrors, params)
     return [tripPatterns, metadata, routingErrors]
@@ -226,7 +228,7 @@ async function getAndVerifyTripPatterns(
 
 async function getTripPatterns(
     params: Otp2GetTripPatternParams,
-    extraHeaders?: Record<string, string>,
+    extraHeaders: Record<string, string>,
 ): Promise<[TripPatternParsed[], Metadata | undefined, RoutingError[]]> {
     let res: GetTripPatternsQuery
     try {
@@ -332,6 +334,7 @@ async function searchBeforeFlexible(
     arriveBy = false,
     flexibleTripPattern: TripPattern,
     searchParams: any,
+    extraHeaders: Record<string, string>,
 ): Promise<TransitTripPatterns> {
     const searchWindow = getMinutesBetweenDates(
         parseISO(
@@ -350,7 +353,7 @@ async function searchBeforeFlexible(
     }
 
     const [transitResultsBeforeFlexible, metadata] =
-        await getAndVerifyTripPatterns(nextSearchParams)
+        await getAndVerifyTripPatterns(nextSearchParams, extraHeaders)
 
     const tripPatterns: TripPatternParsed[] = transitResultsBeforeFlexible
         .filter(isValidTransitAlternative)
@@ -401,7 +404,7 @@ async function searchTransitUntilMaxRetries(
     previousSearchParams: Otp2GetTripPatternParams,
     previousMetadata: Metadata | undefined,
     prevQueries: GraphqlQuery[],
-    extraHeaders: { [p: string]: string },
+    extraHeaders: Record<string, string>,
 ): Promise<TransitTripPatterns> {
     const nextSearchParams = getNextSearchParams(
         previousSearchParams,
@@ -420,6 +423,7 @@ async function searchTransitUntilMaxRetries(
 
     const [response, metadata] = await getAndVerifyTripPatterns(
         nextSearchParams,
+        extraHeaders,
     )
 
     const tripPatterns = response
@@ -480,7 +484,10 @@ async function searchTransitUntilMaxRetries(
  * midnight, there still may be transport available all of Saturday. This must
  * be handled separately.
  */
-async function searchFlexible(searchParams: Otp2GetTripPatternParams): Promise<{
+async function searchFlexible(
+    searchParams: Otp2GetTripPatternParams,
+    extraHeaders: Record<string, string>,
+): Promise<{
     tripPatterns: TripPatternParsed[]
     queries: GraphqlQuery[]
 }> {
@@ -497,7 +504,10 @@ async function searchFlexible(searchParams: Otp2GetTripPatternParams): Promise<{
         getTripPatternsQuery(getTripPatternsParams, 'Search flexible'),
     ]
 
-    const [returnedTripPatterns] = await getTripPatterns(getTripPatternsParams)
+    const [returnedTripPatterns] = await getTripPatterns(
+        getTripPatternsParams,
+        extraHeaders,
+    )
 
     const tripPatterns = returnedTripPatterns.filter(({ legs }) => {
         const isFootOnly = legs.length === 1 && legs[0]?.mode === Mode.Foot
@@ -523,6 +533,7 @@ async function searchFlexible(searchParams: Otp2GetTripPatternParams): Promise<{
 async function searchTaxiFrontBack(
     searchParams: Otp2GetTripPatternParams,
     options: { access: boolean; egress: boolean },
+    extraHeaders: Record<string, string>,
 ): Promise<TransitTripPatterns> {
     const { access, egress } = options
 
@@ -536,7 +547,10 @@ async function searchTaxiFrontBack(
         numTripPatterns: egress && access ? 2 : 1,
     }
 
-    const [tripPatterns] = await getAndVerifyTripPatterns(getTripPatternsParams)
+    const [tripPatterns] = await getAndVerifyTripPatterns(
+        getTripPatternsParams,
+        extraHeaders,
+    )
     const queries = [
         getTripPatternsQuery(getTripPatternsParams, 'Search taxi front back'),
     ]
@@ -588,8 +602,10 @@ export async function searchTransit(
         flexibleResults,
         [regularTripPatternsUnfiltered, initialMetadata, routingErrors],
     ] = await Promise.all([
-        isFirstSearchIteration ? searchFlexible(searchParams) : undefined,
-        getTripPatterns(getTripPatternsParams),
+        isFirstSearchIteration
+            ? searchFlexible(searchParams, extraHeaders)
+            : undefined,
+        getTripPatterns(getTripPatternsParams, extraHeaders),
     ])
 
     let queries = [
@@ -637,10 +653,14 @@ export async function searchTransit(
             (e) => e.inputField === 'to',
         )
 
-        const taxiResults = await searchTaxiFrontBack(searchParams, {
-            access: noFromStopInRange,
-            egress: noToStopInRange,
-        })
+        const taxiResults = await searchTaxiFrontBack(
+            searchParams,
+            {
+                access: noFromStopInRange,
+                egress: noToStopInRange,
+            },
+            extraHeaders,
+        )
         taxiTripPatterns = taxiResults.tripPatterns
         queries = [...queries, ...taxiResults.queries]
     }
@@ -663,6 +683,7 @@ export async function searchTransit(
             arriveBy,
             flexibleTripPattern,
             getTripPatternsParams,
+            extraHeaders,
         )
         regularTripPatterns = beforeFlexibleResult.tripPatterns
         metadata = beforeFlexibleResult.metadata
