@@ -2,7 +2,11 @@
 .vscode
 
 node_modules
+
 dist
+typeDeclarations
+typeDeclarations.tar.gz
+
 search-endpoints.txt
 dump.rdb
 .DS_Store

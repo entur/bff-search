@@ -23,7 +23,7 @@ function deploy {
     npm run lint
 
     echo " 🚢 Deploying BFF Search to $ENV ..."
-    npm run build:$ENV && gcloud app deploy app-$ENV.yaml --project=entur-$ENV --quiet
+    npm run build $ENV && gcloud app deploy app-$ENV.yaml --project=entur-$ENV --quiet
 
     echo " 💬 Posting message to Slack ..."
     slack_message $ENV

@@ -73,20 +73,24 @@ function mapQueries(
     }))
 }
 
+export interface PostTransitResponse {
+    tripPatterns: TripPattern[]
+    hasFlexibleTripPattern?: boolean
+    isSameDaySearch?: boolean
+    nextCursor?: string
+    queries?: (GraphqlQuery & { shamash: string })[]
+    routingErrors?: RoutingError[]
+}
+
+export type PostTransitRequestBody = RawSearchParams & {
+    cursor?: string
+}
+
 router.post<
     '/',
     Record<string, never>,
-    {
-        tripPatterns: TripPattern[]
-        hasFlexibleTripPattern?: boolean
-        isSameDaySearch?: boolean
-        nextCursor?: string
-        queries?: (GraphqlQuery & { shamash: string })[]
-        routingErrors?: RoutingError[]
-    },
-    RawSearchParams & {
-        cursor?: string
-    }
+    PostTransitResponse,
+    PostTransitRequestBody
 >('/', async (req, res, next) => {
     try {
         let stopTrace = trace('parseCursor')

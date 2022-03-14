@@ -1,7 +1,16 @@
 import { Router } from 'express'
 
 import nonTransitRouter from './non-transit'
-import transitRouter from './transit'
+import transitRouter, {
+    /**
+     * Import types so that `unused-exports` won't complain about these.
+     * They need to be exported to be included in type declarations.
+     */
+    /* eslint-disable @typescript-eslint/no-unused-vars */
+    PostTransitRequestBody,
+    PostTransitResponse,
+    /* eslint-enable @typescript-eslint/no-unused-vars */
+} from './transit'
 import tripPatternsRouter from './trip-patterns'
 
 const router = Router()
