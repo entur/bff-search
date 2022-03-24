@@ -34,11 +34,17 @@ function getParams(
     }
 }
 
+export type PostNonTransitResponse = Awaited<
+    ReturnType<typeof searchNonTransit>
+>
+
+export type PostNonTransitRequestBody = RawSearchParams
+
 router.post<
     '/',
     Record<string, never>,
-    Awaited<ReturnType<typeof searchNonTransit>>,
-    RawSearchParams
+    PostNonTransitResponse,
+    PostNonTransitRequestBody
 >('/', async (req, res, next) => {
     try {
         const params = getParams(req.body)
