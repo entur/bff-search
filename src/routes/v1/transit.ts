@@ -10,7 +10,7 @@ import {
     SearchParams,
     GraphqlQuery,
     RoutingError,
-    TripPattern,
+    TripPatternParsed,
 } from '../../types'
 
 import {
@@ -74,7 +74,7 @@ function mapQueries(
 }
 
 export interface PostTransitResponse {
-    tripPatterns: TripPattern[]
+    tripPatterns: TripPatternParsed[]
     hasFlexibleTripPattern?: boolean
     isSameDaySearch?: boolean
     nextCursor?: string
