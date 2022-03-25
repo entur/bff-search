@@ -60,10 +60,10 @@ export interface Metadata {
 }
 
 export interface NonTransitTripPatterns {
-    bicycle?: TripPattern
-    bicycle_rent?: TripPattern
-    car?: TripPattern
-    foot?: TripPattern
+    bicycle?: TripPatternParsed
+    bicycle_rent?: TripPatternParsed
+    car?: TripPatternParsed
+    foot?: TripPatternParsed
 }
 
 export enum SearchFilter {
