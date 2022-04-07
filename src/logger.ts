@@ -21,7 +21,7 @@ const loggingWinston = new LoggingWinston({
     levels: LEVELS,
 })
 
-const transportsDev = [new transports.Console()]
+const transportsDev = [new transports.Console({ format: format.prettyPrint() })]
 const transportsProd = [loggingWinston]
 
 const logger = createLogger({
