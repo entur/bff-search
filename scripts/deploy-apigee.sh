@@ -5,7 +5,7 @@ set -e
 function deploy {
     ENV="${1:-dev}"
 
-    if ! [[ "$ENV" =~ ^(dev|staging|prod)$ ]]; then
+    if ! [[ "$ENV" =~ ^(dev|nordic-dev|staging|prod)$ ]]; then
         echo -e " 🙈 Invalid ENV: $ENV\n"
         exit 1
     fi
