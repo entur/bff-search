@@ -5,7 +5,10 @@ import { sleep } from './utils/promise'
 import logger from './logger'
 import { ENVIRONMENT } from './config'
 
-const projectId = `entur-${ENVIRONMENT}`
+const projectId =
+    ENVIRONMENT === 'nordic-dev'
+        ? `entur-${ENVIRONMENT}`
+        : 'ent-clients-nordic-dev'
 const bigQuery = new BigQuery({ projectId })
 
 function getPlatform(client: string): Platform | undefined {
@@ -60,7 +63,11 @@ export async function logTransitAnalytics(
     useOtp2: boolean,
     clientName: string,
 ): Promise<void> {
-    const table = `entur-${ENVIRONMENT}.analytics_eu.transit_search`
+    const table =
+        ENVIRONMENT === 'nordic-dev'
+            ? `entur-${ENVIRONMENT}.analytics_eu.transit_search`
+            : 'ent-clients-nordic-dev.analytics_eu.transit_search'
+
     let query: string | undefined
 
     try {
@@ -112,7 +119,10 @@ export async function logTransitResultStats(
     numberOfOperators: number,
     clientName: string,
 ): Promise<void> {
-    const table = `entur-${ENVIRONMENT}.analytics_eu.transit_result_stats`
+    const table =
+        ENVIRONMENT === 'nordic-dev'
+            ? `entur-${ENVIRONMENT}.analytics_eu.transit_result_stats`
+            : 'ent-clients-nordic-dev.analytics_eu.transit_result_stats'
 
     try {
         const now = new Date().toISOString()

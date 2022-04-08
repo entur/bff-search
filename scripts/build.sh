@@ -2,7 +2,7 @@
 set -e
 
 if [ $# -eq 0 ]; then
-    echo "Remember to specify an environment: dev, staging, beta or prod"
+    echo "Remember to specify an environment: dev, nordic-dev, staging, beta or prod"
     exit 1
 fi
 
