@@ -19,7 +19,11 @@ import {
 } from '../../types'
 
 import { getAlternativeTripPatterns } from '../../logic/otp1'
-import { updateTripPattern, getExpires } from '../../logic/otp2'
+import {
+    updateTripPattern,
+    getExpires,
+    getAlternativeLegs,
+} from '../../logic/otp2'
 import { filterModesAndSubModes } from '../../logic/otp2/modes'
 
 import { uniq } from '../../utils/array'
@@ -132,6 +136,23 @@ function getParams(params: RawSearchParams): SearchParams {
         modes,
     }
 }
+
+router.post<
+    '/replace-leg',
+    { id: string },
+    { previousLegs: number },
+    { nextLegs: number }
+>('/replace-leg', async (req, res, next) => {
+    try {
+        const { id, previousLegs, nextLegs } = req.body
+
+        const legs = await getAlternativeLegs(id, previousLegs, nextLegs)
+
+        res.json({ legs })
+    } catch (error) {
+        next(error)
+    }
+})
 
 router.post<
     '/:id/replace-leg',
