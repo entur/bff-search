@@ -1,12 +1,9 @@
 import createEnturService from '@entur/sdk'
 
 import { TRANSIT_HOST_OTP2 } from '../../config'
-import logger from '../../logger'
-
-import { Leg } from '../../types'
-
-interface LegResponse {
-    leg: Leg[]
+import { Leg, TripPattern } from '../../types'
+interface ReplaceLeg {
+    leg?: Leg
 }
 
 const sdk = createEnturService({
@@ -18,23 +15,64 @@ const sdk = createEnturService({
 
 export async function getAlternativeLegs(
     id: string,
-    previous: number,
-    next: number,
-): Promise<LegResponse[]> {
+    numberOfNext: number,
+    numberOfPrevious: number,
+): Promise<ReplaceLeg> {
     const query = `
+        query($id:ID!, $numberOfNext: Int, $numberOfPrevious: Int) {      
             leg(id:$id) {
-                id 
+                id
                 aimedStartTime
+                nextLegs(next: $numberOfNext) {
+                    ...replaceLegFields
+                }
+                previousLegs(previous: $numberOfPrevious) {
+                    ...replaceLegFields
+                }
+            }              
+        }
+        
+        fragment replaceLegFields on Leg {
+            id
+            mode
+            transportSubmode
+            aimedStartTime
+            expectedStartTime
+            fromEstimatedCall {
+              actualDepartureTime
             }
+            line {
+              publicCode
+            }
+            toPlace {
+              name
+            }
+            fromPlace {
+              name
+            }
+          }            
         `.trim()
 
-    const data = await sdk.queryJourneyPlanner<LegResponse>(query, {
-        id,
-    })
+    const data = await sdk
+        .queryJourneyPlanner<ReplaceLeg>(query, {
+            id,
+            numberOfNext,
+            numberOfPrevious,
+        })
+        .catch((e) => {
+            console.log(e)
+        })
 
-    if (!data) {
+    if (!data || !data.leg) {
         return Promise.reject('No alternative legs found')
     }
 
-    return []
+    return data
 }
+
+// export async function replaceTripPattern(
+//     legToReplace: Leg,
+//     originalTripPattern: TripPattern,
+// ): TripPattern {
+//     // Bytte ut nytt leg med tripPattern
+// }

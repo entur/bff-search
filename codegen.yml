@@ -1,5 +1,5 @@
 overwrite: true
-schema: 'https://api.entur.io/journey-planner/v3/graphql'
+schema: 'https://api.staging.entur.io/journey-planner/v3/graphql'
 documents: 'src/logic/otp2/query.ts'
 hooks:
     afterAllFileWrite:

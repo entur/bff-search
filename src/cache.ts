@@ -34,7 +34,6 @@ export async function get<T>(
     expireInSeconds: number = DEFAULT_EXPIRE,
 ): Promise<T | null> {
     const entry = await hgetall(key)
-
     if (entry === null || entry.data === undefined) {
         return null
     }

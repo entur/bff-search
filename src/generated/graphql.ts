@@ -1794,6 +1794,7 @@ export type GetTripPatternsQuery = {
                 duration: number
                 expectedEndTime: string
                 expectedStartTime: string
+                id: string | null | undefined
                 mode: Mode
                 realtime: boolean
                 ride: boolean
@@ -2267,6 +2268,25 @@ export type GetTripPatternsQuery = {
                       }
                     | null
                     | undefined
+                nextLegs:
+                    | Array<{
+                          __typename?: 'Leg'
+                          id: string | null | undefined
+                          aimedStartTime: string
+                          line:
+                              | {
+                                    __typename?: 'Line'
+                                    publicCode: string | null | undefined
+                                }
+                              | null
+                              | undefined
+                          toPlace: {
+                              __typename?: 'Place'
+                              name: string | null | undefined
+                          }
+                      }>
+                    | null
+                    | undefined
                 operator:
                     | {
                           __typename?: 'Operator'
@@ -2282,6 +2302,25 @@ export type GetTripPatternsQuery = {
                           points: string | null | undefined
                           length: number | null | undefined
                       }
+                    | null
+                    | undefined
+                previousLegs:
+                    | Array<{
+                          __typename?: 'Leg'
+                          id: string | null | undefined
+                          aimedStartTime: string
+                          line:
+                              | {
+                                    __typename?: 'Line'
+                                    publicCode: string | null | undefined
+                                }
+                              | null
+                              | undefined
+                          toPlace: {
+                              __typename?: 'Place'
+                              name: string | null | undefined
+                          }
+                      }>
                     | null
                     | undefined
                 serviceJourney:
@@ -2666,6 +2705,7 @@ export type LegFieldsFragment = {
     duration: number
     expectedEndTime: string
     expectedStartTime: string
+    id: string | null | undefined
     mode: Mode
     realtime: boolean
     ride: boolean
@@ -3082,6 +3122,22 @@ export type LegFieldsFragment = {
           }
         | null
         | undefined
+    nextLegs:
+        | Array<{
+              __typename?: 'Leg'
+              id: string | null | undefined
+              aimedStartTime: string
+              line:
+                  | {
+                        __typename?: 'Line'
+                        publicCode: string | null | undefined
+                    }
+                  | null
+                  | undefined
+              toPlace: { __typename?: 'Place'; name: string | null | undefined }
+          }>
+        | null
+        | undefined
     operator:
         | {
               __typename?: 'Operator'
@@ -3097,6 +3153,22 @@ export type LegFieldsFragment = {
               points: string | null | undefined
               length: number | null | undefined
           }
+        | null
+        | undefined
+    previousLegs:
+        | Array<{
+              __typename?: 'Leg'
+              id: string | null | undefined
+              aimedStartTime: string
+              line:
+                  | {
+                        __typename?: 'Line'
+                        publicCode: string | null | undefined
+                    }
+                  | null
+                  | undefined
+              toPlace: { __typename?: 'Place'; name: string | null | undefined }
+          }>
         | null
         | undefined
     serviceJourney:

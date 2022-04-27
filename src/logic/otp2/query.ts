@@ -80,6 +80,7 @@ export default gql`
         fromPlace {
             ...placeFields
         }
+        id
         interchangeFrom {
             ...interchangeFields
         }
@@ -93,11 +94,43 @@ export default gql`
             ...lineFields
         }
         mode
+        nextLegs {
+            id
+            aimedStartTime
+            expectedStartTime
+            fromEstimatedCall {
+                actualDepartureTime
+            }
+            line {
+                publicCode
+            }
+            toPlace {
+                name
+            }
+            mode
+            transportSubmode
+        }
         operator {
             ...operatorFields
         }
         pointsOnLink {
             ...pointsOnLinkFields
+        }
+        previousLegs {
+            id
+            aimedStartTime
+            expectedStartTime
+            fromEstimatedCall {
+                actualDepartureTime
+            }
+            line {
+                publicCode
+            }
+            toPlace {
+                name
+            }
+            mode
+            transportSubmode
         }
         realtime
         ride

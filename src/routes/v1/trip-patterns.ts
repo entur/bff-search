@@ -18,11 +18,12 @@ import {
     TripPatternParsed,
 } from '../../types'
 
-import { getAlternativeTripPatterns } from '../../logic/otp1'
+// import { getAlternativeTripPatterns } from '../../logic/otp1'
 import {
     updateTripPattern,
     getExpires,
     getAlternativeLegs,
+    getLeg,
 } from '../../logic/otp2'
 import { filterModesAndSubModes } from '../../logic/otp2/modes'
 
@@ -45,7 +46,6 @@ router.get<
     try {
         const { id } = req.params
         const { update } = req.query
-
         const [tripPattern, searchParams] = await Promise.all([
             cacheGet<TripPattern>(`trip-pattern:${id}`),
             cacheGet<SearchParams>(
@@ -137,23 +137,69 @@ function getParams(params: RawSearchParams): SearchParams {
     }
 }
 
-router.post<
-    '/replace-leg',
-    { id: string },
-    { previousLegs: number },
-    { nextLegs: number }
->('/replace-leg', async (req, res, next) => {
-    try {
-        const { id, previousLegs, nextLegs } = req.body
+router.post<'/replace-leg/:id', { id: string }>(
+    '/replace-leg/:id',
+    async (req, res, next) => {
+        try {
+            const { id } = req.params
+            const { numberOfNext, numberOfPrevious } = req.body
+            const { leg } = await getAlternativeLegs(
+                id,
+                numberOfNext,
+                numberOfPrevious,
+            )
 
-        const legs = await getAlternativeLegs(id, previousLegs, nextLegs)
+            res.json({ leg })
+        } catch (error) {
+            next(error)
+        }
+    },
+)
 
-        res.json({ legs })
-    } catch (error) {
-        next(error)
+interface ReplaceLegRequest {
+    originalTripPatternId: string
+    legsToReplace: {
+        oldId: string
+        newId: string
     }
-})
+}
 
+router.post<'/replace-tripPattern', { id: string }>(
+    '/replace-tripPattern',
+    async (req, res, next) => {
+        try {
+            const { newLegId, originalLegId, originalTripPatternId } = req.body
+            const newLeg = await getLeg(newLegId)
+
+            const originalTripPattern = await cacheGet<TripPattern>(
+                `trip-pattern:${originalTripPatternId}`,
+            )
+
+            if (originalTripPattern) {
+                const newLegs = originalTripPattern.legs.map((leg) => {
+                    if (!leg.id) return leg
+                    if (leg.id === originalLegId) return newLeg
+                    return leg
+                })
+
+                const newId = uuid()
+                const newTripPattern = {
+                    ...originalTripPattern,
+                    legs: newLegs,
+                    id: newId,
+                }
+
+                await cacheSet(`trip-pattern:${newId}`, newTripPattern)
+
+                res.json(newTripPattern)
+            }
+        } catch (error) {
+            next(error)
+        }
+    },
+)
+
+/*
 router.post<
     '/:id/replace-leg',
     { id: string },
@@ -228,5 +274,6 @@ router.post<
         next(error)
     }
 })
+*/
 
 export default router

@@ -17,7 +17,7 @@ echo "Packaging the type declarations into an archive file"
 tar -czf "typeDeclarations.tar.gz" typeDeclarations/
 
 echo "Uploading type declarations to bucket"
-gsutil cp typeDeclarations.tar.gz "gs://entur-replaceLegTest-bff-search-types/"
+gsutil cp typeDeclarations.tar.gz "gs://entur-replacelegtest-bff-search-types/"
 
 echo "Populating environment variables for $1"
 npm run populate-env-vars "$1"
