@@ -27,7 +27,7 @@ describe('parseLeg', () => {
 
 describe('isFlexibleLeg', () => {
     it('should check if the leg has a flexible line type', () => {
-        const nonFlexibleLeg = { line: { flexibleLineType: undefined } } as Leg
+        const nonFlexibleLeg = { line: { flexibleLineType: null } } as Leg
         const flexibleLeg = {
             line: { flexibleLineType: 'flexibleAreasOnly' },
         } as Leg
