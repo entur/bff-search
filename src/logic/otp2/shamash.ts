@@ -12,6 +12,8 @@ export function generateShamashLink({
         host = 'https://api.entur.io/graphql-explorer/journey-planner-v3'
     } else if (ENVIRONMENT === 'dev') {
         host = 'https://api.dev.entur.io/graphql-explorer/journey-planner-v3'
+    } else if (ENVIRONMENT === 'nordic-dev') {
+        host = 'https://api.dev.entur.io/graphql-explorer/journey-planner-nordic'
     } else {
         host = `https://api.${ENVIRONMENT}.entur.io/graphql-explorer/journey-planner-v3`
     }
