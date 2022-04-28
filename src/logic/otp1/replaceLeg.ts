@@ -1,252 +1,254 @@
-// import fetch from 'node-fetch'
-// import { v4 as uuid } from 'uuid'
-// import { getTripPatternsQuery, QueryMode } from '@entur/sdk'
+// DEPRECATED - MAY 2022
 
-// import { Leg, SearchParams, TripPattern, TripPatternParsed } from '../../types'
-// import { TRANSIT_HOST } from '../../config'
-// import { InvalidArgumentError, JourneyPlannerError } from '../../errors'
-// import { uniq, sortBy } from '../../utils/array'
+import fetch from 'node-fetch'
+import { v4 as uuid } from 'uuid'
+import { getTripPatternsQuery, QueryMode } from '@entur/sdk'
 
-// import { Mode } from '../../generated/graphql'
+import { Leg, SearchParams, TripPattern, TripPatternParsed } from '../../types'
+import { TRANSIT_HOST } from '../../config'
+import { InvalidArgumentError, JourneyPlannerError } from '../../errors'
+import { uniq, sortBy } from '../../utils/array'
 
-// function isTransitLeg(leg: Leg): boolean {
-//     const { mode } = leg
-//     return mode !== Mode.Foot && mode !== Mode.Bicycle && mode !== Mode.Car
-// }
+import { Mode } from '../../generated/graphql'
 
-// function isFlexibleLeg(leg: Leg): boolean {
-//     return leg.line?.flexibleLineType === 'flexibleAreasOnly'
-// }
+function isTransitLeg(leg: Leg): boolean {
+    const { mode } = leg
+    return mode !== Mode.Foot && mode !== Mode.Bicycle && mode !== Mode.Car
+}
 
-// // Replaces `leg.mode` from the OTP result from `coach` to `bus`.
-// // In the future we might want to handle buses and coaches differently,
-// // but for now, all coaches will be treated as buses in the app.
-// function coachLegToBusLeg(leg: Leg): Leg {
-//     return {
-//         ...leg,
-//         mode: leg.mode === Mode.Coach ? Mode.Bus : leg.mode,
-//     }
-// }
+function isFlexibleLeg(leg: Leg): boolean {
+    return leg.line?.flexibleLineType === 'flexibleAreasOnly'
+}
 
-// function parseLeg(leg: Leg): Leg {
-//     const { fromPlace, fromEstimatedCall } = leg
-//     const fromQuayName = fromPlace?.quay?.name || fromEstimatedCall?.quay?.name
-//     const parsedLeg =
-//         isFlexibleLeg(leg) || !fromQuayName
-//             ? leg
-//             : {
-//                   ...leg,
-//                   fromPlace: {
-//                       ...fromPlace,
-//                       name: isTransitLeg(leg) ? fromQuayName : fromPlace.name,
-//                   },
-//               }
+// Replaces `leg.mode` from the OTP result from `coach` to `bus`.
+// In the future we might want to handle buses and coaches differently,
+// but for now, all coaches will be treated as buses in the app.
+function coachLegToBusLeg(leg: Leg): Leg {
+    return {
+        ...leg,
+        mode: leg.mode === Mode.Coach ? Mode.Bus : leg.mode,
+    }
+}
 
-//     return coachLegToBusLeg(parsedLeg)
-// }
+function parseLeg(leg: Leg): Leg {
+    const { fromPlace, fromEstimatedCall } = leg
+    const fromQuayName = fromPlace?.quay?.name || fromEstimatedCall?.quay?.name
+    const parsedLeg =
+        isFlexibleLeg(leg) || !fromQuayName
+            ? leg
+            : {
+                  ...leg,
+                  fromPlace: {
+                      ...fromPlace,
+                      name: isTransitLeg(leg) ? fromQuayName : fromPlace.name,
+                  },
+              }
 
-// function parseTripPattern(rawTripPattern: any): TripPatternParsed {
-//     return {
-//         ...rawTripPattern,
-//         id: rawTripPattern.id || uuid(),
-//         legs: rawTripPattern.legs.map(parseLeg),
-//         genId: `${new Date().getTime()}:${Math.random()
-//             .toString(36)
-//             .slice(2, 12)}`,
-//     }
-// }
+    return coachLegToBusLeg(parsedLeg)
+}
 
-// function createParseTripPattern(): (rawTripPattern: any) => TripPatternParsed {
-//     let i = 0
-//     const sharedId = uuid()
-//     const baseId = sharedId.substring(0, 23)
-//     const iterator = parseInt(sharedId.substring(24), 16)
+function parseTripPattern(rawTripPattern: any): TripPatternParsed {
+    return {
+        ...rawTripPattern,
+        id: rawTripPattern.id || uuid(),
+        legs: rawTripPattern.legs.map(parseLeg),
+        genId: `${new Date().getTime()}:${Math.random()
+            .toString(36)
+            .slice(2, 12)}`,
+    }
+}
 
-//     return (rawTripPattern: any): TripPatternParsed => {
-//         i++
-//         const id = `${baseId}-${(iterator + i).toString(16).slice(-12)}`
-//         return parseTripPattern({ id, ...rawTripPattern })
-//     }
-// }
+function createParseTripPattern(): (rawTripPattern: any) => TripPatternParsed {
+    let i = 0
+    const sharedId = uuid()
+    const baseId = sharedId.substring(0, 23)
+    const iterator = parseInt(sharedId.substring(24), 16)
 
-// async function post<T>(
-//     url: string,
-//     params: Record<string, unknown>,
-// ): Promise<T> {
-//     const response = await fetch(url, {
-//         method: 'POST',
-//         body: JSON.stringify(params),
-//         headers: {
-//             'Content-Type': 'application/json',
-//             'ET-Client-Name': 'entur-search',
-//         },
-//     })
+    return (rawTripPattern: any): TripPatternParsed => {
+        i++
+        const id = `${baseId}-${(iterator + i).toString(16).slice(-12)}`
+        return parseTripPattern({ id, ...rawTripPattern })
+    }
+}
 
-//     if (!response.ok) {
-//         const data = await response.json()
-//         throw new JourneyPlannerError(data.message)
-//     }
+async function post<T>(
+    url: string,
+    params: Record<string, unknown>,
+): Promise<T> {
+    const response = await fetch(url, {
+        method: 'POST',
+        body: JSON.stringify(params),
+        headers: {
+            'Content-Type': 'application/json',
+            'ET-Client-Name': 'entur-search',
+        },
+    })
 
-//     return response.json()
-// }
+    if (!response.ok) {
+        const data = await response.json()
+        throw new JourneyPlannerError(data.message)
+    }
 
-// interface SearchLimits {
-//     numEarlierTripPatterns: number
-//     numLaterTripPatterns: number
-// }
-// function getSearchLimits(tripPattern: TripPattern, leg: Leg): SearchLimits {
-//     const transitLegs = tripPattern.legs.filter(isTransitLeg)
-//     const hasMultipleLegs = transitLegs.length > 1
-//     const isFirstOfMultipleLegs =
-//         transitLegs.indexOf(leg) === 0 && hasMultipleLegs
+    return response.json()
+}
 
-//     if (isFirstOfMultipleLegs) {
-//         return {
-//             numEarlierTripPatterns: 8,
-//             numLaterTripPatterns: 2,
-//         }
-//     }
+interface SearchLimits {
+    numEarlierTripPatterns: number
+    numLaterTripPatterns: number
+}
+function getSearchLimits(tripPattern: TripPattern, leg: Leg): SearchLimits {
+    const transitLegs = tripPattern.legs.filter(isTransitLeg)
+    const hasMultipleLegs = transitLegs.length > 1
+    const isFirstOfMultipleLegs =
+        transitLegs.indexOf(leg) === 0 && hasMultipleLegs
 
-//     const isLastOfMultipleLegs =
-//         transitLegs.indexOf(leg) === transitLegs.length - 1 && hasMultipleLegs
+    if (isFirstOfMultipleLegs) {
+        return {
+            numEarlierTripPatterns: 8,
+            numLaterTripPatterns: 2,
+        }
+    }
 
-//     if (isLastOfMultipleLegs) {
-//         return {
-//             numEarlierTripPatterns: 2,
-//             numLaterTripPatterns: 8,
-//         }
-//     }
+    const isLastOfMultipleLegs =
+        transitLegs.indexOf(leg) === transitLegs.length - 1 && hasMultipleLegs
 
-//     return {
-//         numEarlierTripPatterns: 5,
-//         numLaterTripPatterns: 5,
-//     }
-// }
+    if (isLastOfMultipleLegs) {
+        return {
+            numEarlierTripPatterns: 2,
+            numLaterTripPatterns: 8,
+        }
+    }
 
-// function findLeg(legs: Leg[], id: string): Leg | undefined {
-//     return legs.find((leg) => leg && leg.serviceJourney?.id === id) || undefined
-// }
+    return {
+        numEarlierTripPatterns: 5,
+        numLaterTripPatterns: 5,
+    }
+}
 
-// function fuzzyFindLeg(leg: Leg, legs: Leg[] = []): Leg | undefined {
-//     const {
-//         fromPlace: { name: fromPlaceName },
-//         toPlace: { name: toPlaceName },
-//     } = leg
+function findLeg(legs: Leg[], id: string): Leg | undefined {
+    return legs.find((leg) => leg && leg.serviceJourney?.id === id) || undefined
+}
 
-//     return (
-//         legs.find((currentLeg, index) => {
-//             if (!currentLeg) return false
-//             const { interchangeTo, fromPlace, toPlace } = currentLeg
-//             const nextToPlace = interchangeTo?.staySeated
-//                 ? legs[index + 1]?.toPlace
-//                 : undefined
+function fuzzyFindLeg(leg: Leg, legs: Leg[] = []): Leg | undefined {
+    const {
+        fromPlace: { name: fromPlaceName },
+        toPlace: { name: toPlaceName },
+    } = leg
 
-//             return (
-//                 fromPlace.name === fromPlaceName &&
-//                 (toPlace.name === toPlaceName ||
-//                     nextToPlace?.name === toPlaceName)
-//             )
-//         }) || undefined
-//     )
-// }
+    return (
+        legs.find((currentLeg, index) => {
+            if (!currentLeg) return false
+            const { interchangeTo, fromPlace, toPlace } = currentLeg
+            const nextToPlace = interchangeTo?.staySeated
+                ? legs[index + 1]?.toPlace
+                : undefined
 
-// function getLegId({ mode, serviceJourney, aimedStartTime }: Leg): string {
-//     const id = serviceJourney?.id || mode
-//     return `${id}:${aimedStartTime}`
-// }
+            return (
+                fromPlace.name === fromPlaceName &&
+                (toPlace.name === toPlaceName ||
+                    nextToPlace?.name === toPlaceName)
+            )
+        }) || undefined
+    )
+}
 
-// function uniqTripPatterns(
-//     tripPatterns: TripPatternParsed[],
-//     legToReplace: Leg,
-// ): TripPatternParsed[] {
-//     const seen: string[] = []
-//     return tripPatterns.filter(({ legs }) => {
-//         const matchingLeg = fuzzyFindLeg(legToReplace, legs)
-//         if (!matchingLeg || !isTransitLeg(matchingLeg)) return false
+function getLegId({ mode, serviceJourney, aimedStartTime }: Leg): string {
+    const id = serviceJourney?.id || mode
+    return `${id}:${aimedStartTime}`
+}
 
-//         const legId = getLegId(matchingLeg)
-//         if (seen.includes(legId)) return false
+function uniqTripPatterns(
+    tripPatterns: TripPatternParsed[],
+    legToReplace: Leg,
+): TripPatternParsed[] {
+    const seen: string[] = []
+    return tripPatterns.filter(({ legs }) => {
+        const matchingLeg = fuzzyFindLeg(legToReplace, legs)
+        if (!matchingLeg || !isTransitLeg(matchingLeg)) return false
 
-//         // eslint-disable-next-line fp/no-mutating-methods
-//         seen.push(legId)
-//         return true
-//     })
-// }
+        const legId = getLegId(matchingLeg)
+        if (seen.includes(legId)) return false
 
-// function toQueryMode(legMode: Mode): QueryMode {
-//     // Mode is a subset of QueryMode, so casting is safe in this case
-//     return legMode as unknown as QueryMode
-// }
+        // eslint-disable-next-line fp/no-mutating-methods
+        seen.push(legId)
+        return true
+    })
+}
 
-// interface QueryError {
-//     errorType: 'ValidationError'
-//     message: string
-// }
-// interface ReplaceLegResponse {
-//     data: {
-//         trip: {
-//             tripPatterns: TripPattern[]
-//         }
-//     }
-//     errors?: QueryError[]
-// }
-// export async function getAlternativeTripPatterns(
-//     originalTripPattern: TripPatternParsed,
-//     replaceLegServiceJourneyId: string,
-//     searchParams: SearchParams,
-// ): Promise<TripPatternParsed[]> {
-//     const url = `${TRANSIT_HOST}/trip-patterns/replace-leg`
+function toQueryMode(legMode: Mode): QueryMode {
+    // Mode is a subset of QueryMode, so casting is safe in this case
+    return legMode as unknown as QueryMode
+}
 
-//     const legToReplace = findLeg(
-//         originalTripPattern.legs,
-//         replaceLegServiceJourneyId,
-//     )
-//     if (!legToReplace) {
-//         throw new InvalidArgumentError(
-//             `Found no legs with service journey id ${replaceLegServiceJourneyId}`,
-//         )
-//     }
+interface QueryError {
+    errorType: 'ValidationError'
+    message: string
+}
+interface ReplaceLegResponse {
+    data: {
+        trip: {
+            tripPatterns: TripPattern[]
+        }
+    }
+    errors?: QueryError[]
+}
+export async function getAlternativeTripPatterns(
+    originalTripPattern: TripPatternParsed,
+    replaceLegServiceJourneyId: string,
+    searchParams: SearchParams,
+): Promise<TripPatternParsed[]> {
+    const url = `${TRANSIT_HOST}/trip-patterns/replace-leg`
 
-//     const modes: QueryMode[] = uniq([
-//         QueryMode.FOOT,
-//         ...originalTripPattern.legs.map((l) => toQueryMode(l.mode)),
-//     ])
+    const legToReplace = findLeg(
+        originalTripPattern.legs,
+        replaceLegServiceJourneyId,
+    )
+    if (!legToReplace) {
+        throw new InvalidArgumentError(
+            `Found no legs with service journey id ${replaceLegServiceJourneyId}`,
+        )
+    }
 
-//     const originalRequest = getTripPatternsQuery({
-//         ...searchParams,
-//         modes,
-//     })
+    const modes: QueryMode[] = uniq([
+        QueryMode.FOOT,
+        ...originalTripPattern.legs.map((l) => toQueryMode(l.mode)),
+    ])
 
-//     const { numEarlierTripPatterns, numLaterTripPatterns } = getSearchLimits(
-//         originalTripPattern,
-//         legToReplace,
-//     )
+    const originalRequest = getTripPatternsQuery({
+        ...searchParams,
+        modes,
+    })
 
-//     const { data, errors } = await post<ReplaceLegResponse>(url, {
-//         originalRequest,
-//         originalTripPattern,
-//         replaceLegServiceJourneyId,
-//         numEarlierTripPatterns,
-//         numLaterTripPatterns,
-//     })
+    const { numEarlierTripPatterns, numLaterTripPatterns } = getSearchLimits(
+        originalTripPattern,
+        legToReplace,
+    )
 
-//     if (errors?.[0]) {
-//         const { errorType, message } = errors[0]
-//         throw new JourneyPlannerError(`${errorType}: ${message}`)
-//     }
+    const { data, errors } = await post<ReplaceLegResponse>(url, {
+        originalRequest,
+        originalTripPattern,
+        replaceLegServiceJourneyId,
+        numEarlierTripPatterns,
+        numLaterTripPatterns,
+    })
 
-//     const { trip } = data
-//     const parseTripPatternFunc = createParseTripPattern()
-//     const tripPatterns = [originalTripPattern, ...trip.tripPatterns].map(
-//         parseTripPatternFunc,
-//     )
+    if (errors?.[0]) {
+        const { errorType, message } = errors[0]
+        throw new JourneyPlannerError(`${errorType}: ${message}`)
+    }
 
-//     const filteredTripPatterns = uniqTripPatterns(tripPatterns, legToReplace)
+    const { trip } = data
+    const parseTripPatternFunc = createParseTripPattern()
+    const tripPatterns = [originalTripPattern, ...trip.tripPatterns].map(
+        parseTripPatternFunc,
+    )
 
-//     return sortBy(filteredTripPatterns, ({ legs }) => {
-//         const matchingLeg = fuzzyFindLeg(legToReplace, legs)
-//         return (
-//             matchingLeg?.expectedStartTime || matchingLeg?.aimedStartTime || '_'
-//         )
-//     })
-// }
+    const filteredTripPatterns = uniqTripPatterns(tripPatterns, legToReplace)
+
+    return sortBy(filteredTripPatterns, ({ legs }) => {
+        const matchingLeg = fuzzyFindLeg(legToReplace, legs)
+        return (
+            matchingLeg?.expectedStartTime || matchingLeg?.aimedStartTime || '_'
+        )
+    })
+}

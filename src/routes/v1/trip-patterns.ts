@@ -18,7 +18,7 @@ import {
     TripPatternParsed,
 } from '../../types'
 
-// import { getAlternativeTripPatterns } from '../../logic/otp1'
+import { getAlternativeTripPatterns } from '../../logic/otp1'
 import {
     updateTripPattern,
     getExpires,
@@ -149,26 +149,20 @@ router.post<'/replace-leg/:id', { id: string }>(
                 numberOfPrevious,
             )
 
-            res.json({ leg })
+            res.json(leg)
         } catch (error) {
             next(error)
         }
     },
 )
 
-interface ReplaceLegRequest {
-    originalTripPatternId: string
-    legsToReplace: {
-        oldId: string
-        newId: string
-    }
-}
-
 router.post<'/replace-tripPattern', { id: string }>(
     '/replace-tripPattern',
     async (req, res, next) => {
         try {
             const { newLegId, originalLegId, originalTripPatternId } = req.body
+            console.log('HEI ', newLegId)
+
             const newLeg = await getLeg(newLegId)
 
             const originalTripPattern = await cacheGet<TripPattern>(
@@ -199,7 +193,8 @@ router.post<'/replace-tripPattern', { id: string }>(
     },
 )
 
-/*
+// DEPRECATED - MAY 2022
+// Deprecated endpoint against OTP1 - Will be removed September 2022
 router.post<
     '/:id/replace-leg',
     { id: string },
@@ -274,6 +269,5 @@ router.post<
         next(error)
     }
 })
-*/
 
 export default router

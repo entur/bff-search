@@ -1,7 +1,7 @@
 import createEnturService from '@entur/sdk'
 
 import { TRANSIT_HOST_OTP2 } from '../../config'
-import { Leg, TripPattern } from '../../types'
+import { Leg } from '../../types'
 interface ReplaceLeg {
     leg?: Leg
 }
@@ -69,10 +69,3 @@ export async function getAlternativeLegs(
 
     return data
 }
-
-// export async function replaceTripPattern(
-//     legToReplace: Leg,
-//     originalTripPattern: TripPattern,
-// ): TripPattern {
-//     // Bytte ut nytt leg med tripPattern
-// }

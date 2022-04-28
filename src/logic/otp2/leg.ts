@@ -11,6 +11,7 @@ const sdk = createEnturService({
 })
 
 export async function getLeg(id: string): Promise<Leg> {
+    console.log(' id ', id)
     const query = `
         query($id:ID!) {      
             leg(id:$id) {
@@ -284,6 +285,8 @@ export async function getLeg(id: string): Promise<Leg> {
             }
         }
         `.trim()
+
+    // console.log(query)
 
     // Legg til nødvendig Leg data
     const data = await sdk
