@@ -19,7 +19,12 @@ import {
 } from '../../types'
 
 import { getAlternativeTripPatterns } from '../../logic/otp1'
-import { updateTripPattern, getExpires } from '../../logic/otp2'
+import {
+    updateTripPattern,
+    getExpires,
+    getAlternativeLegs,
+    getLeg,
+} from '../../logic/otp2'
 import { filterModesAndSubModes } from '../../logic/otp2/modes'
 
 import { uniq } from '../../utils/array'
@@ -41,7 +46,6 @@ router.get<
     try {
         const { id } = req.params
         const { update } = req.query
-
         const [tripPattern, searchParams] = await Promise.all([
             cacheGet<TripPattern>(`trip-pattern:${id}`),
             cacheGet<SearchParams>(
@@ -133,6 +137,63 @@ function getParams(params: RawSearchParams): SearchParams {
     }
 }
 
+router.post<'/replace-leg/:id', { id: string }>(
+    '/replace-leg/:id',
+    async (req, res, next) => {
+        try {
+            const { id } = req.params
+            const { numberOfNext, numberOfPrevious } = req.body
+            const { leg } = await getAlternativeLegs(
+                id,
+                numberOfNext,
+                numberOfPrevious,
+            )
+
+            res.json(leg)
+        } catch (error) {
+            next(error)
+        }
+    },
+)
+
+router.post<'/replace-tripPattern', { id: string }>(
+    '/replace-tripPattern',
+    async (req, res, next) => {
+        try {
+            const { newLegId, originalLegId, originalTripPatternId } = req.body
+
+            const newLeg = await getLeg(newLegId)
+
+            const originalTripPattern = await cacheGet<TripPattern>(
+                `trip-pattern:${originalTripPatternId}`,
+            )
+
+            if (originalTripPattern) {
+                const newLegs = originalTripPattern.legs.map((leg) => {
+                    if (!leg.id) return leg
+                    if (leg.id === originalLegId) return newLeg
+                    return leg
+                })
+
+                const newId = uuid()
+                const newTripPattern = {
+                    ...originalTripPattern,
+                    legs: newLegs,
+                    id: newId,
+                }
+
+                await cacheSet(`trip-pattern:${newId}`, newTripPattern)
+
+                res.json(newTripPattern)
+            }
+        } catch (error) {
+            next(error)
+        }
+    },
+)
+
+// DEPRECATED - MAY 2022
+// Deprecated endpoint against OTP1 - Will be removed September 2022
 router.post<
     '/:id/replace-leg',
     { id: string },

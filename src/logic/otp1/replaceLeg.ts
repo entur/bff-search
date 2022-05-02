@@ -1,3 +1,5 @@
+// DEPRECATED - MAY 2022
+
 import fetch from 'node-fetch'
 import { v4 as uuid } from 'uuid'
 import { getTripPatternsQuery, QueryMode } from '@entur/sdk'

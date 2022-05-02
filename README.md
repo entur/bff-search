@@ -43,7 +43,7 @@ Mac installation instructions:
 
 ```
 cd ~
-mdkir redis
+mkdir redis
 cd redis
 curl -O http://download.redis.io/releases/redis-4.0.14.tar.gz
 tar xzf redis-4.0.14.tar.gz
