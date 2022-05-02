@@ -95,20 +95,7 @@ export default gql`
         }
         mode
         nextLegs {
-            id
-            aimedStartTime
-            expectedStartTime
-            fromEstimatedCall {
-                actualDepartureTime
-            }
-            line {
-                publicCode
-            }
-            toPlace {
-                name
-            }
-            mode
-            transportSubmode
+            ...replaceLegFields
         }
         operator {
             ...operatorFields
@@ -117,20 +104,7 @@ export default gql`
             ...pointsOnLinkFields
         }
         previousLegs {
-            id
-            aimedStartTime
-            expectedStartTime
-            fromEstimatedCall {
-                actualDepartureTime
-            }
-            line {
-                publicCode
-            }
-            toPlace {
-                name
-            }
-            mode
-            transportSubmode
+            ...replaceLegFields
         }
         realtime
         ride
@@ -151,6 +125,26 @@ export default gql`
 
         bookingArrangements {
             ...bookingArrangementFields
+        }
+    }
+
+    fragment replaceLegFields on Leg {
+        id
+        mode
+        transportSubmode
+        aimedStartTime
+        expectedStartTime
+        fromEstimatedCall {
+            actualDepartureTime
+        }
+        line {
+            publicCode
+        }
+        toPlace {
+            name
+        }
+        fromPlace {
+            name
         }
     }
 
