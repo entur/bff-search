@@ -10,8 +10,11 @@ const sdk = createEnturService({
     },
 })
 
+interface LegResponse {
+    leg?: Leg
+}
+
 export async function getLeg(id: string): Promise<Leg> {
-    console.log(' id ', id)
     const query = `
         query($id:ID!) {      
             leg(id:$id) {
@@ -286,20 +289,13 @@ export async function getLeg(id: string): Promise<Leg> {
         }
         `.trim()
 
-    // console.log(query)
+    const { leg } = await sdk.queryJourneyPlanner<LegResponse>(query, {
+        id,
+    })
 
-    // Legg til nødvendig Leg data
-    const data = await sdk
-        .queryJourneyPlanner<Leg>(query, {
-            id,
-        })
-        .catch((e) => {
-            console.log(e)
-        })
-
-    if (!data) {
+    if (!leg) {
         return Promise.reject('No leg found')
     }
 
-    return data.leg
+    return leg
 }

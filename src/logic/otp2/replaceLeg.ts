@@ -53,15 +53,11 @@ export async function getAlternativeLegs(
           }            
         `.trim()
 
-    const data = await sdk
-        .queryJourneyPlanner<ReplaceLeg>(query, {
-            id,
-            numberOfNext,
-            numberOfPrevious,
-        })
-        .catch((e) => {
-            console.log(e)
-        })
+    const data = await sdk.queryJourneyPlanner<ReplaceLeg>(query, {
+        id,
+        numberOfNext,
+        numberOfPrevious,
+    })
 
     if (!data || !data.leg) {
         return Promise.reject('No alternative legs found')

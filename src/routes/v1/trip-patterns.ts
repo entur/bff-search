@@ -161,7 +161,6 @@ router.post<'/replace-tripPattern', { id: string }>(
     async (req, res, next) => {
         try {
             const { newLegId, originalLegId, originalTripPatternId } = req.body
-            console.log('HEI ', newLegId)
 
             const newLeg = await getLeg(newLegId)
 
