@@ -23,10 +23,10 @@ export async function getAlternativeLegs(
             leg(id:$id) {
                 id
                 aimedStartTime
-                nextLegs(next: $numberOfNext) {
+                nextLegs(next: $numberOfNext, filter: sameAuthority) {
                     ...replaceLegFields
                 }
-                previousLegs(previous: $numberOfPrevious) {
+                previousLegs(previous: $numberOfPrevious, filter: sameAuthority) {
                     ...replaceLegFields
                 }
             }              
