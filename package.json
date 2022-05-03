@@ -40,7 +40,7 @@
         "jwks-rsa": "^2.0.5",
         "lz-string": "^1.4.4",
         "node-fetch": "^2.6.7",
-        "redis": "^3.1.2",
+        "redis": "^3.1.2", // bug with redis v4 and Cloud Tracer https://github.com/googleapis/cloud-trace-nodejs/issues/1408 - May 2022
         "semver": "^7.3.6",
         "timezone-support": "^2.0.2",
         "uuid": "^8.3.2",
