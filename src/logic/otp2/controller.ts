@@ -176,10 +176,10 @@ function getNotices(leg: Leg): Notice[] {
 
 function authorityMapper(
     authority?: Authority | null | undefined,
-): (Authority & { codeSpace: string }) | undefined {
-    if (!authority) return undefined
+): (Authority & { codeSpace: string }) | null {
+    if (!authority) return null
     const codeSpace = authority?.id.split(':')[0]
-    if (!authority || !codeSpace) return undefined
+    if (!authority || !codeSpace) return null
 
     return {
         id: authority.id,
