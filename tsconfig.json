@@ -17,7 +17,8 @@
         "declarationDir": "typeDeclarations",
         "target": "es2021",
         "noUncheckedIndexedAccess": true,
-        "useUnknownInCatchVariables": false
+        "useUnknownInCatchVariables": false,
+        "skipLibCheck": true
     },
     "include": ["src/**/*", "types"],
     "exclude": ["node_modules/*"]
