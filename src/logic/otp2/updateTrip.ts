@@ -39,8 +39,8 @@ interface UpdatedEstimatedCall {
     expectedDepartureTime: string
     aimedArrivalTime: string
     aimedDepartureTime: string
-    actualArrivalTime: string | undefined
-    actualDepartureTime: string | undefined
+    actualArrivalTime: string | null
+    actualDepartureTime: string | null
     predictionInaccurate: boolean
     notices: {
         id: string
@@ -130,7 +130,7 @@ function updatePlace(place: Place, updatedCall: UpdatedEstimatedCall): Place {
                           stopPlace?.description ||
                           place.quay.stopPlace.description,
                   }
-                : undefined,
+                : null,
         },
     }
 }
