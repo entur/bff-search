@@ -1,5 +1,13 @@
 import { Router } from 'express'
-import { parseJSON } from 'date-fns'
+import {
+    parseJSON,
+    differenceInSeconds,
+    subSeconds,
+    parseISO,
+    addSeconds,
+} from 'date-fns'
+import { toISOString } from '../../utils/time'
+
 import { v4 as uuid } from 'uuid'
 
 import trace from '../../tracer'
@@ -175,9 +183,58 @@ router.post<'/replace-tripPattern', { id: string }>(
                     return leg
                 })
 
+                // If first Leg is foot we have to do some manual modification to the Tripattern
+                let expectedStartTime = ''
+                if (newLegs[0]?.id === null && newLegs[1]?.expectedStartTime) {
+                    expectedStartTime = toISOString(
+                        subSeconds(
+                            parseISO(newLegs[1]?.expectedStartTime),
+                            newLegs[0].duration,
+                        ),
+                        { timeZone: 'Europe/Oslo' },
+                    )
+                } else {
+                    expectedStartTime = newLegs[0]?.expectedStartTime || ''
+                }
+
+                // If last Leg is foot we have to do some manual modification to the Tripattern
+                let expectedEndTime = ''
+                if (
+                    newLegs.length > 1 &&
+                    newLegs[newLegs.length - 1]?.id === null &&
+                    newLegs[newLegs.length - 2]?.expectedEndTime
+                ) {
+                    const lastTransitExpectedEnd =
+                        newLegs[newLegs.length - 2]?.expectedEndTime || ''
+                    const lastFootLegDuration =
+                        newLegs[newLegs.length - 1]?.duration || 0
+
+                    expectedEndTime = toISOString(
+                        addSeconds(
+                            parseISO(lastTransitExpectedEnd),
+                            lastFootLegDuration,
+                        ),
+                        { timeZone: 'Europe/Oslo' },
+                    )
+                } else {
+                    expectedEndTime =
+                        newLegs[newLegs.length - 1]?.expectedEndTime || ''
+                }
+
+                let duration = 0
+                if (expectedStartTime && expectedEndTime) {
+                    duration = differenceInSeconds(
+                        new Date(expectedStartTime),
+                        new Date(expectedEndTime),
+                    )
+                }
+
                 const newId = uuid()
                 const newTripPattern = {
                     ...originalTripPattern,
+                    expectedStartTime,
+                    expectedEndTime,
+                    duration,
                     legs: newLegs,
                     id: newId,
                 }
