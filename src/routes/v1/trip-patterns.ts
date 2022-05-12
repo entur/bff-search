@@ -204,8 +204,8 @@ function getExpectedEndTime(newLegs: Leg[]): string {
     return expectedEndTime
 }
 
-router.post<'/replace-tripPattern', { id: string }>(
-    '/replace-tripPattern',
+router.post<'/replace-trip-pattern', { id: string }>(
+    '/replace-trip-pattern',
     async (req, res, next) => {
         try {
             const { newLegId, originalLegId, originalTripPatternId } = req.body
