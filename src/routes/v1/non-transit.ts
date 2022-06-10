@@ -4,6 +4,7 @@ import { parseJSON } from 'date-fns'
 import { RawSearchParams, SearchParams } from '../../types'
 import { clean } from '../../utils/object'
 import { searchNonTransit } from '../../logic/otp2'
+import { filterCoordinates } from '../../utils/searchParams'
 
 const router = Router()
 
@@ -28,8 +29,8 @@ function getParams(
         : new Date()
 
     return {
-        from: params.from,
-        to: params.to,
+        from: filterCoordinates(params.from),
+        to: filterCoordinates(params.to),
         searchDate,
     }
 }
