@@ -22,7 +22,10 @@ import {
 
 import { uniq } from '../../utils/array'
 import { clean } from '../../utils/object'
-import { deriveSearchParamsId } from '../../utils/searchParams'
+import {
+    deriveSearchParamsId,
+    filterCoordinates,
+} from '../../utils/searchParams'
 import { filterModesAndSubModes } from '../../logic/otp2/modes'
 
 import { ENVIRONMENT } from '../../config'
@@ -56,6 +59,8 @@ function getParams(params: RawSearchParams): SearchParams {
 
     return {
         ...params,
+        from: filterCoordinates(params.from),
+        to: filterCoordinates(params.to),
         searchDate,
         initialSearchDate: searchDate,
         modes,
