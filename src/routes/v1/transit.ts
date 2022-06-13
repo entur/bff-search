@@ -29,7 +29,6 @@ import {
 import { filterModesAndSubModes } from '../../logic/otp2/modes'
 
 import { ENVIRONMENT } from '../../config'
-import { logTransitAnalytics, logTransitResultStats } from '../../bigquery'
 import { GetTripPatternError, RoutingErrorsError } from '../../errors'
 
 const SEARCH_PARAMS_EXPIRE_IN_SECONDS = 2 * 60 * 60 // two hours
@@ -103,7 +102,6 @@ router.post<
 
         const params = cursorData?.params || getParams(req.body)
         const extraHeaders = getHeadersFromClient(req)
-        const clientName = extraHeaders['ET-Client-Name'] || 'Unknown client'
 
         stopTrace = trace(
             cursorData ? 'searchTransit' : 'searchTransitWithTaxi',
@@ -119,34 +117,6 @@ router.post<
             queries,
         } = await searchTransit(params, extraHeaders)
         stopTrace()
-
-        if (!cursorData) {
-            const stopLogTransitAnalyticsTrace = trace('logTransitAnalytics')
-            logTransitAnalytics(params, true, clientName)
-                .then(stopLogTransitAnalyticsTrace)
-                .catch((error) => {
-                    logger.error('Failed to log transit analytics', {
-                        error: error.message,
-                        stack: error.stack,
-                    })
-                })
-
-            const numberOfDistinctOperators = uniq(
-                tripPatterns
-                    .flatMap(({ legs }) => legs)
-                    .map(({ operator }) => operator?.id)
-                    .filter(Boolean),
-            ).length
-
-            logTransitResultStats(numberOfDistinctOperators, clientName).catch(
-                (error) => {
-                    logger.error('Failed to log transit result stats', {
-                        error: error.message,
-                        stack: error.stack,
-                    })
-                },
-            )
-        }
 
         stopTrace = trace('generateCursor')
         const nextCursor = generateCursor(params, metadata)
