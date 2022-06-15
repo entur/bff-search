@@ -14,18 +14,20 @@ fi
 function deploy {
     ENV="${1:-dev}"
 
-    if ! [[ "$ENV" =~ ^(dev|nordic-dev|staging|prod|beta)$ ]]; then
+    if ! [[ "$ENV" =~ ^(dev|terraform|nordic-dev|staging|prod|beta)$ ]]; then
         echo -e "🙈 Invalid ENV: $ENV\n"
         exit 1
     fi
 
     if [[ $ENV = "nordic-dev" ]]; then
         PROJECT="ent-client-nordic-dev"
+    elif [[ $ENV = "terraform" ]]; then
+        PROJECT="ent-selvbet-terraform-dev"
     else
         PROJECT="entur-$ENV"
     fi
 
-    echo " 🧵  Linting ..."
+    echo " 🧵 Linting ..."
     npm run lint
 
     echo " 🚢 Deploying BFF Search to $ENV ..."
