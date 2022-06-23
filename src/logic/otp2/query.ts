@@ -303,6 +303,7 @@ export default gql`
         date
         destinationDisplay {
             frontText
+            via
         }
         expectedDepartureTime
         expectedArrivalTime

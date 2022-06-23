@@ -223,6 +223,7 @@ export type EstimatedCall = {
     cancellation: Scalars['Boolean']
     /** The date the estimated call is valid for. */
     date: Maybe<Scalars['Date']>
+    datedServiceJourney: Maybe<DatedServiceJourney>
     destinationDisplay: Maybe<DestinationDisplay>
     /** Expected time of arrival at quay. Updated with real time information if available. Will be null if an actualArrivalTime exists */
     expectedArrivalTime: Scalars['DateTime']
@@ -233,6 +234,7 @@ export type EstimatedCall = {
     /** Whether vehicle may be boarded at quay according to the planned data. If the cancellation flag is set, boarding is not possible, even if this field is set to true. */
     forBoarding: Scalars['Boolean']
     notices: Array<Notice>
+    occupancyStatus: OccupancyStatus
     /** Whether the updated estimates are expected to be inaccurate. NOT IMPLEMENTED */
     predictionInaccurate: Scalars['Boolean']
     quay: Maybe<Quay>
@@ -390,6 +392,8 @@ export type JourneyPattern = {
     serviceJourneysForDate: Array<ServiceJourney>
     /** Get all situations active for the journey pattern. */
     situations: Array<PtSituationElement>
+    /** Detailed path travelled by journey pattern divided into stop-to-stop sections. */
+    stopToStopGeometries: Maybe<Array<Maybe<StopToStopGeometry>>>
 }
 
 export type JourneyPatternServiceJourneysForDateArgs = {
@@ -584,6 +588,21 @@ export type Notice = {
     id: Scalars['ID']
     publicCode: Maybe<Scalars['String']>
     text: Maybe<Scalars['String']>
+}
+
+export enum OccupancyStatus {
+    /** The vehicle or carriage has a few seats available. */
+    FewSeatsAvailable = 'fewSeatsAvailable',
+    /** The vehicle or carriage is considered full by most measures, but may still be allowing passengers to board. */
+    Full = 'full',
+    /** The vehicle or carriage has a large number of seats available. */
+    ManySeatsAvailable = 'manySeatsAvailable',
+    /** The vehicle or carriage doesn't have any occupancy data available. */
+    NoData = 'noData',
+    /** The vehicle or carriage has no seats or standing room available. */
+    NotAcceptingPassengers = 'notAcceptingPassengers',
+    /** The vehicle or carriage only has standing room available. */
+    StandingRoomOnly = 'standingRoomOnly',
 }
 
 /** Organisation providing public transport services. */
@@ -1342,6 +1361,17 @@ export type StopPlaceQuaysArgs = {
     filterByInUse?: InputMaybe<Scalars['Boolean']>
 }
 
+/** List of coordinates between two stops as a polyline */
+export type StopToStopGeometry = {
+    __typename?: 'StopToStopGeometry'
+    /** Origin Quay */
+    fromQuay: Maybe<Quay>
+    /** A list of coordinates encoded as a polyline string between two stops (see http://code.google.com/apis/maps/documentation/polylinealgorithm.html) */
+    pointsOnLink: Maybe<PointsOnLink>
+    /** Destination Quay */
+    toQuay: Maybe<Quay>
+}
+
 export enum StreetMode {
     /** Bike only. This can be used as access/egress, but transfers will still be walk only. */
     Bicycle = 'bicycle',
@@ -1832,6 +1862,7 @@ export type GetTripPatternsQuery = {
                     destinationDisplay: {
                         __typename?: 'DestinationDisplay'
                         frontText: string | null
+                        via: Array<string | null> | null
                     } | null
                     notices: Array<{
                         __typename?: 'Notice'
@@ -2029,6 +2060,7 @@ export type GetTripPatternsQuery = {
                     destinationDisplay: {
                         __typename?: 'DestinationDisplay'
                         frontText: string | null
+                        via: Array<string | null> | null
                     } | null
                     notices: Array<{
                         __typename?: 'Notice'
@@ -2255,6 +2287,7 @@ export type GetTripPatternsQuery = {
                     destinationDisplay: {
                         __typename?: 'DestinationDisplay'
                         frontText: string | null
+                        via: Array<string | null> | null
                     } | null
                     notices: Array<{
                         __typename?: 'Notice'
@@ -2463,6 +2496,7 @@ export type LegFieldsFragment = {
         destinationDisplay: {
             __typename?: 'DestinationDisplay'
             frontText: string | null
+            via: Array<string | null> | null
         } | null
         notices: Array<{ __typename?: 'Notice'; text: string | null }>
         quay: {
@@ -2639,6 +2673,7 @@ export type LegFieldsFragment = {
         destinationDisplay: {
             __typename?: 'DestinationDisplay'
             frontText: string | null
+            via: Array<string | null> | null
         } | null
         notices: Array<{ __typename?: 'Notice'; text: string | null }>
         quay: {
@@ -2838,6 +2873,7 @@ export type LegFieldsFragment = {
         destinationDisplay: {
             __typename?: 'DestinationDisplay'
             frontText: string | null
+            via: Array<string | null> | null
         } | null
         notices: Array<{ __typename?: 'Notice'; text: string | null }>
         quay: {
@@ -3274,6 +3310,7 @@ export type EstimatedCallFieldsFragment = {
     destinationDisplay: {
         __typename?: 'DestinationDisplay'
         frontText: string | null
+        via: Array<string | null> | null
     } | null
     notices: Array<{ __typename?: 'Notice'; text: string | null }>
     quay: {

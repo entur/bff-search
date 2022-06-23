@@ -269,6 +269,7 @@ export async function getLeg(id: string): Promise<Leg> {
             date
             destinationDisplay {
                 frontText
+                via
             }
             expectedDepartureTime
             expectedArrivalTime
