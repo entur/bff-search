@@ -10,6 +10,8 @@ import { getProjectId } from './utils/project'
 const storage = new Storage()
 const bucketUrl = `gs://${getProjectId()}-bff-search-config`
 
+const PROD = process.env.NODE_ENV === 'production'
+
 // Functions are unavailable until Redis is Ready.
 let setCache:
     | ((key: string, value: any, expireInSeconds: number) => Promise<void>)
@@ -33,8 +35,8 @@ try {
             const config = JSON.parse(contents)
             logger.info('FILE CONTENTS', { config: config.redisHost })
 
-            const host = config.redisHost
-            const port = config.redisPort
+            const host = PROD ? config.redisHost : 'localhost'
+            const port = PROD ? Number(config.redisPort) : 6379
 
             const client = redis.createClient(port, host)
 
