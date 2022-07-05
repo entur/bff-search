@@ -38,7 +38,7 @@ export async function get<T>(
     if (entry === null || entry.data === undefined) {
         return null
     }
-    if (expireInSeconds > 0) await expire(key, expireInSeconds)
+    if (expireInSeconds >= 0) await expire(key, expireInSeconds)
 
     return JSON.parse(entry.data)
 }
