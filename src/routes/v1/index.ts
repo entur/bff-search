@@ -24,6 +24,8 @@ import transitRouter, {
 
 import tripPatternsRouter from './trip-patterns'
 
+import liveStatusRouter from './live-status'
+
 const router = Router()
 
 router.use('/transit', transitRouter)
@@ -31,5 +33,7 @@ router.use('/transit', transitRouter)
 router.use('/trip-patterns', tripPatternsRouter)
 
 router.use('/non-transit', nonTransitRouter)
+
+router.use('/live-status', liveStatusRouter)
 
 export default router

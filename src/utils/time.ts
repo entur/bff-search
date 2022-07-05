@@ -1,4 +1,5 @@
 import { findTimeZone, getZonedTime } from 'timezone-support'
+import { addMinutes, format, startOfMinute } from 'date-fns'
 
 function pad(num = 0): string {
     return String(num).padStart(2, '0')
@@ -28,4 +29,20 @@ export function toISOString(date: Date, options: Options): string {
     return `${year}-${pad(month)}-${pad(day)}T${pad(hours)}:${pad(
         minutes,
     )}:${pad(seconds)}${formatOffset(offset)}`
+}
+
+/**
+ * Time format
+ * ex. 11:15
+ */
+const TIME_FORMAT = 'HH:mm'
+
+export function formatDateAsTime(date: Date): string {
+    const roundedDate = roundDate(date)
+    return format(roundedDate, TIME_FORMAT)
+}
+
+function roundDate(date: Date): Date {
+    if (date.getSeconds() < 45) return startOfMinute(date)
+    return startOfMinute(addMinutes(date, 1))
 }

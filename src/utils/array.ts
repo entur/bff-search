@@ -25,3 +25,8 @@ export function first<T>(list: T[]): T | undefined {
 export function last<T>(list: T[]): T | undefined {
     return list[list.length - 1]
 }
+
+export function reverse<T>(array: T[]): T[] {
+    // eslint-disable-next-line fp/no-mutating-methods
+    return array.slice().reverse()
+}
