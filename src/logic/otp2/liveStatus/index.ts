@@ -24,21 +24,20 @@ export async function getLiveStatus(
     date: string,
     locale?: Locale,
 ): Promise<Status | undefined> {
+    const i18n = getI18n(locale || Locale.BOKMAL)
+
     const cacheKey = `live-status_${serviceJourneyId}_${date}`
 
-    const cachedStatus = await cacheGet<Status>(cacheKey, -1)
-    if (cachedStatus) {
-        return cachedStatus
+    const cachedCalls = await cacheGet<EstimatedCall[]>(cacheKey, -1)
+    if (cachedCalls) {
+        return createLiveStatus(cachedCalls, i18n)
     }
 
-    const i18n = getI18n(locale || Locale.BOKMAL)
     const calls = await getCallsForServiceJourney(serviceJourneyId, date)
     const updatedCalls = filterRealtimeData(calls)
+    await cacheSet(cacheKey, updatedCalls, 10)
 
-    const status = createLiveStatus(updatedCalls, i18n)
-    if (status) await cacheSet(cacheKey, status, 6)
-
-    return status
+    return createLiveStatus(updatedCalls, i18n)
 }
 
 async function getCallsForServiceJourney(
