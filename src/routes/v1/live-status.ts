@@ -2,7 +2,7 @@ import { Request, Router } from 'express'
 
 import { Locale } from '../../utils/locale'
 import { between } from '../../utils/random'
-import { getLiveStatus, Status, equalStatus } from '../../logic/otp2/liveStatus'
+import { equalStatus, getLiveStatus, Status } from '../../logic/otp2/liveStatus'
 
 const router = Router()
 
@@ -37,6 +37,14 @@ router.get(
             })
             res.flushHeaders()
 
+            let eventId = 0
+            let interval: NodeJS.Timer | undefined = undefined
+
+            const closeStream = () => {
+                if (interval) clearInterval(interval)
+                res.end()
+            }
+
             const updateLiveData = (
                 id: number,
                 updatedStatus?: Status,
@@ -48,10 +56,6 @@ router.get(
                 res.write(event)
                 if (!updatedStatus) closeStream()
             }
-            const closeStream = (): void => {
-                clearInterval(interval)
-                res.end()
-            }
 
             let status: Status | undefined = await getLiveStatus(
                 serviceJourneyId,
@@ -59,10 +63,11 @@ router.get(
                 locale,
             )
 
-            let eventId = 0
             await updateLiveData(eventId, status)
 
-            const interval = setInterval(async () => {
+            res.on('close', () => closeStream)
+
+            interval = setInterval(async () => {
                 const newStatus = await getLiveStatus(
                     serviceJourneyId,
                     date,
@@ -76,8 +81,6 @@ router.get(
 
                 updateLiveData(eventId, status)
             }, between(2500, 3000))
-
-            res.on('close', () => closeStream())
         } catch (error) {
             next(error)
         }
