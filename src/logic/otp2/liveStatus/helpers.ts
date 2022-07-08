@@ -115,7 +115,11 @@ export function createLiveStatus(
 export function equalStatus(a?: Status, b?: Status): boolean {
     if (!a || !b) return false
 
-    return a.text === b.text && a.isDelayed === b.isDelayed
+    return (
+        a.text === b.text &&
+        a.isDelayed === b.isDelayed &&
+        a.occupancyStatus === b.occupancyStatus
+    )
 }
 
 export function filterRealtimeData(calls: EstimatedCall[]): EstimatedCall[] {
