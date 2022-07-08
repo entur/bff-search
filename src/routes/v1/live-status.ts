@@ -3,10 +3,13 @@ import { Request, Router } from 'express'
 import { Locale } from '../../utils/locale'
 import { between } from '../../utils/random'
 import { equalStatus, getLiveStatus, Status } from '../../logic/otp2/liveStatus'
+import { addMinutes, isAfter } from 'date-fns'
 
 const router = Router()
 
-type EventType = 'live-status' | 'close'
+const STREAM_TIMEOUT = 30 // minutes
+
+type EventType = 'live-status' | 'close' | 'timeout'
 
 function createEvent<T>(id: number, type: EventType, data?: T): string {
     const serializedData = data ? JSON.stringify(data) : ''
@@ -39,35 +42,47 @@ router.get(
 
             let eventId = 0
             let interval: NodeJS.Timer | undefined = undefined
+            const streamEndTime = addMinutes(new Date(), STREAM_TIMEOUT)
 
-            const closeStream = () => {
+            const closeStream = (): void => {
                 if (interval) clearInterval(interval)
                 res.end()
             }
 
-            const updateLiveData = (
-                id: number,
-                updatedStatus?: Status,
-            ): void => {
-                const event = updatedStatus
-                    ? createEvent(id, 'live-status', { status: updatedStatus })
-                    : createEvent(eventId, 'close')
-
+            const timeoutEvent = (id: number): void => {
+                const event = createEvent(id, 'timeout')
                 res.write(event)
-                if (!updatedStatus) closeStream()
+                closeStream()
             }
 
-            let status: Status | undefined = await getLiveStatus(
-                serviceJourneyId,
-                date,
-                locale,
-            )
+            const closeEvent = (id: number): void => {
+                const event = createEvent(id, 'close')
+                res.write(event)
+                closeStream()
+            }
 
-            await updateLiveData(eventId, status)
+            const liveStatusEvent = (
+                id: number,
+                updatedStatus: Status,
+            ): void => {
+                const event = createEvent(id, 'live-status', {
+                    status: updatedStatus,
+                })
 
-            res.on('close', () => closeStream)
+                res.write(event)
+            }
+
+            let status = await getLiveStatus(serviceJourneyId, date, locale)
+
+            if (status) liveStatusEvent(eventId, status)
+            else closeEvent(eventId)
+
+            res.on('close', closeStream)
 
             interval = setInterval(async () => {
+                if (isAfter(new Date(), streamEndTime))
+                    return timeoutEvent(eventId)
+
                 const newStatus = await getLiveStatus(
                     serviceJourneyId,
                     date,
@@ -79,7 +94,8 @@ router.get(
                 status = newStatus
                 eventId++
 
-                updateLiveData(eventId, status)
+                if (status) liveStatusEvent(eventId, status)
+                else closeEvent(eventId)
             }, between(2500, 3000))
         } catch (error) {
             next(error)
