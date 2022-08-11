@@ -1,0 +1,21 @@
+{
+    "compileOnSave": true,
+    "compilerOptions": {
+        "allowSyntheticDefaultImports": true,
+        "baseUrl": ".",
+        "esModuleInterop": true,
+        "lib": ["es2021"],
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "outDir": "dist",
+        "strict": true,
+        "sourceMap": true,
+        "declaration": true,
+        "declarationDir": "typeDeclarations",
+        "target": "es2021",
+        "noUncheckedIndexedAccess": true,
+        "useUnknownInCatchVariables": false,
+        "skipLibCheck": true
+    },
+    "include": ["src/**/*", "types"],
+}

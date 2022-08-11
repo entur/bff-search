@@ -14,6 +14,7 @@
         "lint": "eslint . --ext .js,.jsx,.ts,.tsx && npm run format:check",
         "format": "prettier . --write",
         "format:check": "prettier . --check",
+        "ts": "npm run tsc --noEmit && tsc -p scripts/tsconfig.json",
         "debug": "./scripts/debug.sh",
         "dev": "npm run debug dev",
         "staging": "npm run debug staging",
