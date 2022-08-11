@@ -12,5 +12,5 @@
         "useUnknownInCatchVariables": false,
         "skipLibCheck": true
     },
-    "include": ["./", "../typeDeclarations"],
+    "include": ["./", "../typeDeclarations"]
 }
