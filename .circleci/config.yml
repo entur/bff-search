@@ -1,5 +1,8 @@
 version: 2.1
 
+orbs:
+    gcp-cli: circleci/gcp-cli@2.4.1
+
 executors:
     node:
         working_directory: ~/workdir
