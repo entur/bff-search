@@ -1,6 +1,10 @@
 version: 2.1
-orbs:
-    node: 'circleci/node@4.7.0'
+
+executors:
+    node:
+        working_directory: ~/workdir
+        docker:
+            - image: cimg/node:16.14
 
 jobs:
     build:
@@ -8,7 +12,11 @@ jobs:
         steps:
             - checkout
             - run: sudo npm install --global npm@8.3.0
+
+            - run: npm ci
             - run: npm run tsc
+            - run: npm run lint
+            - run: npm test
 
     # deploy:
     #     executor: node
