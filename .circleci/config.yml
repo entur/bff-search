@@ -16,7 +16,7 @@ jobs:
             - run: npm ci
             - run: npm run tsc
             - run: npm run lint
-            - run: npm test
+            - run: npm run transpile
 
     # deploy:
     #     executor: node
