@@ -34,7 +34,7 @@ jobs:
             - run: sudo npm install --global npm@8.3.0
 
             - run: npm ci
-            - run: npm run build << parameters.env >> && gcloud app deploy app-<< parameters.env >>.yaml --project=entur-<< parameters.env >> --quiet
+            - run: gcloud app deploy app-<< parameters.env >>.yaml --project=entur-<< parameters.env >>
 
 workflows:
     build-and-test:
@@ -51,6 +51,6 @@ workflows:
 
             - deploy:
                   env: 'dev'
-                  name: dev bff-search
+                  name: dev
                   requires:
                       - approval-dev
