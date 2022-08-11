@@ -32,14 +32,20 @@ jobs:
         docker:
             - image: google/cloud-sdk
         steps:
-            - checkout
-            - run: sudo npm install --global npm@8.3.0
-
-            - run: npm ci
-            - run: |
-                  echo $GCLOUD_SERVICE_KEY_<< parameters.env >> | gcloud auth activate-service-account --key-file=-
-                  gcloud --quiet config set project entur-<< parameters.env >>
-                  gcloud app deploy app-<< parameters.env >>.yaml
+            - attach_workspace:
+                  at: .
+            - run:
+                  name: Set gcloud Auth
+                  command: |
+                      echo $GCLOUD_SERVICE_KEY_<< parameters.env >> | gcloud auth activate-service-account --key-file=-
+            - run:
+                  name: Set gcloud project
+                  command: |
+                      gcloud --quiet config set project ${GOOGLE_PROJECT_ID}
+            - run:
+                  name: Deploy to Google App Engine
+                  command: |
+                      gcloud app deploy app-<< parameters.env >>.yaml
 
 workflows:
     build-and-test:
