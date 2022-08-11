@@ -8,11 +8,9 @@
         "allowSyntheticDefaultImports": true,
         "noEmit": true,
         "strict": true,
-        "declaration": true,
-        "declarationDir": "typeDeclarations",
         "noUncheckedIndexedAccess": true,
         "useUnknownInCatchVariables": false,
         "skipLibCheck": true
     },
-    "include": ["src/**/*", "types"],
+    "include": ["./", "../typeDeclarations"],
 }
