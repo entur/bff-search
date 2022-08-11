@@ -43,6 +43,12 @@ workflows:
     deployment:
         jobs:
             - build
+
+            - approval-dev:
+                  type: approval
+                  requires:
+                      - build
+
             - deploy:
                   env: 'dev'
                   name: dev bff-search
