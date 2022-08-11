@@ -48,7 +48,6 @@ workflows:
     deployment:
         jobs:
             - build
-            - install_and_configure_cli
 
             - approval-dev:
                   type: approval
