@@ -20,37 +20,31 @@ jobs:
             - run: npm test
             - run: npm run unused-exports
 
-    # deploy:
-    #     executor: node
-    #     parameters:
-    #         env:
-    #             type: enum
-    #             enum: ['dev', 'staging', 'beta', 'prod']
-    #         function:
-    #             type: string
-    #             default: ''
-    #     steps:
-    #         - checkout
-    #         - run: sudo npm install --global npm@8.3.0
+    deploy:
+        executor: node
+        parameters:
+            env:
+                type: enum
+                enum: ['dev', 'staging', 'beta', 'prod']
+            function:
+                type: string
+                default: ''
+         steps:
+            - checkout
+            - run: sudo npm install --global npm@8.3.0
 
-    #         - run: npm ci
-    #         - run:
-    #               name: Create service account file for dev
-    #               command: echo $FIREBASE_DEPLOY_CREDENTIALS_DEV > /tmp/serviceaccount.dev.json
-    #         - run:
-    #               name: Create service account file for staging
-    #               command: echo $FIREBASE_DEPLOY_CREDENTIALS_STAGING > /tmp/serviceaccount.staging.json
-    #         - run:
-    #               name: Create service account file for beta
-    #               command: echo $FIREBASE_DEPLOY_CREDENTIALS_BETA > /tmp/serviceaccount.beta.json
-    #         - run:
-    #               name: Create service account file for prod
-    #               command: echo $FIREBASE_DEPLOY_CREDENTIALS_PROD > /tmp/serviceaccount.prod.json
-    #         - run:
-    #               name: Deploy << parameters.function >> to << parameters.env >>
-    #               command: GOOGLE_APPLICATION_CREDENTIALS="/tmp/serviceaccount.<< parameters.env >>.json" npm run deploy << parameters.env >> << parameters.function >>
+            - run: npm ci
+            - run: npm run build << parameters.env >> && gcloud app deploy app-<< parameters.env >>.yaml --project=entur-<< parameters.env >> --quiet
 
 workflows:
     build-and-test:
         jobs:
             - build
+    deployment:
+        jobs:
+            - build
+            - deploy:
+                env: 'dev'
+                name: dev bff-search
+                requires:
+                    - approval-dev
