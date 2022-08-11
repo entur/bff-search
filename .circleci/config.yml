@@ -1,8 +1,5 @@
 version: 2.1
 
-orbs:
-    gcp-cli: circleci/gcp-cli@2.4.1
-
 executors:
     node:
         working_directory: ~/workdir
@@ -23,14 +20,6 @@ jobs:
             - run: npm test
             - run: npm run unused-exports
 
-    install_and_configure_cli:
-        description: Install gcloud CLI and initialize to connect to Google Cloud.
-
-        jobs:
-            - gcp-cli/install_and_initialize_cli:
-                  context: myContext
-                  executor: gcp-cli/default
-
     deploy:
         executor: node
         parameters:
@@ -40,6 +29,8 @@ jobs:
             function:
                 type: string
                 default: ''
+        docker:
+            - image: google/cloud-sdk
         steps:
             - checkout
             - run: sudo npm install --global npm@8.3.0
