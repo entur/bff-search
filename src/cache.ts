@@ -6,7 +6,7 @@ import logger from './logger'
 import { getProjectId } from './utils/project'
 
 // Redis ip and port are stored in a cloud storage bucket when
-// environment is terraformed.
+// environment is terraformed (or set manually if terraform is not used)
 const storage = new Storage()
 const bucketUrl = `gs://${getProjectId()}-bff-search-config`
 
@@ -24,6 +24,7 @@ try {
     const bucket = storage.bucket(bucketUrl)
     const file = bucket.file('config.json')
     let contents = ''
+
     file.createReadStream()
         .on('error', (err) => {
             logger.error('Error reading Redis config file', { err })
@@ -33,7 +34,9 @@ try {
         })
         .on('end', () => {
             const config = JSON.parse(contents)
-            logger.info('FILE CONTENTS', { config: config.redisHost })
+            logger.info('Loaded redis config from file', {
+                config,
+            })
 
             const host = PROD ? config.redisHost : 'localhost'
             const port = PROD ? Number(config.redisPort) : 6379
