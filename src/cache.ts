@@ -43,7 +43,7 @@ try {
 
             const client = redis.createClient(port, host)
 
-            client.on('error', (err) => logger.error('REDIS ERROR:', err))
+            client.on('error', (err) => logger.error('Redis error caught', err))
 
             const hgetall = promisify(client.hgetall).bind(client)
             const hset = promisify(client.hset).bind(client)
