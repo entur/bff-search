@@ -1,0 +1,6 @@
+runtime: nodejs16
+service: search
+inbound_services:
+    - warmup
+vpc_access_connector:
+    name: 'projects/ent-selvbet-terraform-dev/locations/europe-west1/connectors/bff-search-redis'

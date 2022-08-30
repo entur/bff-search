@@ -14,16 +14,24 @@ fi
 function deploy {
     ENV="${1:-dev}"
 
-    if ! [[ "$ENV" =~ ^(dev|staging|prod|beta)$ ]]; then
+    if ! [[ "$ENV" =~ ^(dev|terraform|nordic-dev|staging|prod|beta)$ ]]; then
         echo -e "🙈 Invalid ENV: $ENV\n"
         exit 1
     fi
 
-    echo " 🧵  Linting ..."
+    if [[ $ENV = "nordic-dev" ]]; then
+        PROJECT="ent-client-nordic-dev"
+    elif [[ $ENV = "terraform" ]]; then
+        PROJECT="ent-selvbet-terraform-dev"
+    else
+        PROJECT="entur-$ENV"
+    fi
+
+    echo " 🧵 Linting ..."
     npm run lint
 
     echo " 🚢 Deploying BFF Search to $ENV ..."
-    npm run build $ENV && gcloud app deploy app-$ENV.yaml --project=entur-$ENV --quiet
+    npm run build $ENV && gcloud app deploy app-$ENV.yaml --project=$PROJECT --quiet
 
     echo " 💬 Posting message to Slack ..."
     slack_message $ENV
