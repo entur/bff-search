@@ -19,6 +19,14 @@ function deploy {
         exit 1
     fi
 
+    echo " 🧵 Linting ..."
+    npm run lint
+
+    echo -e "\n🗼 Transpiling files ..."
+
+    ./scripts/buildWithTypeDefs.sh "$ENV"
+
+    echo "Uploading type declarations to bucket"
     if [[ $ENV = "nordic-dev" ]]; then
         PROJECT="ent-client-nordic-dev"
     elif [[ $ENV = "terraform" ]]; then
@@ -27,11 +35,10 @@ function deploy {
         PROJECT="entur-$ENV"
     fi
 
-    echo " 🧵 Linting ..."
-    npm run lint
+    gsutil cp typeDeclarations.tar.gz "gs://$PROJECT-bff-search-types/"
 
     echo " 🚢 Deploying BFF Search to $ENV ..."
-    npm run build "$ENV" && gcloud app deploy app-"$ENV".yaml --project="$PROJECT" --quiet
+    gcloud app deploy app-$ENV.yaml --project=$PROJECT --quiet
 
     echo " 💬 Posting message to Slack ..."
     slack_message "$ENV"
