@@ -27,7 +27,7 @@ function deploy {
     fi
 
     echo " SETTING APIGEE REVISION"
-    APIGEEREVISION=apigeetool listdeployments -V -u $APIGEEUSER -t $APIGEETOKEN -o entur -n client-search -j | jq '.deployments[] | select(.environment |contains("dev")) |.revision'
+    APIGEEREVISION=$(apigeetool listdeployments -V -u $APIGEEUSER -t $APIGEETOKEN -o entur -n client-search -j | jq '.deployments[] | select(.environment |contains("dev")) |.revision')
 
     if [[ "$ENV" == "staging" ]]; then
         echo " 📝 Deploying revision $APIGEEREVISION to Apigee stage ..."
