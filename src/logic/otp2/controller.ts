@@ -629,13 +629,12 @@ export async function searchTransit(
     }
 
     let metadata = initialMetadata
+    let nextSearchDateFromMetadata =
+        metadata && getNextSearchDateFromMetadata(metadata, arriveBy)
 
     let regularTripPatterns = regularTripPatternsUnfiltered
         .filter(isValidTransitAlternative)
         .map(replaceQuay1ForOsloSWithUnknown)
-
-    const nextSearchDateFromMetadata =
-        metadata && getNextSearchDateFromMetadata(metadata, arriveBy)
 
     // If we have any noStopsInRange errors, we couldn't find a means of
     // transport from where the traveler wants to start or end the trip. Try to
@@ -687,6 +686,9 @@ export async function searchTransit(
         )
         regularTripPatterns = beforeFlexibleResult.tripPatterns
         metadata = beforeFlexibleResult.metadata
+        nextSearchDateFromMetadata =
+            metadata && getNextSearchDateFromMetadata(metadata, arriveBy)
+
         queries = [...queries, ...beforeFlexibleResult.queries]
     }
 
