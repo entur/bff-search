@@ -125,7 +125,6 @@ function getTripPatternsQuery(
     comment: string,
 ): GraphqlQuery {
     return {
-        // @ts-ignore
         query: JOURNEY_PLANNER_QUERY,
         variables: {
             ...getTripPatternsVariables(params),
