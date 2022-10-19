@@ -1,6 +1,4 @@
-import { Location } from '@entur/sdk'
-
-import { Modes } from '@entur/sdk/lib/journeyPlanner/types'
+import { Modes, Location } from './generated/graphql'
 
 import { GetTripPatternsQuery } from './generated/graphql'
 
@@ -31,16 +29,23 @@ export interface RawSearchParams {
     searchFilter?: SearchFilter[]
 }
 
+interface DevParams {
+    debugItineraryFilter?: boolean
+    walkReluctance?: number
+    waitReluctance?: number
+    transferPenalty?: number
+}
+
 /**
  * The parsed params for use internally.
  */
-export type SearchParams = RawSearchParams & {
-    initialSearchDate: Date
-    searchDate: Date
-    searchWindow?: number
-    modes: Modes
-    numTripPatterns?: number
-}
+export type SearchParams = Omit<RawSearchParams, 'searchFilter'> &
+    DevParams & {
+        searchDate: Date
+        searchWindow?: number
+        modes: Modes
+        numTripPatterns?: number
+    }
 
 export interface CursorData {
     v: number

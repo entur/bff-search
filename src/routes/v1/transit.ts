@@ -61,7 +61,6 @@ function getParams(params: RawSearchParams): SearchParams {
         from: filterCoordinates(params.from),
         to: filterCoordinates(params.to),
         searchDate,
-        initialSearchDate: searchDate,
         modes,
     }
 }
@@ -107,15 +106,10 @@ router.post<
             cursorData ? 'searchTransit' : 'searchTransitWithTaxi',
         )
 
-        const {
-            tripPatterns,
-            metadata,
-            // OTP2 does not return hasFlexibleTripPattern, but we still have
-            // to return it because old versions of the app require it for logging
-            // @ts-ignore
-            hasFlexibleTripPattern = false,
-            queries,
-        } = await searchTransit(params, extraHeaders)
+        const { tripPatterns, metadata, queries } = await searchTransit(
+            params,
+            extraHeaders,
+        )
         stopTrace()
 
         stopTrace = trace('generateCursor')
@@ -148,7 +142,6 @@ router.post<
 
         res.json({
             tripPatterns,
-            hasFlexibleTripPattern,
             nextCursor,
             queries: mappedQueries,
         })
