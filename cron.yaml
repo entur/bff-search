@@ -1,7 +1,7 @@
 cron:
     - description: "Tic, toc, I'm a clock. I prevent bff-search from idle timeouts."
-      # The url below does not exist in the app. Instead, all urls are accepted and 200 returned.
+
       # Cron-triggered calls bypass the firewall btw.
-      url: /bff-search/keepalive
+      url: /search/keepalive
       schedule: every 5 mins
-      target: bff-search
+      target: search

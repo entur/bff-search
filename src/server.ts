@@ -17,10 +17,6 @@ import { unauthorizedError } from './auth'
 import v1Router from './routes/v1'
 import correlationIdsMiddleware from './utils/middleware/correlationIdsMiddleware'
 import reqResLoggerMiddleware from './utils/middleware/reqResLoggerMiddleware'
-import http from './http'
-
-// keep alive-endpoint server, prevents autoscaling from removing last instance
-http()
 
 const PORT = process.env.PORT || 9000
 const app = express()
@@ -42,6 +38,10 @@ app.get('/_ah/warmup', (_req, res) => {
         logger.error('Failed to import cache in warmup handler', error),
     )
     res.end()
+})
+
+app.get('/keepalive', (_req, res) => {
+    res.status(200).json({ result: 'ok' })
 })
 
 app.use('/v1', v1Router)
