@@ -17,6 +17,10 @@ import { unauthorizedError } from './auth'
 import v1Router from './routes/v1'
 import correlationIdsMiddleware from './utils/middleware/correlationIdsMiddleware'
 import reqResLoggerMiddleware from './utils/middleware/reqResLoggerMiddleware'
+import http from './http'
+
+// keep alive-endpoint server, prevents autoscaling from removing last instance
+http()
 
 const PORT = process.env.PORT || 9000
 const app = express()
