@@ -1,4 +1,4 @@
-import { Location } from '@entur/sdk'
+import { Location } from '../generated/graphql'
 
 export function deriveSearchParamsId(tripPatternId: string): string {
     return tripPatternId.substring(0, 23)
@@ -10,5 +10,5 @@ export function filterCoordinates(location: Location): Location {
     if (coordinates && coordinates.latitude && coordinates.longitude)
         return location
 
-    return { ...location, coordinates: undefined }
+    return { ...location, coordinates: null }
 }

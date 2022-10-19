@@ -24,6 +24,7 @@ void createConfigFile().then(() => {
 
 if (args.includes('--with-types')) {
     createTypeDefinition().catch((error) => {
+        // eslint-disable-next-line no-console
         console.error('Failed creating type definition', error)
     })
 }
@@ -90,6 +91,7 @@ async function createConfigFile(): Promise<void> {
         await mkdir(join(__dirname, '..', 'dist'), { recursive: true })
         await writeFile(CONFIG_FILE, content)
     } catch (error) {
+        // eslint-disable-next-line no-console
         console.error(error)
         process.exit(1)
     }

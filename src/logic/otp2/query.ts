@@ -10,11 +10,14 @@ export default gql`
         $wheelchairAccessible: Boolean!
         $modes: Modes!
         $walkSpeed: Float
-        $minimumTransferTime: Int
+        $transferSlack: Int
+        $transferPenalty: Int
         $banned: InputBanned
         $whiteListed: InputWhiteListed
         $debugItineraryFilter: Boolean
         $searchWindow: Int
+        $walkReluctance: Float
+        $waitReluctance: Float
     ) {
         trip(
             numTripPatterns: $numTripPatterns
@@ -25,11 +28,14 @@ export default gql`
             wheelchairAccessible: $wheelchairAccessible
             modes: $modes
             walkSpeed: $walkSpeed
-            transferSlack: $minimumTransferTime
+            transferSlack: $transferSlack
+            transferPenalty: $transferPenalty
             banned: $banned
             whiteListed: $whiteListed
             debugItineraryFilter: $debugItineraryFilter
             searchWindow: $searchWindow
+            walkReluctance: $walkReluctance
+            waitReluctance: $waitReluctance
         ) {
             metadata {
                 searchWindowUsed
