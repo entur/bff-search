@@ -1,4 +1,4 @@
-import { TransportSubmode } from '@entur/sdk/lib/journeyPlanner/types'
+import { TransportSubmode } from './generated/graphql'
 
 export const ALL_BUS_SUBMODES: TransportSubmode[] = [
     TransportSubmode.AirportLinkBus,

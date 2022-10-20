@@ -83,7 +83,7 @@ module.exports = {
         'import/prefer-default-export': 'off',
         'no-case-declarations': 'error',
         'no-cond-assign': 'error',
-        'no-console': 'warn',
+        'no-console': 'error',
         'no-empty': 'error',
         'no-lonely-if': 'error',
         'no-restricted-syntax': [

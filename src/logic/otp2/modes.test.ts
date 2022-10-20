@@ -3,7 +3,7 @@ import {
     TransportModes,
     TransportSubmode,
     Modes,
-} from '@entur/sdk/lib/journeyPlanner/types'
+} from '../../generated/graphql'
 
 import { filterModesAndSubModes } from './modes'
 
@@ -144,7 +144,7 @@ describe('filterModesAndSubModes', () => {
         const filteredModes = filterModesAndSubModes(modesWithoutRailWithFlytog)
         const railFilter = getRailFilter(filteredModes)
         expect(railFilter).toBeTruthy()
-        expect(railFilter?.transportSubModes).toBeUndefined()
+        expect(railFilter?.transportSubModes).toBeNull()
     })
 
     it('should include bus mode and airportLinkBus sub mode if bus is missing and flybuss is present', () => {

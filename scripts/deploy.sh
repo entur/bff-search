@@ -14,19 +14,27 @@ fi
 function deploy {
     ENV="${1:-dev}"
 
-    if ! [[ "$ENV" =~ ^(dev|staging|prod|beta)$ ]]; then
+    if ! [[ "$ENV" =~ ^(dev|terraform|nordic-dev|staging|prod|beta)$ ]]; then
         echo -e "🙈 Invalid ENV: $ENV\n"
         exit 1
     fi
 
-    echo " 🧵  Linting ..."
+    if [[ $ENV = "nordic-dev" ]]; then
+        PROJECT="ent-client-nordic-dev"
+    elif [[ $ENV = "terraform" ]]; then
+        PROJECT="ent-selvbet-terraform-dev"
+    else
+        PROJECT="entur-$ENV"
+    fi
+
+    echo " 🧵 Linting ..."
     npm run lint
 
     echo " 🚢 Deploying BFF Search to $ENV ..."
-    npm run build $ENV && gcloud app deploy app-$ENV.yaml --project=entur-$ENV --quiet
+    npm run build "$ENV" && gcloud app deploy app-"$ENV".yaml --project="$PROJECT" --quiet
 
     echo " 💬 Posting message to Slack ..."
-    slack_message $ENV
+    slack_message "$ENV"
 }
 
 function slack_message {
@@ -43,12 +51,18 @@ function slack_message {
         COMMIT_MSG="(\`$COMMIT\`)"
     fi
 
+    if [[ $ENV = "prod" ]]; then
+        SLACK_CHANNEL="#team-app-prodrelease"
+    else
+        SLACK_CHANNEL="#team-app-build"
+    fi
+
     curl -X POST \
-        --data-urlencode "payload={\"channel\": \"#team-app-build\", \"username\": \"BFF Search deployed to $ENV\", \"text\": \"\`$USER\` deployed *BFF Search* to :$ENV: from branch \`$BRANCH\` $COMMIT_MSG\", \"icon_emoji\": \":mag:\"}" \
+        --data-urlencode "payload={\"channel\": \"$SLACK_CHANNEL\", \"username\": \"BFF Search deployed to $ENV\", \"text\": \"\`$USER\` deployed *BFF Search* to :$ENV: from branch \`$BRANCH\` $COMMIT_MSG\", \"icon_emoji\": \":mag:\"}" \
         "$ENTUR_DEPLOY_SLACK_WEBHOOK"
 }
 
-ENV_ARGS="${@:-dev}"
+ENV_ARGS="${*:-dev}"
 for ENV_ARG in $ENV_ARGS
 do
     deploy "$ENV_ARG"

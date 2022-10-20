@@ -1,16 +1,9 @@
 import { Router } from 'express'
-import {
-    parseJSON,
-    differenceInSeconds,
-    subSeconds,
-    parseISO,
-    addSeconds,
-} from 'date-fns'
+import { differenceInSeconds, subSeconds, parseISO, addSeconds } from 'date-fns'
 import { toISOString } from '../../utils/time'
 
 import { v4 as uuid } from 'uuid'
 
-import trace from '../../tracer'
 import { set as cacheSet, get as cacheGet } from '../../cache'
 import {
     NotFoundError,
@@ -19,24 +12,15 @@ import {
 } from '../../errors'
 import { verifyPartnerToken } from '../../auth'
 
-import {
-    RawSearchParams,
-    SearchParams,
-    TripPattern,
-    TripPatternParsed,
-    Leg,
-} from '../../types'
+import { SearchParams, TripPattern, TripPatternParsed, Leg } from '../../types'
 
-import { getAlternativeTripPatterns } from '../../logic/otp1'
 import {
     updateTripPattern,
     getExpires,
     getAlternativeLegs,
     getLeg,
 } from '../../logic/otp2'
-import { filterModesAndSubModes } from '../../logic/otp2/modes'
 
-import { uniq } from '../../utils/array'
 import { deriveSearchParamsId } from '../../utils/searchParams'
 
 const SEARCH_PARAMS_EXPIRE_IN_SECONDS = 4 * 60 * 60 // four hours
@@ -131,20 +115,6 @@ router.post<
         next(error)
     }
 })
-
-function getParams(params: RawSearchParams): SearchParams {
-    const searchDate = params.searchDate
-        ? parseJSON(params.searchDate)
-        : new Date()
-    const modes = filterModesAndSubModes(params.searchFilter)
-
-    return {
-        ...params,
-        searchDate,
-        initialSearchDate: searchDate,
-        modes,
-    }
-}
 
 router.post<'/replace-leg/:id', { id: string }>(
     '/replace-leg/:id',
@@ -255,82 +225,5 @@ router.post<'/replace-trip-pattern', { id: string }>(
         }
     },
 )
-
-// DEPRECATED - MAY 2022
-// Deprecated endpoint against OTP1 - Will be removed September 2022
-router.post<
-    '/:id/replace-leg',
-    { id: string },
-    { tripPatterns: TripPattern[] },
-    { replaceLegServiceJourneyId: string }
->('/:id/replace-leg', async (req, res, next) => {
-    try {
-        const { id } = req.params
-        const { replaceLegServiceJourneyId } = req.body
-
-        let stopTrace = trace('retrieve from cache')
-        const [tripPattern, searchParams] = await Promise.all([
-            cacheGet<TripPatternParsed>(`trip-pattern:${id}`),
-            cacheGet<SearchParams>(
-                `search-params:${deriveSearchParamsId(id)}`,
-                SEARCH_PARAMS_EXPIRE_IN_SECONDS,
-            ),
-        ])
-        stopTrace()
-
-        if (!tripPattern) {
-            if (searchParams) {
-                throw new TripPatternExpiredError(
-                    `Found no trip pattern with id ${id} but search params are still present`,
-                    searchParams,
-                )
-            }
-            throw new NotFoundError(
-                `Found no trip pattern with id ${id}. Maybe cache entry expired?`,
-            )
-        }
-
-        // This should not happen as the trip pattern cache lives shorter than the
-        // searchParams cache.
-        if (!searchParams) {
-            throw new NotFoundError(
-                `Found no search params id ${id}. Maybe cache entry expired?`,
-            )
-        }
-
-        stopTrace = trace('getAlternativeTripPatterns')
-        const params = getParams(searchParams)
-        const tripPatterns = await getAlternativeTripPatterns(
-            tripPattern,
-            replaceLegServiceJourneyId,
-            params,
-        )
-        stopTrace()
-
-        stopTrace = trace('populating cache')
-        const searchParamsIds = uniq(
-            tripPatterns.map(({ id: tripPatternId = '' }) =>
-                deriveSearchParamsId(tripPatternId),
-            ),
-        )
-        await Promise.all([
-            ...tripPatterns.map((trip) =>
-                cacheSet(`trip-pattern:${trip.id}`, trip),
-            ),
-            ...searchParamsIds.map((searchParamsId) =>
-                cacheSet(
-                    `search-params:${searchParamsId}`,
-                    params,
-                    SEARCH_PARAMS_EXPIRE_IN_SECONDS,
-                ),
-            ),
-        ])
-        stopTrace()
-
-        res.json({ tripPatterns })
-    } catch (error) {
-        next(error)
-    }
-})
 
 export default router
