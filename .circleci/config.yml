@@ -45,7 +45,7 @@ jobs:
             - run:
                   name: Deploy to Google App Engine
                   command: |
-                      gcloud app deploy ../app-<< parameters.env >>.yaml
+                      gcloud app deploy app-<< parameters.env >>.yaml
 
 workflows:
     build-and-test:
