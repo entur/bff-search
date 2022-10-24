@@ -13,8 +13,6 @@
             "*": ["node_modules/*"]
         },
         "sourceMap": true,
-        "declaration": true,
-        "declarationDir": "typeDeclarations",
         "target": "es2021",
         "noUncheckedIndexedAccess": true,
         "useUnknownInCatchVariables": false,
