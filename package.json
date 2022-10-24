@@ -69,7 +69,7 @@
         "@types/uuid": "^8.3.4",
         "@typescript-eslint/eslint-plugin": "^5.18.0",
         "@typescript-eslint/parser": "^5.18.0",
-        "apigeetool": "^0.15.2",
+        "apigeetool": "^0.16.1",
         "eslint": "^8.12.0",
         "eslint-plugin-fp": "^2.3.0",
         "eslint-plugin-prettier": "^4.0.0",
