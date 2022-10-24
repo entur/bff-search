@@ -94,7 +94,10 @@ export const runStopPlaceMatching = async (
     try {
         const lon = params.from.coordinates?.longitude
         const lat = params.from.coordinates?.latitude
-        const isMyLocation = myLocationTexts.includes(params.from.name || '')
+        const isMyLocation = Boolean(
+            params.from.name && myLocationTexts.includes(params.from.name),
+        )
+
         const isApp = clientPlatform === 'APP'
 
         if (isApp && isMyLocation && tripPatterns.length !== 0 && lon && lat) {
@@ -154,12 +157,6 @@ export const runStopPlaceMatching = async (
 
             if (firstStopIndex > -1) {
                 foundAtIndex[firstStopIndex]++
-
-                /*
-                const distanceToFirstStop =
-                    nearestStops[firstStopIndex]?.properties.distance
-                if (!distanceToFirstStop) return
-                 */
 
                 // in 10 mtrs
                 const distanceToFirstStopRounded = Math.ceil(
