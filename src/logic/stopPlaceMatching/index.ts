@@ -46,31 +46,34 @@ const logNearbyStatistics = (): void => {
         lastLogTime = Date.now()
         const hitRate =
             Math.round((1000 * correctlyFound) / shouldHaveFound) / 10
+
+        const logMeta = {
+            instanceId: INSTANCE_ID,
+            runningTime: `${Math.round((lastLogTime - startTime) / 1000)}s`,
+            totalChecks,
+            hitRate: {
+                hitRate,
+                shouldHaveFound,
+                correctlyFound,
+                missedCompletely, // missed even when looking at +20m
+            },
+            tooFarAway,
+            foundAtIndex,
+            foundAtDistance,
+            stopPlacesWithoutCoordinates,
+            distancesFromUserGPS: [
+                ` 0 - 10m: ${foundAtDistance[0]}`,
+                `10 - 20m: ${foundAtDistance[1]}`,
+                `20 - 30m: ${foundAtDistance[2]}`,
+                `30 - 40m: ${foundAtDistance[3]}`,
+                `40 - 50m: ${foundAtDistance[4]}`,
+                `50 - 60m: ${foundAtDistance[5]}`,
+            ],
+        }
+
         logger.info(
             `(id: ${INSTANCE_ID}) Nearby-matching: Hit rate ${hitRate}. Expand for statistics`,
-            {
-                instanceId: INSTANCE_ID,
-                runningTime: `${Math.round((lastLogTime - startTime) / 1000)}s`,
-                totalChecks,
-                hitRate: {
-                    hitRate,
-                    shouldHaveFound,
-                    correctlyFound,
-                    missedCompletely, // missed even when looking at +20m
-                },
-                tooFarAway,
-                foundAtIndex,
-                foundAtDistance,
-                stopPlacesWithoutCoordinates,
-                distancesFromUserGPS: [
-                    ` 0 - 10m: ${foundAtDistance[0]}`,
-                    `10 - 20m: ${foundAtDistance[1]}`,
-                    `20 - 30m: ${foundAtDistance[2]}`,
-                    `30 - 40m: ${foundAtDistance[3]}`,
-                    `40 - 50m: ${foundAtDistance[4]}`,
-                    `50 - 60m: ${foundAtDistance[5]}`,
-                ],
-            },
+            logMeta,
         )
     }
 }
@@ -178,16 +181,16 @@ export const runStopPlaceMatching = async (
                 }
                 logger.info(
                     `First stop is not part of nearby stops, real distance is ${distanceToFirstStop}`,
-                    {
+                    /* {
                         firstLegWithStopPlace,
                         nearestStops,
-                    },
+                    },*/
                 )
             }
             totalChecks++
-
-            logNearbyStatistics()
         }
+
+        logNearbyStatistics()
     } catch (err) {
         logger.error('Error during stop place matching', err)
     }
