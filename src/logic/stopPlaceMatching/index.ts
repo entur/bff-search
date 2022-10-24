@@ -72,7 +72,7 @@ const logNearbyStatistics = (): void => {
         }
 
         logger.info(
-            `(id: ${INSTANCE_ID}) Nearby-matching: Hit rate ${hitRate}. Expand for statistics`,
+            `(id: ${INSTANCE_ID}) Nearby-matching: Hit rate ${hitRate} (${correctlyFound} of ${shouldHaveFound}). Expand for statistics`,
             logMeta,
         )
     }
@@ -105,8 +105,12 @@ export const runStopPlaceMatching = async (
 
         if (isApp && isMyLocation && tripPatterns.length !== 0 && lon && lat) {
             // We add 20m to help us gather statistics about the best 'near' distance
-            const maxDistKm = MAX_DISTANCE_METERS / 1000 + 0.02
-            const nearestStops = await getNearestStops(lat, lon, maxDistKm)
+            const maxDistMetersWithPadding = MAX_DISTANCE_METERS + 20
+            const nearestStops = await getNearestStops(
+                lat,
+                lon,
+                maxDistMetersWithPadding / 1000,
+            )
 
             if (nearestStops.length === 0) {
                 // No stops found within 30 meters, search from current 'my location'
@@ -145,14 +149,16 @@ export const runStopPlaceMatching = async (
             }
 
             // Distance to first stop found in search result
-            const distanceToFirstStop = getDistanceInMeters(
+            const distanceToFirstStopInMeters = getDistanceInMeters(
                 lat,
                 lon,
                 firstStopPlace.latitude,
                 firstStopPlace.longitude,
             )
 
-            if (distanceToFirstStop < maxDistKm) shouldHaveFound++
+            if (distanceToFirstStopInMeters < maxDistMetersWithPadding) {
+                shouldHaveFound++
+            }
 
             const firstStopIndex = nearestStops.findIndex((nearbyStop) => {
                 return nearbyStop.properties.id === firstStopPlaceId
@@ -163,28 +169,35 @@ export const runStopPlaceMatching = async (
 
                 // in 10 mtrs
                 const distanceToFirstStopRounded = Math.ceil(
-                    distanceToFirstStop * 100,
+                    distanceToFirstStopInMeters / 10,
                 )
-                foundAtDistance[distanceToFirstStopRounded]++
+                if (distanceToFirstStopRounded > 5) {
+                    logger.warning(
+                        `Found distance to first stop to be ${distanceToFirstStopRounded}`,
+                    )
+                } else {
+                    foundAtDistance[distanceToFirstStopRounded]++
+                }
 
                 if (
-                    distanceToFirstStop <= MAX_DISTANCE_METERS &&
+                    distanceToFirstStopInMeters <= MAX_DISTANCE_METERS &&
                     firstStopIndex === 0
-                )
+                ) {
                     correctlyFound++
+                }
             } else {
-                if (distanceToFirstStop <= MAX_DISTANCE_METERS) {
+                if (distanceToFirstStopInMeters <= MAX_DISTANCE_METERS) {
                     // If distance is within max distance we SHOULD have found it
                     missedCompletely++
                 } else {
                     tooFarAway++
                 }
                 logger.info(
-                    `First stop is not part of nearby stops, real distance is ${distanceToFirstStop}`,
-                    /* {
+                    `First stop is not part of nearby stops, real distance is ${distanceToFirstStopInMeters}`,
+                    {
                         firstLegWithStopPlace,
                         nearestStops,
-                    },*/
+                    },
                 )
             }
             totalChecks++
