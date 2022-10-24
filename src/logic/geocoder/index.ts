@@ -19,7 +19,7 @@ interface GeocoderResult {
     features?: GeocoderFeature[]
 }
 
-export class GeocoderError extends Error {}
+class GeocoderError extends Error {}
 
 export const getNearestStops = async (
     lat: number,
