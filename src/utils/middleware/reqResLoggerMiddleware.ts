@@ -95,7 +95,7 @@ function reqResLoggerMiddleware(
                 try {
                     response = JSON.parse(response)
                 } catch (error) {
-                    logger.warning(error)
+                    logger.warning('Error while parsing response JSON', error)
                 }
 
                 if (response?.message) {

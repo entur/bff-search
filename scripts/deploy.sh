@@ -38,7 +38,7 @@ function deploy {
     gsutil cp typeDeclarations.tar.gz "gs://$PROJECT-bff-search-types/"
 
     echo " 🚢 Deploying BFF Search to $ENV ..."
-    gcloud app deploy app-$ENV.yaml --project=$PROJECT --quiet
+    gcloud app deploy app-"$ENV".yaml cron.yaml --project=$PROJECT --quiet
 
     echo " 💬 Posting message to Slack ..."
     slack_message "$ENV"

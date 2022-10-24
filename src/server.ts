@@ -40,6 +40,10 @@ app.get('/_ah/warmup', (_req, res) => {
     res.end()
 })
 
+app.get('/keepalive', (_req, res) => {
+    res.status(200).json({ result: 'ok' })
+})
+
 app.use('/v1', v1Router)
 
 app.all('*', (_, res) => {

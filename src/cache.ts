@@ -54,7 +54,6 @@ try {
                 value: any,
                 expireInSeconds: number = DEFAULT_EXPIRE,
             ): Promise<void> => {
-                logger.debug(`Cache set ${key}`)
                 await hset([key, 'data', JSON.stringify(value)])
                 await expire(key, expireInSeconds)
             }
@@ -80,7 +79,6 @@ export async function set(
     value: any,
     expireInSeconds: number = DEFAULT_EXPIRE,
 ): Promise<void> {
-    logger.debug(`Cache set ${key}`)
     if (setCache) await setCache(key, value, expireInSeconds)
 }
 
