@@ -77,12 +77,10 @@ export const runStopPlaceMatching = async (
         const isApp = clientPlatform === 'APP'
 
         if (isApp && isMyLocation && tripPatterns.length !== 0 && lon && lat) {
-            // We add 20m to help us gather statistics about the best 'near' distance
-            const maxDistMetersWithPadding = MAX_DISTANCE_METERS // + 20
             const nearestStops = await getNearestStops(
                 lat,
                 lon,
-                maxDistMetersWithPadding / 1000,
+                MAX_DISTANCE_METERS / 1000,
             )
 
             if (nearestStops.length === 0) {
@@ -126,7 +124,7 @@ export const runStopPlaceMatching = async (
                 firstStopPlace.longitude,
             )
 
-            if (distanceToFirstStopInMeters < maxDistMetersWithPadding) {
+            if (distanceToFirstStopInMeters < MAX_DISTANCE_METERS) {
                 shouldHaveFound++
                 if (nearestStops.length > 0) {
                     const firstNearbyStop = nearestStops[0]
