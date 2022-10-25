@@ -1,5 +1,6 @@
 import fetch from 'node-fetch'
 import { sortBy } from '../../utils/array'
+import logger from '../../logger'
 
 const geocoderUrl = 'https://api.entur.io/geocoder/v1/reverse'
 
@@ -38,6 +39,15 @@ export const getNearestStops = async (
 
     if (!response.ok) {
         const data = await response.json()
+        logger.error('Failure while fetching nearest stop', {
+            lat,
+            lon,
+            maxDistKm,
+            resHeaders: response.headers,
+            resStatus: response.status,
+            resData: data,
+            url,
+        })
         throw new GeocoderError(data.message)
     }
 
