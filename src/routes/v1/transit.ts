@@ -28,9 +28,12 @@ import {
 } from '../../utils/searchParams'
 import { filterModesAndSubModes } from '../../logic/otp2/modes'
 
-import { ENVIRONMENT } from '../../config'
+import { ENVIRONMENT, REPLACE_MY_LOC_WITH_NEAREST_STOP } from '../../config'
 import { GetTripPatternError, RoutingErrorsError } from '../../errors'
-import { runStopPlaceMatching } from '../../logic/stopPlaceMatching'
+import {
+    getNearestStopPlace,
+    isMyLocation,
+} from '../../logic/stopPlaceMatching'
 
 const SEARCH_PARAMS_EXPIRE_IN_SECONDS = 2 * 60 * 60 // two hours
 
@@ -101,6 +104,39 @@ router.post<
         stopTrace()
 
         const params = cursorData?.params || getParams(req.body)
+
+        const isApp = req.header('et-client-platform') === 'APP'
+        if (
+            isApp &&
+            REPLACE_MY_LOC_WITH_NEAREST_STOP === 'true' &&
+            isMyLocation(params)
+        ) {
+            const lon = params.from.coordinates?.longitude
+            const lat = params.from.coordinates?.latitude
+
+            const nearestStopPlace = await getNearestStopPlace(lon, lat)
+
+            if (nearestStopPlace) {
+                logger.debug(
+                    `Searched from my location and found ${nearestStopPlace.place}`,
+                    {
+                        originalFrom: params.from,
+                        nearestStopPlace,
+                    },
+                )
+                params.from = nearestStopPlace
+            } else {
+                logger.debug(
+                    `Searched from my location but found nothing but boogers`,
+                    {
+                        originalFrom: params.from,
+                    },
+                )
+            }
+        } else {
+            logger.info('Replacement disabled')
+        }
+
         const extraHeaders = getHeadersFromClient(req)
 
         stopTrace = trace(
@@ -140,13 +176,6 @@ router.post<
         ])
             .catch((error) => logger.error(error))
             .finally(stopCacheTrace)
-
-        // For now: try matching first stop place using geocoder and log the result
-        await runStopPlaceMatching(
-            req.header('et-client-platform') || '',
-            params,
-            tripPatterns,
-        )
 
         res.json({
             tripPatterns,

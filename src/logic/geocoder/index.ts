@@ -4,9 +4,9 @@ import logger from '../../logger'
 
 const geocoderUrl = 'https://api.entur.io/geocoder/v1/reverse'
 
-interface GeocoderFeature {
+export interface GeocoderFeature {
     geometry: {
-        coordinates: [number, number] // long, lat
+        coordinates: [number, number] // lon, lat
     }
     properties: {
         id: string

@@ -6,3 +6,4 @@ export const ENVIRONMENT = '' as string
 export const TRANSIT_HOST_OTP2 = '' as string
 export const PARTNER_AUDIENCE = '' as string
 export const PARTNER_HOST = '' as string
+export const REPLACE_MY_LOC_WITH_NEAREST_STOP = '' as string
