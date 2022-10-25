@@ -28,7 +28,10 @@ import {
 } from '../../utils/searchParams'
 import { filterModesAndSubModes } from '../../logic/otp2/modes'
 
-import { ENVIRONMENT, REPLACE_MY_LOC_WITH_NEAREST_STOP } from '../../config'
+import {
+    ENVIRONMENT,
+    REPLACE_MY_LOCATION_WITH_NEAREST_STOP,
+} from '../../config'
 import { GetTripPatternError, RoutingErrorsError } from '../../errors'
 import {
     getNearestStopPlace,
@@ -108,7 +111,7 @@ router.post<
         const isApp = req.header('et-client-platform') === 'APP'
         if (
             isApp &&
-            REPLACE_MY_LOC_WITH_NEAREST_STOP === 'true' &&
+            REPLACE_MY_LOCATION_WITH_NEAREST_STOP === 'true' &&
             isMyLocation(params)
         ) {
             const lon = params.from.coordinates?.longitude
