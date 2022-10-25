@@ -1,4 +1,4 @@
-import { Router, Request } from 'express'
+import { Request, Router } from 'express'
 import { parseJSON } from 'date-fns'
 
 import trace from '../../tracer'
@@ -14,10 +14,10 @@ import {
 } from '../../types'
 
 import {
-    generateShamashLink,
-    searchTransit,
-    parseCursor,
     generateCursor,
+    generateShamashLink,
+    parseCursor,
+    searchTransit,
 } from '../../logic/otp2'
 
 import { uniq } from '../../utils/array'
@@ -30,6 +30,7 @@ import { filterModesAndSubModes } from '../../logic/otp2/modes'
 
 import { ENVIRONMENT } from '../../config'
 import { GetTripPatternError, RoutingErrorsError } from '../../errors'
+import { runStopPlaceMatching } from '../../logic/stopPlaceMatching'
 
 const SEARCH_PARAMS_EXPIRE_IN_SECONDS = 2 * 60 * 60 // two hours
 
@@ -139,6 +140,13 @@ router.post<
         ])
             .catch((error) => logger.error(error))
             .finally(stopCacheTrace)
+
+        // For now: try matching first stop place using geocoder and log the result
+        await runStopPlaceMatching(
+            req.header('et-client-platform') || '',
+            params,
+            tripPatterns,
+        )
 
         res.json({
             tripPatterns,

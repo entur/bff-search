@@ -21,6 +21,7 @@
         "terraform": "npm run debug terraform",
         "prod": "npm run debug prod",
         "build": "./scripts/build.sh",
+        "build:generate-types": "./scripts/buildWithTypeDefs.sh",
         "deploy": "./scripts/deploy.sh",
         "apigee": "./scripts/deploy-apigee.sh",
         "transpile": "tsc",
@@ -31,9 +32,10 @@
     "dependencies": {
         "@entur/sdk": "^5.2.0",
         "@google-cloud/bigquery": "^6.0.0",
-        "@google-cloud/logging-winston": "^5.1.0",
+        "@google-cloud/logging-winston": "^5.1.7",
         "@google-cloud/storage": "^6.2.0",
         "@google-cloud/trace-agent": "^5.1.6",
+        "@types/haversine": "^1.1.5",
         "body-parser": "^1.20.0",
         "cors": "^2.8.5",
         "date-fns": "^2.28.0",
@@ -42,6 +44,7 @@
         "express-jwt": "^6.1.1",
         "google-auth-library": "^8.0.3",
         "graphql-request": "^4.2.0",
+        "haversine": "^1.1.1",
         "jwks-rsa": "^2.0.5",
         "lz-string": "^1.4.4",
         "node-fetch": "^2.6.7",
@@ -49,7 +52,7 @@
         "semver": "^7.3.6",
         "timezone-support": "^2.0.2",
         "uuid": "^8.3.2",
-        "winston": "^3.7.2"
+        "winston": "^3.8.2"
     },
     "devDependencies": {
         "@babel/code-frame": "^7.16.7",
@@ -70,7 +73,7 @@
         "@types/uuid": "^8.3.4",
         "@typescript-eslint/eslint-plugin": "^5.18.0",
         "@typescript-eslint/parser": "^5.18.0",
-        "apigeetool": "^0.15.2",
+        "apigeetool": "^0.16.1",
         "eslint": "^8.12.0",
         "eslint-plugin-fp": "^2.3.0",
         "eslint-plugin-prettier": "^4.0.0",
