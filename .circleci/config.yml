@@ -20,6 +20,9 @@ jobs:
             - run: npm test
             - run: npm run unused-exports
 
+            - persist_to_workspace:
+                  root: .
+
     deploy:
         executor: node
         parameters:
