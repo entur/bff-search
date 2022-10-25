@@ -52,13 +52,8 @@ jobs:
         docker:
             - image: google/cloud-sdk
         steps:
-            - checkout
             - attach_workspace:
                   at: .
-            - run:
-                  name: list files
-                  command: |
-                      ls
             - run:
                   name: Set gcloud Auth
                   command: |
@@ -70,7 +65,7 @@ jobs:
             - run:
                   name: Deploy to Google App Engine
                   command: |
-                      gcloud app deploy ./app-<< parameters.env >>.yaml
+                      gcloud app deploy ./app-<< parameters.env >>.yaml --quiet
 
 workflows:
     build-and-test:
