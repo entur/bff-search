@@ -41,6 +41,9 @@ jobs:
                   paths:
                       - .
 
+            - run: ls -la
+            - run: pwd
+
     deploy:
         executor: node
         parameters:
@@ -55,7 +58,7 @@ jobs:
         steps:
             - attach_workspace:
                   at: .
-            - run: ls -la
+            - run: ls -la ..
             - run: pwd
             - run:
                   name: Set gcloud Auth
