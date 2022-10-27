@@ -55,7 +55,7 @@ jobs:
         steps:
             - attach_workspace:
                   at: .
-            - run: ls -la ..
+            - run: ls -la
             - run: pwd
             - run:
                   name: Set gcloud Auth
