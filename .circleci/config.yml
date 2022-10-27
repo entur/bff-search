@@ -31,6 +31,7 @@ jobs:
             - run: npm ci
             - run: npm run ts
             - run: npm run lint
+            #- run: npm run build:generate-types
 
             - run: npm test
             - run: npm run unused-exports
@@ -54,6 +55,8 @@ jobs:
         steps:
             - attach_workspace:
                   at: .
+            - run: ls -la
+            - run: pwd
             - run:
                   name: Set gcloud Auth
                   command: |
@@ -62,10 +65,10 @@ jobs:
                   name: Set gcloud project
                   command: |
                       gcloud --quiet config set project entur-<< parameters.env >>
-            - run:
-                  name: Deploy to Google App Engine
-                  command: |
-                      gcloud app deploy ./app-<< parameters.env >>.yaml --quiet
+              #    name: Deploy to Google App Engine
+              #   command: |
+              #      gcloud app deploy ./app-<< parameters.env >>.yaml cron.yaml --quiet --verbosity=debug
+            # - run:
 
 workflows:
     build-and-test:
