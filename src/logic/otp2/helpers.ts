@@ -17,6 +17,7 @@ import {
     Metadata,
     Notice,
     SearchParams,
+    SearchPreset,
     TripPattern,
     TripPatternParsed,
 } from '../../types'
@@ -36,10 +37,16 @@ export function getQueryVariables({
     walkSpeed,
     minimumTransferTime,
     searchWindow,
-    walkReluctance,
-    waitReluctance,
-    transferPenalty,
+    searchPreset,
+    // DevParams
+    debugItineraryFilter,
+    walkReluctance: debugWalkReluctance,
+    waitReluctance: debugWaitReluctance,
+    transferPenalty: debugTransferPenalty,
 }: SearchParams): GetTripPatternsQueryVariables {
+    const { transferPenalty, transferSlack, walkReluctance, waitReluctance } =
+        getSearchPresetVariables(searchPreset, minimumTransferTime)
+
     return {
         numTripPatterns,
         from,
@@ -49,14 +56,57 @@ export function getQueryVariables({
         wheelchairAccessible: false,
         modes,
         walkSpeed,
-        transferSlack: minimumTransferTime,
-        transferPenalty,
         banned: undefined,
         whiteListed: undefined,
-        debugItineraryFilter: false,
         searchWindow,
-        walkReluctance,
-        waitReluctance,
+        transferSlack,
+        walkReluctance: debugWalkReluctance || walkReluctance,
+        waitReluctance: debugWaitReluctance || waitReluctance,
+        transferPenalty: debugTransferPenalty || transferPenalty,
+        debugItineraryFilter,
+    }
+}
+
+interface PresetValues {
+    transferPenalty?: number
+    transferSlack?: number
+    walkReluctance?: number
+    waitReluctance?: number
+}
+
+function getSearchPresetVariables(
+    searchPreset: SearchPreset = SearchPreset.RECOMMENDED,
+    minimumTransferTime?: number,
+): PresetValues {
+    switch (searchPreset) {
+        case SearchPreset.RECOMMENDED:
+            return {
+                transferPenalty: undefined,
+                transferSlack: minimumTransferTime,
+                walkReluctance: undefined,
+                waitReluctance: undefined,
+            }
+        case SearchPreset.FASTEST:
+            return {
+                transferPenalty: 0,
+                transferSlack: 0,
+                walkReluctance: 1,
+                waitReluctance: 1,
+            }
+        case SearchPreset.AVOID_TRANSFERS:
+            return {
+                transferPenalty: 1200,
+                transferSlack: minimumTransferTime,
+                walkReluctance: 2,
+                waitReluctance: 1,
+            }
+        case SearchPreset.AVOID_WALKING:
+            return {
+                transferPenalty: 0,
+                transferSlack: minimumTransferTime,
+                walkReluctance: 10,
+                waitReluctance: 1,
+            }
     }
 }
 
