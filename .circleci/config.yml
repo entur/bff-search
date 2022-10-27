@@ -41,10 +41,6 @@ jobs:
                   paths:
                       - .
 
-            - run: ls -la
-            - run: ls -la ./scripts
-            - run: pwd
-
     deploy:
         executor: node
         parameters:
@@ -57,8 +53,12 @@ jobs:
         docker:
             - image: google/cloud-sdk
         steps:
-            - attach_workspace:
-                  at: .
+            - run: npm ci
+            - run: npm run ts
+            - run: npm run lint
+            - run: npm test
+            - run: npm run unused-exports
+            - run: npm run build:generate-types << parameters.env >>
             - run: ls -la ..
             - run: pwd
             - run:
