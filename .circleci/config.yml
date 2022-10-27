@@ -31,7 +31,7 @@ jobs:
             - run: npm ci
             - run: npm run ts
             - run: npm run lint
-            #- run: npm run build:generate-types
+            - run: npm run build:generate-types dev
 
             - run: npm test
             - run: npm run unused-exports
@@ -53,15 +53,8 @@ jobs:
         docker:
             - image: google/cloud-sdk
         steps:
-            - checkout
-            - run: sudo npm install --global npm@8.3.0
-
-            - run: npm ci
-            - run: npm run ts
-            - run: npm run lint
-            - run: npm test
-            - run: npm run unused-exports
-            - run: npm run build:generate-types << parameters.env >>
+            - attach_workspace:
+                  at: .
             - run: ls -la ..
             - run: pwd
             - run:
