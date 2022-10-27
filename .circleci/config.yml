@@ -42,6 +42,7 @@ jobs:
                       - .
 
             - run: ls -la
+            - run: ls -la ./scripts
             - run: pwd
 
     deploy:
