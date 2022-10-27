@@ -65,10 +65,10 @@ jobs:
                   name: Set gcloud project
                   command: |
                       gcloud --quiet config set project entur-<< parameters.env >>
-              #    name: Deploy to Google App Engine
-              #   command: |
-              #      gcloud app deploy ./app-<< parameters.env >>.yaml cron.yaml --quiet --verbosity=debug
-            # - run:
+            - run:
+                  name: Deploy to Google App Engine
+                  command: |
+                      gcloud app deploy ./app-<< parameters.env >>.yaml cron.yaml --quiet --verbosity=debug
 
 workflows:
     build-and-test:
