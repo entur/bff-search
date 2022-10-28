@@ -16,8 +16,7 @@ jobs:
             - run: npm ci
             - run: npm run ts
             - run: npm run lint
-            - run: tsc -p tsconfig.json --declaration --declarationDir "typeDeclarations"
-            - run: tar -czf "typeDeclarations.tar.gz" typeDeclarations/
+            - run: npm run build:generate-types
 
             - run: npm test
             - run: npm run unused-exports
