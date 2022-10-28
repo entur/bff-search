@@ -17,7 +17,6 @@ jobs:
             - run: npm run ts
             - run: npm run lint
             - run: npm run build:generate-types
-
             - run: npm test
             - run: npm run unused-exports
 
@@ -40,23 +39,22 @@ jobs:
         steps:
             - attach_workspace:
                   at: .
-            - run: ls -la
-            # - run:
-            #       name: Set gcloud Auth
-            #       command: |
-            #           echo $GCLOUD_SERVICE_KEY_<< parameters.env >> | gcloud auth activate-service-account --key-file=-
-            # - run:
-            #       name: Set gcloud project
-            #       command: |
-            #           gcloud --quiet config set project entur-<< parameters.env >>
-            # - run:
-            #       name: Upload type defs to GCP bucket
-            #       command: |
-            #           gsutil cp typeDeclarations.tar.gz "gs://entur-<< parameters.env >>-bff-search-types/"
-            # - run:
-            #       name: Deploy to Google App Engine
-            #       command: |
-            #           gcloud app deploy ./app-<< parameters.env >>.yaml cron.yaml --quiet --verbosity=info
+            - run:
+                  name: Set gcloud Auth
+                  command: |
+                      echo $GCLOUD_SERVICE_KEY_<< parameters.env >> | gcloud auth activate-service-account --key-file=-
+            - run:
+                  name: Set gcloud project
+                  command: |
+                      gcloud --quiet config set project entur-<< parameters.env >>
+            - run:
+                  name: Upload type defs to GCP bucket
+                  command: |
+                      gsutil cp typeDeclarations.tar.gz "gs://entur-<< parameters.env >>-bff-search-types/"
+            - run:
+                  name: Deploy to Google App Engine
+                  command: |
+                      gcloud app deploy ./app-<< parameters.env >>.yaml cron.yaml --quiet --verbosity=info
 
 workflows:
     build-and-test:
