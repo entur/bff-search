@@ -6,3 +6,8 @@ automatic_scaling:
     min_idle_instances: 1
 vpc_access_connector:
     name: 'projects/entur-staging/locations/us-central1/connectors/bff-search-redis'
+env_variables:
+    ENVIRONMENT: staging
+    TRANSIT_HOST_OTP2: https://api.staging.entur.io/journey-planner/v3
+    PARTNER_AUDIENCE: https://api.staging.entur.io
+    PARTNER_HOST: https://partner.staging.entur.org
