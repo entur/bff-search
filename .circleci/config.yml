@@ -74,3 +74,36 @@ workflows:
                   name: dev
                   requires:
                       - approval-dev
+
+            - approval-staging:
+                  type: approval
+                  requires:
+                      - build
+
+            - deploy:
+                  env: 'staging'
+                  name: staging
+                  requires:
+                      - approval-staging
+
+            - approval-beta:
+                  type: approval
+                  requires:
+                      - build
+
+            - deploy:
+                  env: 'beta'
+                  name: beta
+                  requires:
+                      - approval-beta
+
+            - approval-prod:
+                  type: approval
+                  requires:
+                      - build
+
+            - deploy:
+                  env: 'prod'
+                  name: prod
+                  requires:
+                      - approval-prod
