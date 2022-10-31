@@ -30,7 +30,15 @@ jobs:
         parameters:
             env:
                 type: enum
-                enum: ['dev', 'staging', 'beta', 'prod']
+                enum:
+                    [
+                        'terraform',
+                        'nordiv-dev',
+                        'dev',
+                        'staging',
+                        'beta',
+                        'prod',
+                    ]
             function:
                 type: string
                 default: ''
@@ -50,7 +58,7 @@ jobs:
             - run:
                   name: Upload type defs to GCP bucket
                   command: |
-                      gsutil cp typeDeclarations.tar.gz "gs://entur-<< parameters.env >>-bff-search-types/"
+                      gsutil cp typeDeclarations.tar.gz "gs://<< parameters.project >>-bff-search-types/"
             - run:
                   name: Deploy to Google App Engine
                   command: |
@@ -72,6 +80,7 @@ workflows:
             - deploy:
                   env: 'dev'
                   name: dev
+                  project: 'entur-dev'
                   requires:
                       - approval-dev
 
@@ -83,6 +92,7 @@ workflows:
             - deploy:
                   env: 'staging'
                   name: staging
+                  project: 'entur-staging'
                   requires:
                       - approval-staging
 
@@ -94,6 +104,7 @@ workflows:
             - deploy:
                   env: 'beta'
                   name: beta
+                  project: 'entur-beta'
                   requires:
                       - approval-beta
 
@@ -105,5 +116,30 @@ workflows:
             - deploy:
                   env: 'prod'
                   name: prod
+                  project: 'entur-prod'
                   requires:
                       - approval-prod
+
+            - approval-terraform:
+                  type: approval
+                  requires:
+                      - build
+
+            - deploy:
+                  env: 'terraform'
+                  name: terraform
+                  project: 'ent-selvbet-terraform-dev'
+                  requires:
+                      - approval-terraform
+
+            - approval-nordic-dev:
+                  type: approval
+                  requires:
+                      - build
+
+            - deploy:
+                  env: 'nordic-dev'
+                  name: nordic-dev
+                  project: 'ent-client-nordic-dev'
+                  requires:
+                      - approval-nordic-dev
