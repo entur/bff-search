@@ -39,6 +39,17 @@ jobs:
                         'beta',
                         'prod',
                     ]
+            project:
+                type: enum
+                enum:
+                    [
+                        'ent-selvbet-terraform-dev',
+                        'ent-client-nordic-dev',
+                        'entur-dev',
+                        'entur-staging',
+                        'entur-beta',
+                        'entur-prod',
+                    ]
             function:
                 type: string
                 default: ''
