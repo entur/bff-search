@@ -33,7 +33,7 @@ jobs:
                 enum:
                     [
                         'terraform',
-                        'nordiv-dev',
+                        'nordic-dev',
                         'dev',
                         'staging',
                         'beta',
