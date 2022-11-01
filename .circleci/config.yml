@@ -31,14 +31,7 @@ jobs:
             env:
                 type: enum
                 enum:
-                    [
-                        'terraform',
-                        'nordic-dev',
-                        'dev',
-                        'staging',
-                        'beta',
-                        'prod',
-                    ]
+                    ['terraform', 'nordicdev', 'dev', 'staging', 'beta', 'prod']
             project:
                 type: enum
                 enum:
@@ -65,7 +58,7 @@ jobs:
             - run:
                   name: Set gcloud project
                   command: |
-                      gcloud --quiet config set project entur-<< parameters.env >>
+                      gcloud --quiet config set project << parameters.project >>
             - run:
                   name: Upload type defs to GCP bucket
                   command: |
