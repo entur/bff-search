@@ -142,8 +142,8 @@ workflows:
                       - build
 
             - deploy:
-                  env: 'nordic-dev'
-                  name: nordic-dev
+                  env: 'nordicdev'
+                  name: nordic dev
                   project: 'ent-client-nordic-dev'
                   requires:
                       - approval-nordic-dev
