@@ -10,6 +10,7 @@ import { getProjectId } from './utils/project'
 const storage = new Storage()
 
 const bucketUrl = `gs://${getProjectId()}-bff-search-config`
+
 const PROD = process.env.NODE_ENV === 'production'
 
 // Functions are unavailable until Redis is Ready.

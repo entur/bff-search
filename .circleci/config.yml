@@ -51,25 +51,24 @@ jobs:
         steps:
             - attach_workspace:
                   at: .
-            - run: ls -la
-            # - run:
-            #       name: Set gcloud Auth
-            #       command: |
-            #           echo $GCLOUD_SERVICE_KEY_<< parameters.env >> | gcloud auth activate-service-account --key-file=-
-            # - run:
-            #       name: Set gcloud project
-            #       command: |
-            #           gcloud --quiet config set project << parameters.project >>
-            # - run:
-            #       name: Upload type defs to GCP bucket
-            #       command: |
-            #           gsutil cp typeDeclarations.tar.gz "gs://<< parameters.project >>-bff-search-types/"
-            # - run:
-            #       name: Deploy to Google App Engine
-            #       command: |
-            #           gcloud app deploy ./app-<< parameters.env >>.yaml cron.yaml --quiet --verbosity=info
             - run:
-                  name: Send slack message
+                  name: Set gcloud Auth
+                  command: |
+                      echo $GCLOUD_SERVICE_KEY_<< parameters.env >> | gcloud auth activate-service-account --key-file=-
+            - run:
+                  name: Set gcloud project
+                  command: |
+                      gcloud --quiet config set project << parameters.project >>
+            - run:
+                  name: Upload type defs to GCP bucket
+                  command: |
+                      gsutil cp typeDeclarations.tar.gz "gs://<< parameters.project >>-bff-search-types/"
+            - run:
+                  name: Deploy to Google App Engine
+                  command: |
+                      gcloud app deploy ./app-<< parameters.env >>.yaml cron.yaml --quiet --verbosity=info
+            - run:
+                  name: Send Slack message
                   command: |
                       ./scripts/slack.sh << parameters.env >>
 

@@ -1,10 +1,28 @@
 #!/bin/bash
 set -e
 
+ENV=${1}
+
+if [[ $ENV == '' ]]; then
+ echo
+ echo "✋ Remember to specify environment to run, e.g dev, staging, beta, prod or nordicdev and terraform"
+ echo
+ echo "ex. npm run debug staging"
+ echo
+ exit 1
+fi
+
+if [ -z "$ENTUR_DEPLOY_SLACK_WEBHOOK" ] ; then
+ echo
+ echo "👮‍♀️ Stop there! Could not find the Slack webhook URL. Please make sure this variable is exported:"
+ echo
+ echo "$ENTUR_DEPLOY_SLACK_WEBHOOK"
+ echo
+ exit 1
+fi
+
 # Run transpile in a forked process
 npm run transpile -- --watch &
-
-ENV=${1:-dev}
 
 # Remember to have "yq" installed. 
 while read variable ; do
