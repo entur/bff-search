@@ -24,7 +24,7 @@ function deploy {
 
     echo -e "\n🗼 Transpiling files ..."
 
-    ./scripts/buildWithTypeDefs.sh "$ENV"
+    ./scripts/buildWithTypeDefs.sh
 
     echo "Uploading type declarations to bucket"
     if [[ $ENV = "nordic-dev" ]]; then

@@ -24,6 +24,7 @@
         "build:generate-types": "./scripts/buildWithTypeDefs.sh",
         "deploy": "./scripts/deploy.sh",
         "apigee": "./scripts/deploy-apigee.sh",
+        "slack": "./scripts/slack.sh",
         "transpile": "tsc",
         "populate-env-vars": "ts-node ./scripts/environment.ts",
         "unused-exports": "node --require ts-node/register/transpile-only scripts/unused-exports.ts",

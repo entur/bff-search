@@ -59,14 +59,18 @@ jobs:
                   name: Set gcloud project
                   command: |
                       gcloud --quiet config set project << parameters.project >>
+            # - run:
+            #       name: Upload type defs to GCP bucket
+            #       command: |
+            #           gsutil cp typeDeclarations.tar.gz "gs://<< parameters.project >>-bff-search-types/"
+            # - run:
+            #       name: Deploy to Google App Engine
+            #       command: |
+            #           gcloud app deploy ./app-<< parameters.env >>.yaml cron.yaml --quiet --verbosity=info
             - run:
-                  name: Upload type defs to GCP bucket
+                  name: Send slack message
                   command: |
-                      gsutil cp typeDeclarations.tar.gz "gs://<< parameters.project >>-bff-search-types/"
-            - run:
-                  name: Deploy to Google App Engine
-                  command: |
-                      gcloud app deploy ./app-<< parameters.env >>.yaml cron.yaml --quiet --verbosity=info
+                      npm run slack << parameters.env >>
 
 workflows:
     build-and-test:
