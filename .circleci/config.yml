@@ -16,7 +16,7 @@ jobs:
             - run: npm ci
             - run: npm run ts
             - run: npm run lint
-            - run: npm run build:generate-types
+            - run: npm run build
             - run: npm test
             - run: npm run unused-exports
 

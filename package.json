@@ -17,8 +17,6 @@
         "ts": "tsc --noEmit && tsc -p scripts/tsconfig.json",
         "debug": "./scripts/debug.sh",
         "build": "./scripts/build.sh",
-        "build:generate-types": "./scripts/buildWithTypeDefs.sh",
-        "deploy": "./scripts/deploy.sh",
         "apigee": "./scripts/deploy-apigee.sh",
         "slack": "./scripts/slack.sh",
         "transpile": "tsc",
