@@ -30,9 +30,8 @@ else
     SLACK_CHANNEL="#team-app-build"
 fi
 
-
 if [[ $USER != '']]; then
-    DEPLOYER=$USER
+    DEPLOYER="(\`$USER\`)"
 else
     DEPLOYER="CircleCI"
 fi
