@@ -8,7 +8,6 @@ import { getProjectId } from './utils/project'
 // Redis ip and port are stored in a cloud storage bucket when
 // environment is terraformed (or set manually if terraform is not used)
 const storage = new Storage()
-
 const bucketUrl = `gs://${getProjectId()}-bff-search-config`
 
 const PROD = process.env.NODE_ENV === 'production'
