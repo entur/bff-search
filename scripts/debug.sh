@@ -12,6 +12,9 @@ if [[ $ENV == '' ]]; then
  exit 1
 fi
 
+TRANSPILE_PID=$! 
+ENVIRONMENT_PID=$! 
+
 # Run transpile in a forked process
 npm run transpile -- --watch &
 
