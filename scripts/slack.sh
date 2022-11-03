@@ -36,8 +36,6 @@ else
     DEPLOYER="CircleCI"
 fi
 
-echo $DEPLOYER
-
 curl -X POST \
     --data-urlencode "payload={\"channel\": \"$SLACK_CHANNEL\", \"username\": \"BFF Search deployed to $ENV\", \"text\": \"\`$DEPLOYER\` deployed *BFF Search* to :$ENV: from branch \`$BRANCH\` $COMMIT_MSG\", \"icon_emoji\": \":mag:\"}" \
     "$ENTUR_DEPLOY_SLACK_WEBHOOK"
