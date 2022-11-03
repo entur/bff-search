@@ -1,12 +1,13 @@
 import fetch from 'node-fetch'
 import { sortBy } from '../../utils/array'
 import logger from '../../logger'
+import { GEOCODER_HOST } from '../../config'
 
-const geocoderUrl = 'https://api.entur.io/geocoder/v1/reverse'
+const geocoderUrl = `${GEOCODER_HOST}/reverse`
 
-interface GeocoderFeature {
+export interface GeocoderFeature {
     geometry: {
-        coordinates: [number, number] // long, lat
+        coordinates: [number, number] // lon, lat
     }
     properties: {
         id: string

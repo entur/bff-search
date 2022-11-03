@@ -27,6 +27,7 @@ export interface RawSearchParams {
     minimumTransferTime?: number
     cursor?: string
     searchFilter?: SearchFilter[]
+    searchPreset?: SearchPreset
 }
 
 interface DevParams {
@@ -82,4 +83,11 @@ export enum SearchFilter {
     CAR_FERRY = 'car_ferry',
     FLYTOG = 'flytog',
     FLYBUSS = 'flybuss',
+}
+
+export enum SearchPreset {
+    RECOMMENDED = 'RECOMMENDED',
+    FASTEST = 'FASTEST',
+    AVOID_TRANSFERS = 'AVOID_TRANSFERS',
+    AVOID_WALKING = 'AVOID_WALKING',
 }

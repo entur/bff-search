@@ -13,7 +13,6 @@ if [[ $ENV == '' ]]; then
 fi
 
 TRANSPILE_PID=$! 
-ENVIRONMENT_PID=$! 
 
 # Run transpile in a forked process
 npm run transpile -- --watch &
@@ -36,7 +35,6 @@ fi
 trap onexit INT
 function onexit() {
     kill -9 $TRANSPILE_PID
-    kill -9 $ENVIRONMENT_PID
     exit 0
 }
 
