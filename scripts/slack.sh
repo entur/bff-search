@@ -6,7 +6,7 @@ if [ -z "$ENTUR_DEPLOY_SLACK_WEBHOOK" ] ; then
  echo
  echo "👮‍♀️ Stop there! Could not find the Slack webhook URL. Please make sure this variable is exported:"
  echo
- echo "  ENTUR_DEPLOY_SLACK_WEBHOOK"
+ echo "$ENTUR_DEPLOY_SLACK_WEBHOOK"
  echo
  exit 1
 fi

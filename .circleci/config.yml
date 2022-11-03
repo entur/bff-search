@@ -51,14 +51,15 @@ jobs:
         steps:
             - attach_workspace:
                   at: .
-            - run:
-                  name: Set gcloud Auth
-                  command: |
-                      echo $GCLOUD_SERVICE_KEY_<< parameters.env >> | gcloud auth activate-service-account --key-file=-
-            - run:
-                  name: Set gcloud project
-                  command: |
-                      gcloud --quiet config set project << parameters.project >>
+            - run: sudo npm install --global npm@8.3.0
+            # - run:
+            #       name: Set gcloud Auth
+            #       command: |
+            #           echo $GCLOUD_SERVICE_KEY_<< parameters.env >> | gcloud auth activate-service-account --key-file=-
+            # - run:
+            #       name: Set gcloud project
+            #       command: |
+            #           gcloud --quiet config set project << parameters.project >>
             # - run:
             #       name: Upload type defs to GCP bucket
             #       command: |
