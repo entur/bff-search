@@ -51,7 +51,7 @@ jobs:
         steps:
             - attach_workspace:
                   at: .
-            - run: sudo npm install --global npm@8.3.0
+            - run: ls -la
             # - run:
             #       name: Set gcloud Auth
             #       command: |
@@ -71,7 +71,7 @@ jobs:
             - run:
                   name: Send slack message
                   command: |
-                      npm run slack << parameters.env >>
+                      ./scripts/slack.sh << parameters.env >>
 
 workflows:
     build-and-test:
