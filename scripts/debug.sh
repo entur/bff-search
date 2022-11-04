@@ -17,7 +17,11 @@ TRANSPILE_PID=$!
 # Run transpile in a forked process
 npm run transpile -- --watch &
 
-# Remember to have "yq" installed. 
+if ! command -v yq &> /dev/null
+then
+    echo "Remember to have 'yq' installed."
+    exit
+fi
 while read variable ; do
      export $(sed 's/ = /=/' <<< $variable)
 done < <(yq -o=props '.env_variables' ./app-${ENV}.yaml)
