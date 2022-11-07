@@ -4,3 +4,13 @@ inbound_services:
     - warmup
 vpc_access_connector:
     name: 'projects/ent-selvbet-terraform-dev/locations/europe-west1/connectors/bff-search-redis'
+env_variables:
+    ENVIRONMENT: terraform
+    TRANSIT_HOST: https://api.dev.entur.io/journey-planner/v2
+    NON_TRANSIT_HOST: https://api.dev.entur.io/journey-planner/v2
+    TRANSIT_HOST_OTP2: https://api.dev.entur.io/journey-planner/v3
+    NON_TRANSIT_HOST_OTP2: https://api.dev.entur.io/journey-planner/v3
+    PARTNER_AUDIENCE: https://api.dev.entur.io
+    PARTNER_HOST: https://partner.dev.entur.org
+    GEOCODER_HOST: https://api.dev.entur.io/geocoder/v1
+    REPLACE_MY_LOCATION_WITH_NEAREST_STOP: true

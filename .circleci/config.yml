@@ -1,8 +1,153 @@
 version: 2.1
-orbs:
-    node: 'circleci/node@4.7.0'
+
+executors:
+    node:
+        working_directory: ~/workdir
+        docker:
+            - image: cimg/node:16.14
+
+jobs:
+    build:
+        executor: node
+        steps:
+            - checkout
+            - run: sudo npm install --global npm@8.3.0
+
+            - run: npm ci
+            - run: npm run ts
+            - run: npm run lint
+            - run: npm run build
+            - run: npm test
+            - run: npm run unused-exports
+
+            - persist_to_workspace:
+                  root: .
+                  paths:
+                      - .
+
+    deploy:
+        executor: node
+        parameters:
+            env:
+                type: enum
+                enum:
+                    ['terraform', 'nordicdev', 'dev', 'staging', 'beta', 'prod']
+            project:
+                type: enum
+                enum:
+                    [
+                        'ent-selvbet-terraform-dev',
+                        'ent-client-nordic-dev',
+                        'entur-dev',
+                        'entur-staging',
+                        'entur-beta',
+                        'entur-prod',
+                    ]
+            function:
+                type: string
+                default: ''
+        docker:
+            - image: google/cloud-sdk
+        steps:
+            - attach_workspace:
+                  at: .
+            - run:
+                  name: Set gcloud Auth
+                  command: |
+                      echo $GCLOUD_SERVICE_KEY_<< parameters.env >> | gcloud auth activate-service-account --key-file=-
+            - run:
+                  name: Set gcloud project
+                  command: |
+                      gcloud --quiet config set project << parameters.project >>
+            - run:
+                  name: Upload type defs to GCP bucket
+                  command: |
+                      gsutil cp typeDeclarations.tar.gz "gs://<< parameters.project >>-bff-search-types/"
+            - run:
+                  name: Deploy to Google App Engine
+                  command: |
+                      gcloud app deploy ./app-<< parameters.env >>.yaml cron.yaml --quiet --verbosity=info
+            - run:
+                  name: Send Slack message
+                  command: |
+                      ./scripts/slack.sh << parameters.env >>
+
 workflows:
     build-and-test:
         jobs:
-            - node/test:
-                  version: 14.17.6
+            - build
+    deployment:
+        jobs:
+            - build
+
+            - approval-dev:
+                  type: approval
+                  requires:
+                      - build
+
+            - deploy:
+                  env: 'dev'
+                  name: dev
+                  project: 'entur-dev'
+                  requires:
+                      - approval-dev
+
+            - approval-staging:
+                  type: approval
+                  requires:
+                      - build
+
+            - deploy:
+                  env: 'staging'
+                  name: staging
+                  project: 'entur-staging'
+                  requires:
+                      - approval-staging
+
+            - approval-beta:
+                  type: approval
+                  requires:
+                      - build
+
+            - deploy:
+                  env: 'beta'
+                  name: beta
+                  project: 'entur-beta'
+                  requires:
+                      - approval-beta
+
+            - approval-prod:
+                  type: approval
+                  requires:
+                      - build
+
+            - deploy:
+                  env: 'prod'
+                  name: prod
+                  project: 'entur-prod'
+                  requires:
+                      - approval-prod
+
+            - approval-terraform:
+                  type: approval
+                  requires:
+                      - build
+
+            - deploy:
+                  env: 'terraform'
+                  name: terraform
+                  project: 'ent-selvbet-terraform-dev'
+                  requires:
+                      - approval-terraform
+
+            - approval-nordic-dev:
+                  type: approval
+                  requires:
+                      - build
+
+            - deploy:
+                  env: 'nordicdev'
+                  name: nordic dev
+                  project: 'ent-client-nordic-dev'
+                  requires:
+                      - approval-nordic-dev

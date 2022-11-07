@@ -3,10 +3,10 @@ service: search
 inbound_services:
     - warmup
 vpc_access_connector:
-    name: 'projects/entur-dev/locations/us-central1/connectors/bff-search-redis'
+    name: 'projects/ent-client-nordic-dev/locations/europe-west1/connectors/bff-search-redis'
 env_variables:
-    ENVIRONMENT: dev
-    TRANSIT_HOST_OTP2: https://api.dev.entur.io/journey-planner/v3
+    ENVIRONMENT: nordic-dev
+    TRANSIT_HOST_OTP2: https://api.dev.entur.io/journey-planner/v3/nordic
     PARTNER_AUDIENCE: https://api.dev.entur.io
     PARTNER_HOST: https://partner.dev.entur.org
     GEOCODER_HOST: https://api.dev.entur.io/geocoder/v1
