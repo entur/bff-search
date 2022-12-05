@@ -72,7 +72,7 @@ try {
     logger.error('Could not initialize Redis cache properly', err)
 }
 
-const DEFAULT_EXPIRE = 30 * 60 // 30 minutes
+const DEFAULT_EXPIRE = 90 * 60 // 90 minutes
 
 export async function set(
     key: string,
