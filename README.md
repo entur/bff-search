@@ -8,17 +8,6 @@ The reasons for having this backend-for-frontend is to simplify the travel searc
 
 This backend service provides a simple REST API. Its `POST /transit` endpoint takes a set of simple parameters. The endpoint returns a set of trip patterns and a _cursor_ for pagination. The cursor is a key to get the next search results. If the client is not satisfied with the number of trip patterns returned, it will make a new request against the endpoint, but now with only the cursor as its parameter.
 
-### The Cursor Approach
-
-When a user of our clients initiates a travel search, a POST request is done to this backend service with a set of parameters. These parameters closely resembles the parameters of our [SDK's getTripPatterns](https://sdk.entur.org/travel/getTripPatterns). The request will return a set of trip patterns and a _cursor_.
-
-```
-{
-    tripPatterns: [],
-    nextCursor: 'sdfkjsc90234902'
-}
-```
-
 #### From the client's perspective
 
 The cursor is a key to get the next search results. If the client is not satisfied with the number of trip patterns returned, it will make a new request against the endpoint, but now with only the cursor as its parameter. The cursor should be treated by the client as a random string that acts as a key to getting the next search results. The client should not need to know anything about how it's implemented. If a request to this backend does _not_ return a cursor, that means that it is not possible to continue, and the client should give up.

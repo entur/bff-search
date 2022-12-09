@@ -6,7 +6,8 @@ import {
     differenceInSeconds,
     differenceInMinutes,
 } from 'date-fns'
-import createEnturService from '@entur/sdk'
+
+import { request as graphqlRequest } from 'graphql-request'
 
 import { first, last } from '../../utils/array'
 import { isFlexibleLeg, isTransitLeg } from '../../utils/leg'
@@ -16,13 +17,6 @@ import { TRANSIT_HOST_OTP2 } from '../../config'
 import logger from '../../logger'
 
 import { TripPattern, Leg, EstimatedCall, Place } from '../../types'
-
-const sdk = createEnturService({
-    clientName: 'entur-search',
-    hosts: {
-        journeyPlanner: TRANSIT_HOST_OTP2,
-    },
-})
 
 interface UpdatedEstimatedCall {
     quay?: {
@@ -84,10 +78,14 @@ async function getCallsForServiceJourney(
     }
     `.trim()
 
-    const data = await sdk.queryJourneyPlanner<ServiceJourneyResponse>(query, {
-        id,
-        date,
-    })
+    const data = await graphqlRequest<ServiceJourneyResponse>(
+        `${TRANSIT_HOST_OTP2}/graphql`,
+        query,
+        {
+            id,
+            date,
+        },
+    )
 
     if (!data || !data.serviceJourney || !data.serviceJourney.estimatedCalls) {
         return Promise.reject('No service journey found')

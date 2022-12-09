@@ -4,6 +4,10 @@ import { GetTripPatternsQuery } from './generated/graphql'
 
 export { RoutingError, RoutingErrorCode } from './generated/graphql'
 
+export interface ExtraHeaders {
+    [key: string]: string
+}
+
 export type TripPattern = GetTripPatternsQuery['trip']['tripPatterns'][0]
 export type TripPatternParsed = TripPattern & { id: string }
 export type Leg = NonNullable<TripPattern['legs'][0]>

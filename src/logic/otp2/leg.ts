@@ -1,20 +1,15 @@
-import createEnturService from '@entur/sdk'
+import { request as graphqlRequest } from 'graphql-request'
 
 import { TRANSIT_HOST_OTP2 } from '../../config'
-import { Leg } from '../../types'
-
-const sdk = createEnturService({
-    clientName: 'entur-search',
-    hosts: {
-        journeyPlanner: TRANSIT_HOST_OTP2,
-    },
-})
-
+import { Leg, ExtraHeaders } from '../../types'
 interface LegResponse {
     leg?: Leg
 }
 
-export async function getLeg(id: string): Promise<Leg> {
+export async function getLeg(
+    id: string,
+    extraHeaders: ExtraHeaders,
+): Promise<Leg> {
     const query = `
         query($id:ID!) {      
             leg(id:$id) {
@@ -290,13 +285,20 @@ export async function getLeg(id: string): Promise<Leg> {
         }
         `.trim()
 
-    const { leg } = await sdk.queryJourneyPlanner<LegResponse>(query, {
-        id,
-    })
-
-    if (!leg) {
-        return Promise.reject('No leg found')
+    try {
+        const { leg } = await graphqlRequest<LegResponse>(
+            `${TRANSIT_HOST_OTP2}/graphql`,
+            query,
+            {
+                id,
+            },
+            extraHeaders,
+        )
+        if (!leg) {
+            return Promise.reject('No leg found')
+        }
+        return leg
+    } catch (error) {
+        return error
     }
-
-    return leg
 }

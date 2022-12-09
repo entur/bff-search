@@ -25,7 +25,6 @@
         "codegen": "graphql-codegen --config codegen.yml"
     },
     "dependencies": {
-        "@entur/sdk": "^5.2.0",
         "@google-cloud/bigquery": "^6.0.0",
         "@google-cloud/logging-winston": "^5.1.7",
         "@google-cloud/storage": "^6.2.0",
