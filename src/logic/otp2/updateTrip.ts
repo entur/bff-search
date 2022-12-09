@@ -6,7 +6,8 @@ import {
     differenceInSeconds,
     differenceInMinutes,
 } from 'date-fns'
-import createEnturService from '@entur/sdk'
+
+import { request as graphqlRequest } from 'graphql-request'
 
 import { first, last } from '../../utils/array'
 import { isFlexibleLeg, isTransitLeg } from '../../utils/leg'
@@ -15,14 +16,13 @@ import { toISOString } from '../../utils/time'
 import { TRANSIT_HOST_OTP2 } from '../../config'
 import logger from '../../logger'
 
-import { TripPattern, Leg, EstimatedCall, Place } from '../../types'
-
-const sdk = createEnturService({
-    clientName: 'entur-search',
-    hosts: {
-        journeyPlanner: TRANSIT_HOST_OTP2,
-    },
-})
+import {
+    TripPattern,
+    Leg,
+    EstimatedCall,
+    Place,
+    ExtraHeaders,
+} from '../../types'
 
 interface UpdatedEstimatedCall {
     quay?: {
@@ -54,6 +54,7 @@ interface ServiceJourneyResponse {
 async function getCallsForServiceJourney(
     id: string,
     date: string,
+    extraHeaders: ExtraHeaders,
 ): Promise<UpdatedEstimatedCall[]> {
     const query = `
     query($id:String!,$date:Date!) {
@@ -84,10 +85,15 @@ async function getCallsForServiceJourney(
     }
     `.trim()
 
-    const data = await sdk.queryJourneyPlanner<ServiceJourneyResponse>(query, {
-        id,
-        date,
-    })
+    const data = await graphqlRequest<ServiceJourneyResponse>(
+        `${TRANSIT_HOST_OTP2}/graphql`,
+        query,
+        {
+            id,
+            date,
+        },
+        extraHeaders,
+    )
 
     if (!data || !data.serviceJourney || !data.serviceJourney.estimatedCalls) {
         return Promise.reject('No service journey found')
@@ -175,7 +181,10 @@ interface LegWithUpdate {
     updatedCalls?: UpdatedCalls
 }
 
-async function updateLeg(leg: Leg): Promise<LegWithUpdate> {
+async function updateLeg(
+    leg: Leg,
+    extraHeaders: ExtraHeaders,
+): Promise<LegWithUpdate> {
     const fromEstimatedCallDate = leg.fromEstimatedCall?.date
 
     if (
@@ -190,6 +199,7 @@ async function updateLeg(leg: Leg): Promise<LegWithUpdate> {
     const updatedEstimatedCalls = await getCallsForServiceJourney(
         serviceJourney.id,
         fromEstimatedCallDate,
+        extraHeaders,
     )
 
     const fromIndex = updatedEstimatedCalls.findIndex(
@@ -320,6 +330,7 @@ function mergeLegsWithUpdateInfo(legsWithUpdate: LegWithUpdate[]): Leg[] {
 
 export async function updateTripPattern(
     tripPattern: TripPattern,
+    extraHeaders: ExtraHeaders,
 ): Promise<TripPattern> {
     if (tripPattern.legs.some(isFlexibleLeg)) return tripPattern
 
@@ -332,7 +343,7 @@ export async function updateTripPattern(
 
     const legsWithUpdateInfo: LegWithUpdate[] = await Promise.all(
         legs.map((leg) =>
-            updateLeg(leg).catch((error) => {
+            updateLeg(leg, extraHeaders).catch((error) => {
                 logger.warning('Failed to update leg', error)
                 return { leg }
             }),

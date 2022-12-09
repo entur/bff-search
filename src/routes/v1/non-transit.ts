@@ -1,25 +1,13 @@
-import { Router, Request } from 'express'
+import { Router } from 'express'
 import { parseJSON } from 'date-fns'
 
 import { RawSearchParams, SearchParams } from '../../types'
-import { clean } from '../../utils/object'
 import { searchNonTransit } from '../../logic/otp2'
 import { filterCoordinates } from '../../utils/searchParams'
 
+import { getHeadersFromClient } from './helper'
+
 const router = Router()
-
-interface ExtraHeaders {
-    [key: string]: string
-}
-
-function getHeadersFromClient(req: Request): ExtraHeaders {
-    const clientName = req.get('ET-Client-Name')
-
-    return clean({
-        'X-Correlation-Id': req.get('X-Correlation-Id'),
-        'ET-Client-Name': clientName ? `${clientName}-bff` : 'entur-search',
-    })
-}
 
 function getParams(
     params: RawSearchParams,
