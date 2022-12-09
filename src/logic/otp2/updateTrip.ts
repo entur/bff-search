@@ -16,7 +16,13 @@ import { toISOString } from '../../utils/time'
 import { TRANSIT_HOST_OTP2 } from '../../config'
 import logger from '../../logger'
 
-import { TripPattern, Leg, EstimatedCall, Place } from '../../types'
+import {
+    TripPattern,
+    Leg,
+    EstimatedCall,
+    Place,
+    ExtraHeaders,
+} from '../../types'
 
 interface UpdatedEstimatedCall {
     quay?: {
@@ -48,6 +54,7 @@ interface ServiceJourneyResponse {
 async function getCallsForServiceJourney(
     id: string,
     date: string,
+    extraHeaders: ExtraHeaders,
 ): Promise<UpdatedEstimatedCall[]> {
     const query = `
     query($id:String!,$date:Date!) {
@@ -85,6 +92,7 @@ async function getCallsForServiceJourney(
             id,
             date,
         },
+        extraHeaders,
     )
 
     if (!data || !data.serviceJourney || !data.serviceJourney.estimatedCalls) {
@@ -173,7 +181,10 @@ interface LegWithUpdate {
     updatedCalls?: UpdatedCalls
 }
 
-async function updateLeg(leg: Leg): Promise<LegWithUpdate> {
+async function updateLeg(
+    leg: Leg,
+    extraHeaders: ExtraHeaders,
+): Promise<LegWithUpdate> {
     const fromEstimatedCallDate = leg.fromEstimatedCall?.date
 
     if (
@@ -188,6 +199,7 @@ async function updateLeg(leg: Leg): Promise<LegWithUpdate> {
     const updatedEstimatedCalls = await getCallsForServiceJourney(
         serviceJourney.id,
         fromEstimatedCallDate,
+        extraHeaders,
     )
 
     const fromIndex = updatedEstimatedCalls.findIndex(
@@ -318,6 +330,7 @@ function mergeLegsWithUpdateInfo(legsWithUpdate: LegWithUpdate[]): Leg[] {
 
 export async function updateTripPattern(
     tripPattern: TripPattern,
+    extraHeaders: ExtraHeaders,
 ): Promise<TripPattern> {
     if (tripPattern.legs.some(isFlexibleLeg)) return tripPattern
 
@@ -330,7 +343,7 @@ export async function updateTripPattern(
 
     const legsWithUpdateInfo: LegWithUpdate[] = await Promise.all(
         legs.map((leg) =>
-            updateLeg(leg).catch((error) => {
+            updateLeg(leg, extraHeaders).catch((error) => {
                 logger.warning('Failed to update leg', error)
                 return { leg }
             }),

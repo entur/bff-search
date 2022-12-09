@@ -41,6 +41,8 @@ router.get<
     try {
         const { id } = req.params
         const { update } = req.query
+        const extraHeaders = getHeadersFromClient(req)
+
         const [tripPattern, searchParams] = await Promise.all([
             cacheGet<TripPattern>(`trip-pattern:${id}`),
             cacheGet<SearchParams>(
@@ -62,7 +64,10 @@ router.get<
         }
 
         if (update) {
-            const updatedTripPattern = await updateTripPattern(tripPattern)
+            const updatedTripPattern = await updateTripPattern(
+                tripPattern,
+                extraHeaders,
+            )
             const expires = getExpires(updatedTripPattern)
             res.json({ tripPattern: updatedTripPattern, searchParams, expires })
         } else {
