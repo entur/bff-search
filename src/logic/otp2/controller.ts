@@ -2,7 +2,6 @@ import { request as graphqlRequest } from 'graphql-request'
 import { differenceInDays, parseISO } from 'date-fns'
 
 import { isValidTransitAlternative } from '../../utils/tripPattern'
-import { replaceQuay1ForOsloSWithUnknown } from '../../utils/osloSTrack1Replacer'
 import { TRANSIT_HOST_OTP2 } from '../../config'
 import { GetTripPatternError, RoutingErrorsError } from '../../errors'
 import {
@@ -89,9 +88,9 @@ export async function searchTransit(
     let nextSearchDateFromMetadata =
         metadata && getNextSearchDateFromMetadata(metadata, arriveBy)
 
-    let regularTripPatterns = regularTripPatternsUnfiltered
-        .filter(isValidTransitAlternative)
-        .map(replaceQuay1ForOsloSWithUnknown)
+    let regularTripPatterns = regularTripPatternsUnfiltered.filter(
+        isValidTransitAlternative,
+    )
 
     // If we have any noStopsInRange errors, we couldn't find a means of
     // transport from where the traveler wants to start or end the trip. Try to
@@ -373,9 +372,8 @@ async function searchBeforeFlexible(
     const [transitResultsBeforeFlexible, metadata] =
         await getAndVerifyTripPatterns(nextSearchParams, extraHeaders)
 
-    const tripPatterns: TripPatternParsed[] = transitResultsBeforeFlexible
-        .filter(isValidTransitAlternative)
-        .map(replaceQuay1ForOsloSWithUnknown)
+    const tripPatterns: TripPatternParsed[] =
+        transitResultsBeforeFlexible.filter(isValidTransitAlternative)
 
     const queries = [
         getTripPatternsQuery(nextSearchParams, 'Search before flexible'),
@@ -414,9 +412,7 @@ async function searchTransitUntilMaxRetries(
         extraHeaders,
     )
 
-    const tripPatterns = response
-        .filter(isValidTransitAlternative)
-        .map(replaceQuay1ForOsloSWithUnknown)
+    const tripPatterns = response.filter(isValidTransitAlternative)
 
     if (tripPatterns.length) {
         return {
