@@ -1,60 +1,21 @@
 import { request as graphqlRequest } from 'graphql-request'
 
 import { TRANSIT_HOST_OTP2 } from '../../config'
-import { Leg, ExtraHeaders } from '../../types'
-interface ReplaceLeg {
-    leg?: Leg
-}
-
-interface AlternativeLegsVariables {
-    id: string
-    numberOfNext: number
-    numberOfPrevious: number
-}
+import { ExtraHeaders } from '../../types'
+import REPLACE_LEG_QUERY from './queries/replaceLeg.query'
+import {
+    ReplaceLegQuery,
+    ReplaceLegQueryVariables,
+} from '../../generated/graphql'
 
 export async function getAlternativeLegs(
-    variables: AlternativeLegsVariables,
+    variables: ReplaceLegQueryVariables,
     extraHeaders: ExtraHeaders,
-): Promise<ReplaceLeg> {
-    const query = `
-        query($id:ID!, $numberOfNext: Int, $numberOfPrevious: Int) {      
-            leg(id:$id) {
-                id
-                aimedStartTime
-                nextLegs(next: $numberOfNext, filter: sameAuthority) {
-                    ...replaceLegFields
-                }
-                previousLegs(previous: $numberOfPrevious, filter: sameAuthority) {
-                    ...replaceLegFields
-                }
-            }              
-        }
-        
-        fragment replaceLegFields on Leg {
-            id
-            mode
-            transportSubmode
-            aimedStartTime
-            expectedStartTime
-            fromEstimatedCall {
-              actualDepartureTime
-            }
-            line {
-              publicCode
-            }
-            toPlace {
-              name
-            }
-            fromPlace {
-              name
-            }
-          }            
-        `.trim()
-
+): Promise<ReplaceLegQuery> {
     try {
-        return graphqlRequest(
+        return graphqlRequest<ReplaceLegQuery, ReplaceLegQueryVariables>(
             `${TRANSIT_HOST_OTP2}/graphql`,
-            query,
+            REPLACE_LEG_QUERY,
             variables,
             extraHeaders,
         )

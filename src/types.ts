@@ -1,4 +1,12 @@
-import { Modes, Location } from './generated/graphql'
+import {
+    Modes,
+    Location,
+    EstimatedCallFieldsFragment,
+    NoticeFieldsFragment,
+    AuthorityFieldsFragment,
+    PlaceFieldsFragment,
+    LegFieldsFragment,
+} from './generated/graphql'
 
 import { GetTripPatternsQuery } from './generated/graphql'
 
@@ -10,14 +18,11 @@ export interface ExtraHeaders {
 
 export type TripPattern = GetTripPatternsQuery['trip']['tripPatterns'][0]
 export type TripPatternParsed = TripPattern & { id: string }
-export type Leg = NonNullable<TripPattern['legs'][0]>
-export type EstimatedCall = NonNullable<Leg['fromEstimatedCall']>
-export type IntermediateEstimatedCall = NonNullable<
-    Leg['intermediateEstimatedCalls'][0]
->
-export type Notice = NonNullable<IntermediateEstimatedCall['notices'][0]>
-export type Authority = NonNullable<Leg['authority']>
-export type Place = NonNullable<Leg['fromPlace']>
+export type Leg = LegFieldsFragment
+export type EstimatedCall = EstimatedCallFieldsFragment
+export type Notice = NoticeFieldsFragment
+export type Authority = AuthorityFieldsFragment
+export type Place = PlaceFieldsFragment
 
 /**
  * The params sent by clients.

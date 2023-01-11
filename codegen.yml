@@ -1,26 +1,27 @@
 overwrite: true
 schema: 'https://api.entur.io/journey-planner/v3/graphql'
-documents: 'src/logic/otp2/query.ts'
 hooks:
     afterAllFileWrite:
         - prettier --write
+config:
+    strictScalars: true
+    avoidOptionals:
+        field: true
+        inputValue: true
+        object: false
+        defaultValue: false
+    scalars:
+        Coordinates: 'Array<[lat: number, lon: number]>'
+        Date: string
+        DateTime: string
+        DoubleFunction: string
+        LocalTime: string
+        Long: number
+        Time: string
+        Duration: number
 generates:
     src/generated/graphql.ts:
+        documents: 'src/logic/otp2/queries/*.ts'
         plugins:
             - 'typescript'
             - 'typescript-operations'
-        config:
-            strictScalars: true
-            avoidOptionals:
-                field: true
-                inputValue: true
-                object: false
-                defaultValue: false
-            scalars:
-                Coordinates: 'Array<[lat: number, lon: number]>'
-                Date: string
-                DateTime: string
-                DoubleFunction: string
-                LocalTime: string
-                Long: number
-                Time: string

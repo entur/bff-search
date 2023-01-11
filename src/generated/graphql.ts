@@ -16,25 +16,13 @@ export type Scalars = {
     Boolean: boolean
     Int: number
     Float: number
-    /** List of coordinates like: [[60.89, 11.12], [62.56, 12.10]] */
     Coordinates: Array<[lat: number, lon: number]>
-    /** Local date using the ISO 8601 format: `YYYY-MM-DD`. Example: `2020-05-17`. */
     Date: string
-    /**
-     * DateTime format accepting ISO 8601 dates with time zone offset.
-     *
-     * Format:  `YYYY-MM-DD'T'hh:mm[:ss](Z|±01:00)`
-     *
-     * Example: `2017-04-23T18:25:43+02:00` or `2017-04-23T16:25:43Z`
-     */
     DateTime: string
-    /** A linear function to calculate a value(y) based on a parameter (x): `y = f(x) = a + bx`. It allows setting both a constant(a) and a coefficient(b) and the use those in the computation. Format: `a + b x`. Example: `1800 + 2.0 x` */
     DoubleFunction: string
-    /** Time using the format: HH:mm:SS. Example: 18:25:SS */
+    Duration: number
     LocalTime: string
-    /** A 64-bit signed integer */
     Long: number
-    /** Time using the format: `HH:MM:SS`. Example: `18:25:43` */
     Time: string
 }
 
@@ -234,28 +222,28 @@ export type EstimatedCall = {
     /** Whether stop is cancelled. This means that either the ServiceJourney has a planned cancellation, the ServiceJourney has been cancelled by realtime data, or this particular StopPoint has been cancelled. This also means that both boarding and alighting has been cancelled. */
     cancellation: Scalars['Boolean']
     /** The date the estimated call is valid for. */
-    date: Maybe<Scalars['Date']>
+    date: Scalars['Date']
     datedServiceJourney: Maybe<DatedServiceJourney>
     destinationDisplay: Maybe<DestinationDisplay>
     /** Expected time of arrival at quay. Updated with real time information if available. Will be null if an actualArrivalTime exists */
     expectedArrivalTime: Scalars['DateTime']
     /** Expected time of departure from quay. Updated with real time information if available. Will be null if an actualDepartureTime exists */
     expectedDepartureTime: Scalars['DateTime']
-    /** Whether vehicle may be alighted at quay according to the planned data. If the cancellation flag is set, alighting is not possible, even if this field is set to true. */
+    /** Whether vehicle may be alighted at quay. */
     forAlighting: Scalars['Boolean']
-    /** Whether vehicle may be boarded at quay according to the planned data. If the cancellation flag is set, boarding is not possible, even if this field is set to true. */
+    /** Whether vehicle may be boarded at quay. */
     forBoarding: Scalars['Boolean']
     notices: Array<Notice>
     occupancyStatus: OccupancyStatus
     /** Whether the updated estimates are expected to be inaccurate. */
     predictionInaccurate: Scalars['Boolean']
-    quay: Maybe<Quay>
+    quay: Quay
     /** Whether this call has been updated with real time information. */
     realtime: Scalars['Boolean']
     realtimeState: RealtimeState
     /** Whether vehicle will only stop on request. */
     requestStop: Scalars['Boolean']
-    serviceJourney: Maybe<ServiceJourney>
+    serviceJourney: ServiceJourney
     /** Get all relevant situations for this EstimatedCall. */
     situations: Array<PtSituationElement>
     stopPositionInPattern: Scalars['Int']
@@ -738,7 +726,7 @@ export type PtSituationElement = {
     lines: Array<Maybe<Line>>
     /** Priority of this situation  */
     priority: Maybe<Scalars['Int']>
-    quays: Array<Maybe<Quay>>
+    quays: Array<Quay>
     /**
      * Authority that reported this situation
      * @deprecated Not yet officially supported. May be removed or renamed.
@@ -751,6 +739,7 @@ export type PtSituationElement = {
     severity: Maybe<Severity>
     /** Operator's internal id for this situation */
     situationNumber: Maybe<Scalars['String']>
+    stopPlaces: Array<StopPlace>
     /** Summary of situation in all different translations available */
     summary: Array<MultilingualString>
     /** Period this situation is in effect */
@@ -802,7 +791,6 @@ export type QuayEstimatedCallsArgs = {
     includeCancelledTrips?: InputMaybe<Scalars['Boolean']>
     numberOfDepartures?: InputMaybe<Scalars['Int']>
     numberOfDeparturesPerLineAndDestinationDisplay?: InputMaybe<Scalars['Int']>
-    omitNonBoarding?: InputMaybe<Scalars['Boolean']>
     startTime?: InputMaybe<Scalars['DateTime']>
     timeRange?: InputMaybe<Scalars['Int']>
     whiteListed?: InputMaybe<InputWhiteListed>
@@ -886,6 +874,11 @@ export type QueryType = {
     stopPlacesByBbox: Array<Maybe<StopPlace>>
     /** Input type for executing a travel search for a trip between two locations. Returns trip patterns describing suggested alternatives for the trip. */
     trip: Trip
+    /**
+     * Input type for executing a travel search for a trip between three or more locations. Returns trip patterns describing suggested alternatives for the trip.
+     * @deprecated This API is under development, expect the contract to change
+     */
+    viaTrip: ViaTrip
 }
 
 export type QueryTypeAuthorityArgs = {
@@ -1051,10 +1044,14 @@ export type QueryTypeTripArgs = {
     includePlannedCancellations?: InputMaybe<Scalars['Boolean']>
     itineraryFilters?: InputMaybe<ItineraryFilters>
     locale?: InputMaybe<Locale>
+    maximumAdditionalTransfers?: InputMaybe<Scalars['Int']>
     maximumTransfers?: InputMaybe<Scalars['Int']>
     modes?: InputMaybe<Modes>
     numTripPatterns?: InputMaybe<Scalars['Int']>
     pageCursor?: InputMaybe<Scalars['String']>
+    relaxTransitSearchGeneralizedCostAtDestination?: InputMaybe<
+        Scalars['Float']
+    >
     searchWindow?: InputMaybe<Scalars['Int']>
     timetableView?: InputMaybe<Scalars['Boolean']>
     to: Location
@@ -1067,6 +1064,19 @@ export type QueryTypeTripArgs = {
     walkSpeed?: InputMaybe<Scalars['Float']>
     wheelchairAccessible?: InputMaybe<Scalars['Boolean']>
     whiteListed?: InputMaybe<InputWhiteListed>
+}
+
+export type QueryTypeViaTripArgs = {
+    dateTime?: InputMaybe<Scalars['DateTime']>
+    from: Location
+    locale?: InputMaybe<Locale>
+    numTripPatterns?: InputMaybe<Scalars['Int']>
+    pageCursor?: InputMaybe<Scalars['String']>
+    searchWindow: Scalars['Duration']
+    to: Location
+    viaLocations: Array<ViaLocation>
+    viaRequests?: InputMaybe<Array<ViaRequest>>
+    wheelchairAccessible?: InputMaybe<Scalars['Boolean']>
 }
 
 export enum RealtimeState {
@@ -1194,7 +1204,10 @@ export type RoutingParameters = {
     /** @deprecated NOT IN USE IN OTP2. */
     compactLegsByReversedSearch: Maybe<Scalars['Boolean']>
     debugItineraryFilter: Maybe<Scalars['Boolean']>
-    /** Option to disable the default filtering of GTFS-RT alerts by time. */
+    /**
+     * Option to disable the default filtering of GTFS-RT alerts by time.
+     * @deprecated This is not supported!
+     */
     disableAlertFiltering: Maybe<Scalars['Boolean']>
     /** If true, the remaining weight heuristic is disabled. */
     disableRemainingWeightHeuristic: Maybe<Scalars['Boolean']>
@@ -1212,7 +1225,10 @@ export type RoutingParameters = {
     ignoreRealTimeUpdates: Maybe<Scalars['Boolean']>
     /** When true, service journeys cancelled in scheduled route data will be included during this search. */
     includedPlannedCancellations: Maybe<Scalars['Boolean']>
+    /** @deprecated Parking is specified by modes */
     kissAndRide: Maybe<Scalars['Boolean']>
+    /** Maximum number of transfers allowed in addition to the result with least number of transfers */
+    maxAdditionalTransfers: Maybe<Scalars['Int']>
     /** This is the maximum duration in seconds for a direct street search. This is a performance limit and should therefore be set high. Use filters to limit what is presented to the client. */
     maxDirectStreetDuration: Maybe<Scalars['Int']>
     /** The maximum slope of streets for wheelchair trips. */
@@ -1228,6 +1244,7 @@ export type RoutingParameters = {
     onlyTransitTrips: Maybe<Scalars['Boolean']>
     /** Penalty added for using every route that is not preferred if user set any route as preferred. We return number of seconds that we are willing to wait for preferred route. */
     otherThanPreferredRoutesPenalty: Maybe<Scalars['Int']>
+    /** @deprecated Parking is specified by modes */
     parkAndRide: Maybe<Scalars['Boolean']>
     /** @deprecated NOT IN USE IN OTP2. */
     reverseOptimizeOnTheFly: Maybe<Scalars['Boolean']>
@@ -1244,8 +1261,6 @@ export type RoutingParameters = {
     transferSlack: Maybe<Scalars['Int']>
     /** Multiplicative factor on expected turning time. */
     turnReluctance: Maybe<Scalars['Float']>
-    /** How much less bad is waiting at the beginning of the trip (replaces waitReluctance on the first boarding). */
-    waitAtBeginningFactor: Maybe<Scalars['Float']>
     /** How much worse is waiting for a transit vehicle than being on a transit vehicle, as a multiplier. */
     waitReluctance: Maybe<Scalars['Float']>
     /** This prevents unnecessary transfers by adding a cost for boarding a vehicle. */
@@ -1368,6 +1383,8 @@ export type StopPlace = PlaceInterface & {
     parent: Maybe<StopPlace>
     /** Returns all quays that are children of this stop place */
     quays: Maybe<Array<Maybe<Quay>>>
+    /** Get all situations active for the stop place. Situations affecting individual quays are not returned, and should be fetched directly from the quay. */
+    situations: Array<PtSituationElement>
     tariffZones: Array<Maybe<TariffZone>>
     timeZone: Maybe<Scalars['String']>
     /** The transport modes of quays under this stop place. */
@@ -1463,17 +1480,21 @@ export type TimetabledPassingTime = {
     /** Scheduled time of departure from quay */
     departure: Maybe<TimeAndDayOffset>
     destinationDisplay: Maybe<DestinationDisplay>
+    /** Earliest possible departure time for a service journey with a service window. */
+    earliestDepartureTime: Maybe<TimeAndDayOffset>
     /** Whether vehicle may be alighted at quay. */
-    forAlighting: Maybe<Scalars['Boolean']>
+    forAlighting: Scalars['Boolean']
     /** Whether vehicle may be boarded at quay. */
-    forBoarding: Maybe<Scalars['Boolean']>
+    forBoarding: Scalars['Boolean']
+    /** Latest possible (planned) arrival time for a service journey with a service window. */
+    latestArrivalTime: Maybe<TimeAndDayOffset>
     notices: Array<Notice>
-    quay: Maybe<Quay>
+    quay: Quay
     /** Whether vehicle will only stop on request. */
-    requestStop: Maybe<Scalars['Boolean']>
-    serviceJourney: Maybe<ServiceJourney>
+    requestStop: Scalars['Boolean']
+    serviceJourney: ServiceJourney
     /** Whether this is a timing point or not. Boarding and alighting is not allowed at timing points. */
-    timingPoint: Maybe<Scalars['Boolean']>
+    timingPoint: Scalars['Boolean']
 }
 
 export type TransitGeneralizedCostFilterParams = {
@@ -1765,6 +1786,36 @@ export enum VertexType {
     Transit = 'transit',
 }
 
+/** Input format for specifying a location through either a place reference (id), coordinates or both. If both place and coordinates are provided the place ref will be used if found, coordinates will only be used if place is not known. */
+export type ViaLocation = {
+    /** Coordinates for the location. This can be used alone or as fallback if the place id is not found. */
+    coordinates: InputMaybe<InputCoordinates>
+    /** The maximum time the user wants to stay in the via location before continuing his journey */
+    maxSlack: InputMaybe<Scalars['Duration']>
+    /** The minimum time the user wants to stay in the via location before continuing his journey */
+    minSlack: InputMaybe<Scalars['Duration']>
+    /** The name of the location. This is pass-through informationand is not used in routing. */
+    name: InputMaybe<Scalars['String']>
+    /** The id of an element in the OTP model. Currently supports Quay, StopPlace, multimodal StopPlace, and GroupOfStopPlaces. */
+    place: InputMaybe<Scalars['String']>
+}
+
+export type ViaRequest = {
+    /** The set of access/egress/direct/transit modes to be used for this search. Note that this only works at the Line level. If individual ServiceJourneys have modes that differ from the Line mode, this will NOT be accounted for. */
+    modes: InputMaybe<Modes>
+}
+
+/** Description of a travel between three or more places. */
+export type ViaTrip = {
+    __typename?: 'ViaTrip'
+    /** A list of routing errors, and fields which caused them */
+    routingErrors: Array<RoutingError>
+    /** A list of lists of which indices of the next segment the trip pattern can be combined with */
+    tripPatternCombinations: Array<Array<Array<Scalars['Int']>>>
+    /** A list of lists of the trip patterns for each segment of the journey */
+    tripPatterns: Array<Array<TripPattern>>
+}
+
 export enum WheelchairBoarding {
     /** There is no accessibility information for the stopPlace/quay. */
     NoInformation = 'noInformation',
@@ -1823,694 +1874,9 @@ export type QuayAtDistanceEdge = {
     node: Maybe<QuayAtDistance>
 }
 
-export type GetTripPatternsQueryVariables = Exact<{
-    numTripPatterns?: InputMaybe<Scalars['Int']>
-    from: Location
-    to: Location
-    dateTime: Scalars['DateTime']
-    arriveBy: Scalars['Boolean']
-    wheelchairAccessible: Scalars['Boolean']
-    modes: Modes
-    walkSpeed?: InputMaybe<Scalars['Float']>
-    transferSlack?: InputMaybe<Scalars['Int']>
-    transferPenalty?: InputMaybe<Scalars['Int']>
-    banned?: InputMaybe<InputBanned>
-    whiteListed?: InputMaybe<InputWhiteListed>
-    debugItineraryFilter?: InputMaybe<Scalars['Boolean']>
-    searchWindow?: InputMaybe<Scalars['Int']>
-    walkReluctance?: InputMaybe<Scalars['Float']>
-    waitReluctance?: InputMaybe<Scalars['Float']>
-}>
-
-export type GetTripPatternsQuery = {
-    __typename?: 'QueryType'
-    trip: {
-        __typename?: 'Trip'
-        metadata: {
-            __typename?: 'TripSearchData'
-            searchWindowUsed: number
-            nextDateTime: string | null
-            prevDateTime: string | null
-        } | null
-        routingErrors: Array<{
-            __typename?: 'RoutingError'
-            inputField: InputField | null
-            description: string
-            code: RoutingErrorCode
-        }>
-        tripPatterns: Array<{
-            __typename?: 'TripPattern'
-            generalizedCost: number | null
-            startTime: string | null
-            endTime: string | null
-            expectedStartTime: string
-            expectedEndTime: string
-            directDuration: number | null
-            duration: number | null
-            distance: number | null
-            walkDistance: number | null
-            systemNotices: Array<{
-                __typename?: 'SystemNotice'
-                tag: string | null
-                text: string | null
-            }>
-            legs: Array<{
-                __typename?: 'Leg'
-                generalizedCost: number | null
-                aimedEndTime: string
-                aimedStartTime: string
-                distance: number
-                directDuration: number
-                duration: number
-                expectedEndTime: string
-                expectedStartTime: string
-                id: string | null
-                mode: Mode
-                realtime: boolean
-                ride: boolean
-                rentedBike: boolean | null
-                transportSubmode: TransportSubmode | null
-                authority: {
-                    __typename?: 'Authority'
-                    id: string
-                    name: string
-                    url: string | null
-                } | null
-                fromEstimatedCall: {
-                    __typename?: 'EstimatedCall'
-                    actualArrivalTime: string | null
-                    actualDepartureTime: string | null
-                    aimedArrivalTime: string
-                    aimedDepartureTime: string
-                    cancellation: boolean
-                    date: string | null
-                    expectedDepartureTime: string
-                    expectedArrivalTime: string
-                    forAlighting: boolean
-                    forBoarding: boolean
-                    predictionInaccurate: boolean
-                    realtime: boolean
-                    requestStop: boolean
-                    destinationDisplay: {
-                        __typename?: 'DestinationDisplay'
-                        frontText: string | null
-                        via: Array<string | null> | null
-                    } | null
-                    notices: Array<{
-                        __typename?: 'Notice'
-                        text: string | null
-                    }>
-                    quay: {
-                        __typename?: 'Quay'
-                        id: string
-                        name: string
-                        description: string | null
-                        publicCode: string | null
-                        situations: Array<{
-                            __typename?: 'PtSituationElement'
-                            situationNumber: string | null
-                            reportType: ReportType | null
-                            summary: Array<{
-                                __typename?: 'MultilingualString'
-                                language: string | null
-                                value: string
-                            }>
-                            description: Array<{
-                                __typename?: 'MultilingualString'
-                                language: string | null
-                                value: string
-                            }>
-                            advice: Array<{
-                                __typename?: 'MultilingualString'
-                                language: string | null
-                                value: string
-                            }>
-                            validityPeriod: {
-                                __typename?: 'ValidityPeriod'
-                                startTime: string | null
-                                endTime: string | null
-                            } | null
-                            infoLinks: Array<{
-                                __typename?: 'infoLink'
-                                uri: string
-                                label: string | null
-                            }> | null
-                        }>
-                        stopPlace: {
-                            __typename?: 'StopPlace'
-                            id: string
-                            description: string | null
-                            name: string
-                            latitude: number | null
-                            longitude: number | null
-                            tariffZones: Array<{
-                                __typename?: 'TariffZone'
-                                id: string
-                            } | null>
-                        } | null
-                    } | null
-                    serviceJourney: {
-                        __typename?: 'ServiceJourney'
-                        id: string
-                        publicCode: string | null
-                        privateCode: string | null
-                        journeyPattern: {
-                            __typename?: 'JourneyPattern'
-                            line: {
-                                __typename?: 'Line'
-                                description: string | null
-                                flexibleLineType: string | null
-                                id: string
-                                name: string | null
-                                publicCode: string | null
-                                transportMode: TransportMode | null
-                                transportSubmode: TransportSubmode | null
-                                notices: Array<{
-                                    __typename?: 'Notice'
-                                    text: string | null
-                                }>
-                            }
-                            notices: Array<{
-                                __typename?: 'Notice'
-                                text: string | null
-                            }>
-                        } | null
-                        notices: Array<{
-                            __typename?: 'Notice'
-                            text: string | null
-                        }>
-                    } | null
-                } | null
-                fromPlace: {
-                    __typename?: 'Place'
-                    name: string | null
-                    latitude: number
-                    longitude: number
-                    quay: {
-                        __typename?: 'Quay'
-                        id: string
-                        name: string
-                        description: string | null
-                        publicCode: string | null
-                        situations: Array<{
-                            __typename?: 'PtSituationElement'
-                            situationNumber: string | null
-                            reportType: ReportType | null
-                            summary: Array<{
-                                __typename?: 'MultilingualString'
-                                language: string | null
-                                value: string
-                            }>
-                            description: Array<{
-                                __typename?: 'MultilingualString'
-                                language: string | null
-                                value: string
-                            }>
-                            advice: Array<{
-                                __typename?: 'MultilingualString'
-                                language: string | null
-                                value: string
-                            }>
-                            validityPeriod: {
-                                __typename?: 'ValidityPeriod'
-                                startTime: string | null
-                                endTime: string | null
-                            } | null
-                            infoLinks: Array<{
-                                __typename?: 'infoLink'
-                                uri: string
-                                label: string | null
-                            }> | null
-                        }>
-                        stopPlace: {
-                            __typename?: 'StopPlace'
-                            id: string
-                            description: string | null
-                            name: string
-                            latitude: number | null
-                            longitude: number | null
-                            tariffZones: Array<{
-                                __typename?: 'TariffZone'
-                                id: string
-                            } | null>
-                        } | null
-                    } | null
-                    bikeRentalStation: {
-                        __typename?: 'BikeRentalStation'
-                        id: string
-                        name: string
-                        networks: Array<string | null>
-                        bikesAvailable: number | null
-                        spacesAvailable: number | null
-                        longitude: number | null
-                        latitude: number | null
-                    } | null
-                }
-                interchangeFrom: {
-                    __typename?: 'Interchange'
-                    guaranteed: boolean | null
-                    staySeated: boolean | null
-                    maximumWaitTime: number | null
-                    fromServiceJourney: {
-                        __typename?: 'ServiceJourney'
-                        id: string
-                    } | null
-                    toServiceJourney: {
-                        __typename?: 'ServiceJourney'
-                        id: string
-                    } | null
-                } | null
-                interchangeTo: {
-                    __typename?: 'Interchange'
-                    guaranteed: boolean | null
-                    staySeated: boolean | null
-                    maximumWaitTime: number | null
-                    fromServiceJourney: {
-                        __typename?: 'ServiceJourney'
-                        id: string
-                    } | null
-                    toServiceJourney: {
-                        __typename?: 'ServiceJourney'
-                        id: string
-                    } | null
-                } | null
-                intermediateEstimatedCalls: Array<{
-                    __typename?: 'EstimatedCall'
-                    actualArrivalTime: string | null
-                    actualDepartureTime: string | null
-                    aimedArrivalTime: string
-                    aimedDepartureTime: string
-                    cancellation: boolean
-                    date: string | null
-                    expectedDepartureTime: string
-                    expectedArrivalTime: string
-                    forAlighting: boolean
-                    forBoarding: boolean
-                    predictionInaccurate: boolean
-                    realtime: boolean
-                    requestStop: boolean
-                    destinationDisplay: {
-                        __typename?: 'DestinationDisplay'
-                        frontText: string | null
-                        via: Array<string | null> | null
-                    } | null
-                    notices: Array<{
-                        __typename?: 'Notice'
-                        text: string | null
-                    }>
-                    quay: {
-                        __typename?: 'Quay'
-                        id: string
-                        name: string
-                        description: string | null
-                        publicCode: string | null
-                        situations: Array<{
-                            __typename?: 'PtSituationElement'
-                            situationNumber: string | null
-                            reportType: ReportType | null
-                            summary: Array<{
-                                __typename?: 'MultilingualString'
-                                language: string | null
-                                value: string
-                            }>
-                            description: Array<{
-                                __typename?: 'MultilingualString'
-                                language: string | null
-                                value: string
-                            }>
-                            advice: Array<{
-                                __typename?: 'MultilingualString'
-                                language: string | null
-                                value: string
-                            }>
-                            validityPeriod: {
-                                __typename?: 'ValidityPeriod'
-                                startTime: string | null
-                                endTime: string | null
-                            } | null
-                            infoLinks: Array<{
-                                __typename?: 'infoLink'
-                                uri: string
-                                label: string | null
-                            }> | null
-                        }>
-                        stopPlace: {
-                            __typename?: 'StopPlace'
-                            id: string
-                            description: string | null
-                            name: string
-                            latitude: number | null
-                            longitude: number | null
-                            tariffZones: Array<{
-                                __typename?: 'TariffZone'
-                                id: string
-                            } | null>
-                        } | null
-                    } | null
-                    serviceJourney: {
-                        __typename?: 'ServiceJourney'
-                        id: string
-                        publicCode: string | null
-                        privateCode: string | null
-                        journeyPattern: {
-                            __typename?: 'JourneyPattern'
-                            line: {
-                                __typename?: 'Line'
-                                description: string | null
-                                flexibleLineType: string | null
-                                id: string
-                                name: string | null
-                                publicCode: string | null
-                                transportMode: TransportMode | null
-                                transportSubmode: TransportSubmode | null
-                                notices: Array<{
-                                    __typename?: 'Notice'
-                                    text: string | null
-                                }>
-                            }
-                            notices: Array<{
-                                __typename?: 'Notice'
-                                text: string | null
-                            }>
-                        } | null
-                        notices: Array<{
-                            __typename?: 'Notice'
-                            text: string | null
-                        }>
-                    } | null
-                }>
-                line: {
-                    __typename?: 'Line'
-                    description: string | null
-                    flexibleLineType: string | null
-                    id: string
-                    name: string | null
-                    publicCode: string | null
-                    transportMode: TransportMode | null
-                    transportSubmode: TransportSubmode | null
-                    notices: Array<{
-                        __typename?: 'Notice'
-                        text: string | null
-                    }>
-                } | null
-                nextLegs: Array<{
-                    __typename?: 'Leg'
-                    id: string | null
-                    mode: Mode
-                    transportSubmode: TransportSubmode | null
-                    aimedStartTime: string
-                    expectedStartTime: string
-                    fromEstimatedCall: {
-                        __typename?: 'EstimatedCall'
-                        actualDepartureTime: string | null
-                    } | null
-                    line: {
-                        __typename?: 'Line'
-                        publicCode: string | null
-                    } | null
-                    toPlace: { __typename?: 'Place'; name: string | null }
-                    fromPlace: { __typename?: 'Place'; name: string | null }
-                }> | null
-                operator: {
-                    __typename?: 'Operator'
-                    id: string
-                    name: string
-                    url: string | null
-                } | null
-                pointsOnLink: {
-                    __typename?: 'PointsOnLink'
-                    points: string | null
-                    length: number | null
-                } | null
-                previousLegs: Array<{
-                    __typename?: 'Leg'
-                    id: string | null
-                    mode: Mode
-                    transportSubmode: TransportSubmode | null
-                    aimedStartTime: string
-                    expectedStartTime: string
-                    fromEstimatedCall: {
-                        __typename?: 'EstimatedCall'
-                        actualDepartureTime: string | null
-                    } | null
-                    line: {
-                        __typename?: 'Line'
-                        publicCode: string | null
-                    } | null
-                    toPlace: { __typename?: 'Place'; name: string | null }
-                    fromPlace: { __typename?: 'Place'; name: string | null }
-                }> | null
-                serviceJourney: {
-                    __typename?: 'ServiceJourney'
-                    id: string
-                    publicCode: string | null
-                    privateCode: string | null
-                    journeyPattern: {
-                        __typename?: 'JourneyPattern'
-                        line: {
-                            __typename?: 'Line'
-                            description: string | null
-                            flexibleLineType: string | null
-                            id: string
-                            name: string | null
-                            publicCode: string | null
-                            transportMode: TransportMode | null
-                            transportSubmode: TransportSubmode | null
-                            notices: Array<{
-                                __typename?: 'Notice'
-                                text: string | null
-                            }>
-                        }
-                        notices: Array<{
-                            __typename?: 'Notice'
-                            text: string | null
-                        }>
-                    } | null
-                    notices: Array<{
-                        __typename?: 'Notice'
-                        text: string | null
-                    }>
-                } | null
-                situations: Array<{
-                    __typename?: 'PtSituationElement'
-                    situationNumber: string | null
-                    reportType: ReportType | null
-                    summary: Array<{
-                        __typename?: 'MultilingualString'
-                        language: string | null
-                        value: string
-                    }>
-                    description: Array<{
-                        __typename?: 'MultilingualString'
-                        language: string | null
-                        value: string
-                    }>
-                    advice: Array<{
-                        __typename?: 'MultilingualString'
-                        language: string | null
-                        value: string
-                    }>
-                    validityPeriod: {
-                        __typename?: 'ValidityPeriod'
-                        startTime: string | null
-                        endTime: string | null
-                    } | null
-                    infoLinks: Array<{
-                        __typename?: 'infoLink'
-                        uri: string
-                        label: string | null
-                    }> | null
-                }>
-                toEstimatedCall: {
-                    __typename?: 'EstimatedCall'
-                    actualArrivalTime: string | null
-                    actualDepartureTime: string | null
-                    aimedArrivalTime: string
-                    aimedDepartureTime: string
-                    cancellation: boolean
-                    date: string | null
-                    expectedDepartureTime: string
-                    expectedArrivalTime: string
-                    forAlighting: boolean
-                    forBoarding: boolean
-                    predictionInaccurate: boolean
-                    realtime: boolean
-                    requestStop: boolean
-                    destinationDisplay: {
-                        __typename?: 'DestinationDisplay'
-                        frontText: string | null
-                        via: Array<string | null> | null
-                    } | null
-                    notices: Array<{
-                        __typename?: 'Notice'
-                        text: string | null
-                    }>
-                    quay: {
-                        __typename?: 'Quay'
-                        id: string
-                        name: string
-                        description: string | null
-                        publicCode: string | null
-                        situations: Array<{
-                            __typename?: 'PtSituationElement'
-                            situationNumber: string | null
-                            reportType: ReportType | null
-                            summary: Array<{
-                                __typename?: 'MultilingualString'
-                                language: string | null
-                                value: string
-                            }>
-                            description: Array<{
-                                __typename?: 'MultilingualString'
-                                language: string | null
-                                value: string
-                            }>
-                            advice: Array<{
-                                __typename?: 'MultilingualString'
-                                language: string | null
-                                value: string
-                            }>
-                            validityPeriod: {
-                                __typename?: 'ValidityPeriod'
-                                startTime: string | null
-                                endTime: string | null
-                            } | null
-                            infoLinks: Array<{
-                                __typename?: 'infoLink'
-                                uri: string
-                                label: string | null
-                            }> | null
-                        }>
-                        stopPlace: {
-                            __typename?: 'StopPlace'
-                            id: string
-                            description: string | null
-                            name: string
-                            latitude: number | null
-                            longitude: number | null
-                            tariffZones: Array<{
-                                __typename?: 'TariffZone'
-                                id: string
-                            } | null>
-                        } | null
-                    } | null
-                    serviceJourney: {
-                        __typename?: 'ServiceJourney'
-                        id: string
-                        publicCode: string | null
-                        privateCode: string | null
-                        journeyPattern: {
-                            __typename?: 'JourneyPattern'
-                            line: {
-                                __typename?: 'Line'
-                                description: string | null
-                                flexibleLineType: string | null
-                                id: string
-                                name: string | null
-                                publicCode: string | null
-                                transportMode: TransportMode | null
-                                transportSubmode: TransportSubmode | null
-                                notices: Array<{
-                                    __typename?: 'Notice'
-                                    text: string | null
-                                }>
-                            }
-                            notices: Array<{
-                                __typename?: 'Notice'
-                                text: string | null
-                            }>
-                        } | null
-                        notices: Array<{
-                            __typename?: 'Notice'
-                            text: string | null
-                        }>
-                    } | null
-                } | null
-                toPlace: {
-                    __typename?: 'Place'
-                    name: string | null
-                    latitude: number
-                    longitude: number
-                    quay: {
-                        __typename?: 'Quay'
-                        id: string
-                        name: string
-                        description: string | null
-                        publicCode: string | null
-                        situations: Array<{
-                            __typename?: 'PtSituationElement'
-                            situationNumber: string | null
-                            reportType: ReportType | null
-                            summary: Array<{
-                                __typename?: 'MultilingualString'
-                                language: string | null
-                                value: string
-                            }>
-                            description: Array<{
-                                __typename?: 'MultilingualString'
-                                language: string | null
-                                value: string
-                            }>
-                            advice: Array<{
-                                __typename?: 'MultilingualString'
-                                language: string | null
-                                value: string
-                            }>
-                            validityPeriod: {
-                                __typename?: 'ValidityPeriod'
-                                startTime: string | null
-                                endTime: string | null
-                            } | null
-                            infoLinks: Array<{
-                                __typename?: 'infoLink'
-                                uri: string
-                                label: string | null
-                            }> | null
-                        }>
-                        stopPlace: {
-                            __typename?: 'StopPlace'
-                            id: string
-                            description: string | null
-                            name: string
-                            latitude: number | null
-                            longitude: number | null
-                            tariffZones: Array<{
-                                __typename?: 'TariffZone'
-                                id: string
-                            } | null>
-                        } | null
-                    } | null
-                    bikeRentalStation: {
-                        __typename?: 'BikeRentalStation'
-                        id: string
-                        name: string
-                        networks: Array<string | null>
-                        bikesAvailable: number | null
-                        spacesAvailable: number | null
-                        longitude: number | null
-                        latitude: number | null
-                    } | null
-                }
-                bookingArrangements: {
-                    __typename?: 'BookingArrangement'
-                    bookingMethods: Array<BookingMethod | null> | null
-                    bookingNote: string | null
-                    latestBookingTime: string | null
-                    minimumBookingPeriod: string | null
-                    bookWhen: PurchaseWhen | null
-                    bookingContact: {
-                        __typename?: 'Contact'
-                        phone: string | null
-                        url: string | null
-                    } | null
-                } | null
-            }>
-        }>
-    }
-}
-
 export type LegFieldsFragment = {
     __typename?: 'Leg'
+    generalizedCost: number | null
     aimedEndTime: string
     aimedStartTime: string
     distance: number
@@ -2537,7 +1903,7 @@ export type LegFieldsFragment = {
         aimedArrivalTime: string
         aimedDepartureTime: string
         cancellation: boolean
-        date: string | null
+        date: string
         expectedDepartureTime: string
         expectedArrivalTime: string
         forAlighting: boolean
@@ -2599,7 +1965,7 @@ export type LegFieldsFragment = {
                     id: string
                 } | null>
             } | null
-        } | null
+        }
         serviceJourney: {
             __typename?: 'ServiceJourney'
             id: string
@@ -2624,7 +1990,7 @@ export type LegFieldsFragment = {
                 notices: Array<{ __typename?: 'Notice'; text: string | null }>
             } | null
             notices: Array<{ __typename?: 'Notice'; text: string | null }>
-        } | null
+        }
     } | null
     fromPlace: {
         __typename?: 'Place'
@@ -2714,7 +2080,7 @@ export type LegFieldsFragment = {
         aimedArrivalTime: string
         aimedDepartureTime: string
         cancellation: boolean
-        date: string | null
+        date: string
         expectedDepartureTime: string
         expectedArrivalTime: string
         forAlighting: boolean
@@ -2776,7 +2142,7 @@ export type LegFieldsFragment = {
                     id: string
                 } | null>
             } | null
-        } | null
+        }
         serviceJourney: {
             __typename?: 'ServiceJourney'
             id: string
@@ -2801,7 +2167,7 @@ export type LegFieldsFragment = {
                 notices: Array<{ __typename?: 'Notice'; text: string | null }>
             } | null
             notices: Array<{ __typename?: 'Notice'; text: string | null }>
-        } | null
+        }
     }>
     line: {
         __typename?: 'Line'
@@ -2914,7 +2280,7 @@ export type LegFieldsFragment = {
         aimedArrivalTime: string
         aimedDepartureTime: string
         cancellation: boolean
-        date: string | null
+        date: string
         expectedDepartureTime: string
         expectedArrivalTime: string
         forAlighting: boolean
@@ -2976,7 +2342,7 @@ export type LegFieldsFragment = {
                     id: string
                 } | null>
             } | null
-        } | null
+        }
         serviceJourney: {
             __typename?: 'ServiceJourney'
             id: string
@@ -3001,7 +2367,7 @@ export type LegFieldsFragment = {
                 notices: Array<{ __typename?: 'Notice'; text: string | null }>
             } | null
             notices: Array<{ __typename?: 'Notice'; text: string | null }>
-        } | null
+        }
     } | null
     toPlace: {
         __typename?: 'Place'
@@ -3351,7 +2717,7 @@ export type EstimatedCallFieldsFragment = {
     aimedArrivalTime: string
     aimedDepartureTime: string
     cancellation: boolean
-    date: string | null
+    date: string
     expectedDepartureTime: string
     expectedArrivalTime: string
     forAlighting: boolean
@@ -3410,7 +2776,7 @@ export type EstimatedCallFieldsFragment = {
             longitude: number | null
             tariffZones: Array<{ __typename?: 'TariffZone'; id: string } | null>
         } | null
-    } | null
+    }
     serviceJourney: {
         __typename?: 'ServiceJourney'
         id: string
@@ -3432,5 +2798,1401 @@ export type EstimatedCallFieldsFragment = {
             notices: Array<{ __typename?: 'Notice'; text: string | null }>
         } | null
         notices: Array<{ __typename?: 'Notice'; text: string | null }>
+    }
+}
+
+export type UpdatedEstimatedCallFieldsFragment = {
+    __typename?: 'EstimatedCall'
+    realtime: boolean
+    predictionInaccurate: boolean
+    expectedArrivalTime: string
+    expectedDepartureTime: string
+    aimedArrivalTime: string
+    aimedDepartureTime: string
+    actualArrivalTime: string | null
+    actualDepartureTime: string | null
+    quay: {
+        __typename?: 'Quay'
+        id: string
+        name: string
+        description: string | null
+        publicCode: string | null
+        stopPlace: {
+            __typename?: 'StopPlace'
+            description: string | null
+        } | null
+    }
+    notices: Array<{ __typename?: 'Notice'; id: string }>
+}
+
+export type GetLegQueryVariables = Exact<{
+    id: Scalars['ID']
+}>
+
+export type GetLegQuery = {
+    __typename?: 'QueryType'
+    leg: {
+        __typename?: 'Leg'
+        generalizedCost: number | null
+        aimedEndTime: string
+        aimedStartTime: string
+        distance: number
+        directDuration: number
+        duration: number
+        expectedEndTime: string
+        expectedStartTime: string
+        id: string | null
+        mode: Mode
+        realtime: boolean
+        ride: boolean
+        rentedBike: boolean | null
+        transportSubmode: TransportSubmode | null
+        authority: {
+            __typename?: 'Authority'
+            id: string
+            name: string
+            url: string | null
+        } | null
+        fromEstimatedCall: {
+            __typename?: 'EstimatedCall'
+            actualArrivalTime: string | null
+            actualDepartureTime: string | null
+            aimedArrivalTime: string
+            aimedDepartureTime: string
+            cancellation: boolean
+            date: string
+            expectedDepartureTime: string
+            expectedArrivalTime: string
+            forAlighting: boolean
+            forBoarding: boolean
+            predictionInaccurate: boolean
+            realtime: boolean
+            requestStop: boolean
+            destinationDisplay: {
+                __typename?: 'DestinationDisplay'
+                frontText: string | null
+                via: Array<string | null> | null
+            } | null
+            notices: Array<{ __typename?: 'Notice'; text: string | null }>
+            quay: {
+                __typename?: 'Quay'
+                id: string
+                name: string
+                description: string | null
+                publicCode: string | null
+                situations: Array<{
+                    __typename?: 'PtSituationElement'
+                    situationNumber: string | null
+                    reportType: ReportType | null
+                    summary: Array<{
+                        __typename?: 'MultilingualString'
+                        language: string | null
+                        value: string
+                    }>
+                    description: Array<{
+                        __typename?: 'MultilingualString'
+                        language: string | null
+                        value: string
+                    }>
+                    advice: Array<{
+                        __typename?: 'MultilingualString'
+                        language: string | null
+                        value: string
+                    }>
+                    validityPeriod: {
+                        __typename?: 'ValidityPeriod'
+                        startTime: string | null
+                        endTime: string | null
+                    } | null
+                    infoLinks: Array<{
+                        __typename?: 'infoLink'
+                        uri: string
+                        label: string | null
+                    }> | null
+                }>
+                stopPlace: {
+                    __typename?: 'StopPlace'
+                    id: string
+                    description: string | null
+                    name: string
+                    latitude: number | null
+                    longitude: number | null
+                    tariffZones: Array<{
+                        __typename?: 'TariffZone'
+                        id: string
+                    } | null>
+                } | null
+            }
+            serviceJourney: {
+                __typename?: 'ServiceJourney'
+                id: string
+                publicCode: string | null
+                privateCode: string | null
+                journeyPattern: {
+                    __typename?: 'JourneyPattern'
+                    line: {
+                        __typename?: 'Line'
+                        description: string | null
+                        flexibleLineType: string | null
+                        id: string
+                        name: string | null
+                        publicCode: string | null
+                        transportMode: TransportMode | null
+                        transportSubmode: TransportSubmode | null
+                        notices: Array<{
+                            __typename?: 'Notice'
+                            text: string | null
+                        }>
+                    }
+                    notices: Array<{
+                        __typename?: 'Notice'
+                        text: string | null
+                    }>
+                } | null
+                notices: Array<{ __typename?: 'Notice'; text: string | null }>
+            }
+        } | null
+        fromPlace: {
+            __typename?: 'Place'
+            name: string | null
+            latitude: number
+            longitude: number
+            quay: {
+                __typename?: 'Quay'
+                id: string
+                name: string
+                description: string | null
+                publicCode: string | null
+                situations: Array<{
+                    __typename?: 'PtSituationElement'
+                    situationNumber: string | null
+                    reportType: ReportType | null
+                    summary: Array<{
+                        __typename?: 'MultilingualString'
+                        language: string | null
+                        value: string
+                    }>
+                    description: Array<{
+                        __typename?: 'MultilingualString'
+                        language: string | null
+                        value: string
+                    }>
+                    advice: Array<{
+                        __typename?: 'MultilingualString'
+                        language: string | null
+                        value: string
+                    }>
+                    validityPeriod: {
+                        __typename?: 'ValidityPeriod'
+                        startTime: string | null
+                        endTime: string | null
+                    } | null
+                    infoLinks: Array<{
+                        __typename?: 'infoLink'
+                        uri: string
+                        label: string | null
+                    }> | null
+                }>
+                stopPlace: {
+                    __typename?: 'StopPlace'
+                    id: string
+                    description: string | null
+                    name: string
+                    latitude: number | null
+                    longitude: number | null
+                    tariffZones: Array<{
+                        __typename?: 'TariffZone'
+                        id: string
+                    } | null>
+                } | null
+            } | null
+            bikeRentalStation: {
+                __typename?: 'BikeRentalStation'
+                id: string
+                name: string
+                networks: Array<string | null>
+                bikesAvailable: number | null
+                spacesAvailable: number | null
+                longitude: number | null
+                latitude: number | null
+            } | null
+        }
+        interchangeFrom: {
+            __typename?: 'Interchange'
+            guaranteed: boolean | null
+            staySeated: boolean | null
+            maximumWaitTime: number | null
+            fromServiceJourney: {
+                __typename?: 'ServiceJourney'
+                id: string
+            } | null
+            toServiceJourney: {
+                __typename?: 'ServiceJourney'
+                id: string
+            } | null
+        } | null
+        interchangeTo: {
+            __typename?: 'Interchange'
+            guaranteed: boolean | null
+            staySeated: boolean | null
+            maximumWaitTime: number | null
+            fromServiceJourney: {
+                __typename?: 'ServiceJourney'
+                id: string
+            } | null
+            toServiceJourney: {
+                __typename?: 'ServiceJourney'
+                id: string
+            } | null
+        } | null
+        intermediateEstimatedCalls: Array<{
+            __typename?: 'EstimatedCall'
+            actualArrivalTime: string | null
+            actualDepartureTime: string | null
+            aimedArrivalTime: string
+            aimedDepartureTime: string
+            cancellation: boolean
+            date: string
+            expectedDepartureTime: string
+            expectedArrivalTime: string
+            forAlighting: boolean
+            forBoarding: boolean
+            predictionInaccurate: boolean
+            realtime: boolean
+            requestStop: boolean
+            destinationDisplay: {
+                __typename?: 'DestinationDisplay'
+                frontText: string | null
+                via: Array<string | null> | null
+            } | null
+            notices: Array<{ __typename?: 'Notice'; text: string | null }>
+            quay: {
+                __typename?: 'Quay'
+                id: string
+                name: string
+                description: string | null
+                publicCode: string | null
+                situations: Array<{
+                    __typename?: 'PtSituationElement'
+                    situationNumber: string | null
+                    reportType: ReportType | null
+                    summary: Array<{
+                        __typename?: 'MultilingualString'
+                        language: string | null
+                        value: string
+                    }>
+                    description: Array<{
+                        __typename?: 'MultilingualString'
+                        language: string | null
+                        value: string
+                    }>
+                    advice: Array<{
+                        __typename?: 'MultilingualString'
+                        language: string | null
+                        value: string
+                    }>
+                    validityPeriod: {
+                        __typename?: 'ValidityPeriod'
+                        startTime: string | null
+                        endTime: string | null
+                    } | null
+                    infoLinks: Array<{
+                        __typename?: 'infoLink'
+                        uri: string
+                        label: string | null
+                    }> | null
+                }>
+                stopPlace: {
+                    __typename?: 'StopPlace'
+                    id: string
+                    description: string | null
+                    name: string
+                    latitude: number | null
+                    longitude: number | null
+                    tariffZones: Array<{
+                        __typename?: 'TariffZone'
+                        id: string
+                    } | null>
+                } | null
+            }
+            serviceJourney: {
+                __typename?: 'ServiceJourney'
+                id: string
+                publicCode: string | null
+                privateCode: string | null
+                journeyPattern: {
+                    __typename?: 'JourneyPattern'
+                    line: {
+                        __typename?: 'Line'
+                        description: string | null
+                        flexibleLineType: string | null
+                        id: string
+                        name: string | null
+                        publicCode: string | null
+                        transportMode: TransportMode | null
+                        transportSubmode: TransportSubmode | null
+                        notices: Array<{
+                            __typename?: 'Notice'
+                            text: string | null
+                        }>
+                    }
+                    notices: Array<{
+                        __typename?: 'Notice'
+                        text: string | null
+                    }>
+                } | null
+                notices: Array<{ __typename?: 'Notice'; text: string | null }>
+            }
+        }>
+        line: {
+            __typename?: 'Line'
+            description: string | null
+            flexibleLineType: string | null
+            id: string
+            name: string | null
+            publicCode: string | null
+            transportMode: TransportMode | null
+            transportSubmode: TransportSubmode | null
+            notices: Array<{ __typename?: 'Notice'; text: string | null }>
+        } | null
+        nextLegs: Array<{
+            __typename?: 'Leg'
+            id: string | null
+            mode: Mode
+            transportSubmode: TransportSubmode | null
+            aimedStartTime: string
+            expectedStartTime: string
+            fromEstimatedCall: {
+                __typename?: 'EstimatedCall'
+                actualDepartureTime: string | null
+            } | null
+            line: { __typename?: 'Line'; publicCode: string | null } | null
+            toPlace: { __typename?: 'Place'; name: string | null }
+            fromPlace: { __typename?: 'Place'; name: string | null }
+        }> | null
+        operator: {
+            __typename?: 'Operator'
+            id: string
+            name: string
+            url: string | null
+        } | null
+        pointsOnLink: {
+            __typename?: 'PointsOnLink'
+            points: string | null
+            length: number | null
+        } | null
+        previousLegs: Array<{
+            __typename?: 'Leg'
+            id: string | null
+            mode: Mode
+            transportSubmode: TransportSubmode | null
+            aimedStartTime: string
+            expectedStartTime: string
+            fromEstimatedCall: {
+                __typename?: 'EstimatedCall'
+                actualDepartureTime: string | null
+            } | null
+            line: { __typename?: 'Line'; publicCode: string | null } | null
+            toPlace: { __typename?: 'Place'; name: string | null }
+            fromPlace: { __typename?: 'Place'; name: string | null }
+        }> | null
+        serviceJourney: {
+            __typename?: 'ServiceJourney'
+            id: string
+            publicCode: string | null
+            privateCode: string | null
+            journeyPattern: {
+                __typename?: 'JourneyPattern'
+                line: {
+                    __typename?: 'Line'
+                    description: string | null
+                    flexibleLineType: string | null
+                    id: string
+                    name: string | null
+                    publicCode: string | null
+                    transportMode: TransportMode | null
+                    transportSubmode: TransportSubmode | null
+                    notices: Array<{
+                        __typename?: 'Notice'
+                        text: string | null
+                    }>
+                }
+                notices: Array<{ __typename?: 'Notice'; text: string | null }>
+            } | null
+            notices: Array<{ __typename?: 'Notice'; text: string | null }>
+        } | null
+        situations: Array<{
+            __typename?: 'PtSituationElement'
+            situationNumber: string | null
+            reportType: ReportType | null
+            summary: Array<{
+                __typename?: 'MultilingualString'
+                language: string | null
+                value: string
+            }>
+            description: Array<{
+                __typename?: 'MultilingualString'
+                language: string | null
+                value: string
+            }>
+            advice: Array<{
+                __typename?: 'MultilingualString'
+                language: string | null
+                value: string
+            }>
+            validityPeriod: {
+                __typename?: 'ValidityPeriod'
+                startTime: string | null
+                endTime: string | null
+            } | null
+            infoLinks: Array<{
+                __typename?: 'infoLink'
+                uri: string
+                label: string | null
+            }> | null
+        }>
+        toEstimatedCall: {
+            __typename?: 'EstimatedCall'
+            actualArrivalTime: string | null
+            actualDepartureTime: string | null
+            aimedArrivalTime: string
+            aimedDepartureTime: string
+            cancellation: boolean
+            date: string
+            expectedDepartureTime: string
+            expectedArrivalTime: string
+            forAlighting: boolean
+            forBoarding: boolean
+            predictionInaccurate: boolean
+            realtime: boolean
+            requestStop: boolean
+            destinationDisplay: {
+                __typename?: 'DestinationDisplay'
+                frontText: string | null
+                via: Array<string | null> | null
+            } | null
+            notices: Array<{ __typename?: 'Notice'; text: string | null }>
+            quay: {
+                __typename?: 'Quay'
+                id: string
+                name: string
+                description: string | null
+                publicCode: string | null
+                situations: Array<{
+                    __typename?: 'PtSituationElement'
+                    situationNumber: string | null
+                    reportType: ReportType | null
+                    summary: Array<{
+                        __typename?: 'MultilingualString'
+                        language: string | null
+                        value: string
+                    }>
+                    description: Array<{
+                        __typename?: 'MultilingualString'
+                        language: string | null
+                        value: string
+                    }>
+                    advice: Array<{
+                        __typename?: 'MultilingualString'
+                        language: string | null
+                        value: string
+                    }>
+                    validityPeriod: {
+                        __typename?: 'ValidityPeriod'
+                        startTime: string | null
+                        endTime: string | null
+                    } | null
+                    infoLinks: Array<{
+                        __typename?: 'infoLink'
+                        uri: string
+                        label: string | null
+                    }> | null
+                }>
+                stopPlace: {
+                    __typename?: 'StopPlace'
+                    id: string
+                    description: string | null
+                    name: string
+                    latitude: number | null
+                    longitude: number | null
+                    tariffZones: Array<{
+                        __typename?: 'TariffZone'
+                        id: string
+                    } | null>
+                } | null
+            }
+            serviceJourney: {
+                __typename?: 'ServiceJourney'
+                id: string
+                publicCode: string | null
+                privateCode: string | null
+                journeyPattern: {
+                    __typename?: 'JourneyPattern'
+                    line: {
+                        __typename?: 'Line'
+                        description: string | null
+                        flexibleLineType: string | null
+                        id: string
+                        name: string | null
+                        publicCode: string | null
+                        transportMode: TransportMode | null
+                        transportSubmode: TransportSubmode | null
+                        notices: Array<{
+                            __typename?: 'Notice'
+                            text: string | null
+                        }>
+                    }
+                    notices: Array<{
+                        __typename?: 'Notice'
+                        text: string | null
+                    }>
+                } | null
+                notices: Array<{ __typename?: 'Notice'; text: string | null }>
+            }
+        } | null
+        toPlace: {
+            __typename?: 'Place'
+            name: string | null
+            latitude: number
+            longitude: number
+            quay: {
+                __typename?: 'Quay'
+                id: string
+                name: string
+                description: string | null
+                publicCode: string | null
+                situations: Array<{
+                    __typename?: 'PtSituationElement'
+                    situationNumber: string | null
+                    reportType: ReportType | null
+                    summary: Array<{
+                        __typename?: 'MultilingualString'
+                        language: string | null
+                        value: string
+                    }>
+                    description: Array<{
+                        __typename?: 'MultilingualString'
+                        language: string | null
+                        value: string
+                    }>
+                    advice: Array<{
+                        __typename?: 'MultilingualString'
+                        language: string | null
+                        value: string
+                    }>
+                    validityPeriod: {
+                        __typename?: 'ValidityPeriod'
+                        startTime: string | null
+                        endTime: string | null
+                    } | null
+                    infoLinks: Array<{
+                        __typename?: 'infoLink'
+                        uri: string
+                        label: string | null
+                    }> | null
+                }>
+                stopPlace: {
+                    __typename?: 'StopPlace'
+                    id: string
+                    description: string | null
+                    name: string
+                    latitude: number | null
+                    longitude: number | null
+                    tariffZones: Array<{
+                        __typename?: 'TariffZone'
+                        id: string
+                    } | null>
+                } | null
+            } | null
+            bikeRentalStation: {
+                __typename?: 'BikeRentalStation'
+                id: string
+                name: string
+                networks: Array<string | null>
+                bikesAvailable: number | null
+                spacesAvailable: number | null
+                longitude: number | null
+                latitude: number | null
+            } | null
+        }
+        bookingArrangements: {
+            __typename?: 'BookingArrangement'
+            bookingMethods: Array<BookingMethod | null> | null
+            bookingNote: string | null
+            latestBookingTime: string | null
+            minimumBookingPeriod: string | null
+            bookWhen: PurchaseWhen | null
+            bookingContact: {
+                __typename?: 'Contact'
+                phone: string | null
+                url: string | null
+            } | null
+        } | null
+    } | null
+}
+
+export type GetTripPatternsQueryVariables = Exact<{
+    numTripPatterns?: InputMaybe<Scalars['Int']>
+    from: Location
+    to: Location
+    dateTime: Scalars['DateTime']
+    arriveBy: Scalars['Boolean']
+    wheelchairAccessible: Scalars['Boolean']
+    modes: Modes
+    walkSpeed?: InputMaybe<Scalars['Float']>
+    transferSlack?: InputMaybe<Scalars['Int']>
+    transferPenalty?: InputMaybe<Scalars['Int']>
+    banned?: InputMaybe<InputBanned>
+    whiteListed?: InputMaybe<InputWhiteListed>
+    debugItineraryFilter?: InputMaybe<Scalars['Boolean']>
+    searchWindow?: InputMaybe<Scalars['Int']>
+    walkReluctance?: InputMaybe<Scalars['Float']>
+    waitReluctance?: InputMaybe<Scalars['Float']>
+}>
+
+export type GetTripPatternsQuery = {
+    __typename?: 'QueryType'
+    trip: {
+        __typename?: 'Trip'
+        metadata: {
+            __typename?: 'TripSearchData'
+            searchWindowUsed: number
+            nextDateTime: string | null
+            prevDateTime: string | null
+        } | null
+        routingErrors: Array<{
+            __typename?: 'RoutingError'
+            inputField: InputField | null
+            description: string
+            code: RoutingErrorCode
+        }>
+        tripPatterns: Array<{
+            __typename?: 'TripPattern'
+            generalizedCost: number | null
+            startTime: string | null
+            endTime: string | null
+            expectedStartTime: string
+            expectedEndTime: string
+            directDuration: number | null
+            duration: number | null
+            distance: number | null
+            walkDistance: number | null
+            systemNotices: Array<{
+                __typename?: 'SystemNotice'
+                tag: string | null
+                text: string | null
+            }>
+            legs: Array<{
+                __typename?: 'Leg'
+                generalizedCost: number | null
+                aimedEndTime: string
+                aimedStartTime: string
+                distance: number
+                directDuration: number
+                duration: number
+                expectedEndTime: string
+                expectedStartTime: string
+                id: string | null
+                mode: Mode
+                realtime: boolean
+                ride: boolean
+                rentedBike: boolean | null
+                transportSubmode: TransportSubmode | null
+                authority: {
+                    __typename?: 'Authority'
+                    id: string
+                    name: string
+                    url: string | null
+                } | null
+                fromEstimatedCall: {
+                    __typename?: 'EstimatedCall'
+                    actualArrivalTime: string | null
+                    actualDepartureTime: string | null
+                    aimedArrivalTime: string
+                    aimedDepartureTime: string
+                    cancellation: boolean
+                    date: string
+                    expectedDepartureTime: string
+                    expectedArrivalTime: string
+                    forAlighting: boolean
+                    forBoarding: boolean
+                    predictionInaccurate: boolean
+                    realtime: boolean
+                    requestStop: boolean
+                    destinationDisplay: {
+                        __typename?: 'DestinationDisplay'
+                        frontText: string | null
+                        via: Array<string | null> | null
+                    } | null
+                    notices: Array<{
+                        __typename?: 'Notice'
+                        text: string | null
+                    }>
+                    quay: {
+                        __typename?: 'Quay'
+                        id: string
+                        name: string
+                        description: string | null
+                        publicCode: string | null
+                        situations: Array<{
+                            __typename?: 'PtSituationElement'
+                            situationNumber: string | null
+                            reportType: ReportType | null
+                            summary: Array<{
+                                __typename?: 'MultilingualString'
+                                language: string | null
+                                value: string
+                            }>
+                            description: Array<{
+                                __typename?: 'MultilingualString'
+                                language: string | null
+                                value: string
+                            }>
+                            advice: Array<{
+                                __typename?: 'MultilingualString'
+                                language: string | null
+                                value: string
+                            }>
+                            validityPeriod: {
+                                __typename?: 'ValidityPeriod'
+                                startTime: string | null
+                                endTime: string | null
+                            } | null
+                            infoLinks: Array<{
+                                __typename?: 'infoLink'
+                                uri: string
+                                label: string | null
+                            }> | null
+                        }>
+                        stopPlace: {
+                            __typename?: 'StopPlace'
+                            id: string
+                            description: string | null
+                            name: string
+                            latitude: number | null
+                            longitude: number | null
+                            tariffZones: Array<{
+                                __typename?: 'TariffZone'
+                                id: string
+                            } | null>
+                        } | null
+                    }
+                    serviceJourney: {
+                        __typename?: 'ServiceJourney'
+                        id: string
+                        publicCode: string | null
+                        privateCode: string | null
+                        journeyPattern: {
+                            __typename?: 'JourneyPattern'
+                            line: {
+                                __typename?: 'Line'
+                                description: string | null
+                                flexibleLineType: string | null
+                                id: string
+                                name: string | null
+                                publicCode: string | null
+                                transportMode: TransportMode | null
+                                transportSubmode: TransportSubmode | null
+                                notices: Array<{
+                                    __typename?: 'Notice'
+                                    text: string | null
+                                }>
+                            }
+                            notices: Array<{
+                                __typename?: 'Notice'
+                                text: string | null
+                            }>
+                        } | null
+                        notices: Array<{
+                            __typename?: 'Notice'
+                            text: string | null
+                        }>
+                    }
+                } | null
+                fromPlace: {
+                    __typename?: 'Place'
+                    name: string | null
+                    latitude: number
+                    longitude: number
+                    quay: {
+                        __typename?: 'Quay'
+                        id: string
+                        name: string
+                        description: string | null
+                        publicCode: string | null
+                        situations: Array<{
+                            __typename?: 'PtSituationElement'
+                            situationNumber: string | null
+                            reportType: ReportType | null
+                            summary: Array<{
+                                __typename?: 'MultilingualString'
+                                language: string | null
+                                value: string
+                            }>
+                            description: Array<{
+                                __typename?: 'MultilingualString'
+                                language: string | null
+                                value: string
+                            }>
+                            advice: Array<{
+                                __typename?: 'MultilingualString'
+                                language: string | null
+                                value: string
+                            }>
+                            validityPeriod: {
+                                __typename?: 'ValidityPeriod'
+                                startTime: string | null
+                                endTime: string | null
+                            } | null
+                            infoLinks: Array<{
+                                __typename?: 'infoLink'
+                                uri: string
+                                label: string | null
+                            }> | null
+                        }>
+                        stopPlace: {
+                            __typename?: 'StopPlace'
+                            id: string
+                            description: string | null
+                            name: string
+                            latitude: number | null
+                            longitude: number | null
+                            tariffZones: Array<{
+                                __typename?: 'TariffZone'
+                                id: string
+                            } | null>
+                        } | null
+                    } | null
+                    bikeRentalStation: {
+                        __typename?: 'BikeRentalStation'
+                        id: string
+                        name: string
+                        networks: Array<string | null>
+                        bikesAvailable: number | null
+                        spacesAvailable: number | null
+                        longitude: number | null
+                        latitude: number | null
+                    } | null
+                }
+                interchangeFrom: {
+                    __typename?: 'Interchange'
+                    guaranteed: boolean | null
+                    staySeated: boolean | null
+                    maximumWaitTime: number | null
+                    fromServiceJourney: {
+                        __typename?: 'ServiceJourney'
+                        id: string
+                    } | null
+                    toServiceJourney: {
+                        __typename?: 'ServiceJourney'
+                        id: string
+                    } | null
+                } | null
+                interchangeTo: {
+                    __typename?: 'Interchange'
+                    guaranteed: boolean | null
+                    staySeated: boolean | null
+                    maximumWaitTime: number | null
+                    fromServiceJourney: {
+                        __typename?: 'ServiceJourney'
+                        id: string
+                    } | null
+                    toServiceJourney: {
+                        __typename?: 'ServiceJourney'
+                        id: string
+                    } | null
+                } | null
+                intermediateEstimatedCalls: Array<{
+                    __typename?: 'EstimatedCall'
+                    actualArrivalTime: string | null
+                    actualDepartureTime: string | null
+                    aimedArrivalTime: string
+                    aimedDepartureTime: string
+                    cancellation: boolean
+                    date: string
+                    expectedDepartureTime: string
+                    expectedArrivalTime: string
+                    forAlighting: boolean
+                    forBoarding: boolean
+                    predictionInaccurate: boolean
+                    realtime: boolean
+                    requestStop: boolean
+                    destinationDisplay: {
+                        __typename?: 'DestinationDisplay'
+                        frontText: string | null
+                        via: Array<string | null> | null
+                    } | null
+                    notices: Array<{
+                        __typename?: 'Notice'
+                        text: string | null
+                    }>
+                    quay: {
+                        __typename?: 'Quay'
+                        id: string
+                        name: string
+                        description: string | null
+                        publicCode: string | null
+                        situations: Array<{
+                            __typename?: 'PtSituationElement'
+                            situationNumber: string | null
+                            reportType: ReportType | null
+                            summary: Array<{
+                                __typename?: 'MultilingualString'
+                                language: string | null
+                                value: string
+                            }>
+                            description: Array<{
+                                __typename?: 'MultilingualString'
+                                language: string | null
+                                value: string
+                            }>
+                            advice: Array<{
+                                __typename?: 'MultilingualString'
+                                language: string | null
+                                value: string
+                            }>
+                            validityPeriod: {
+                                __typename?: 'ValidityPeriod'
+                                startTime: string | null
+                                endTime: string | null
+                            } | null
+                            infoLinks: Array<{
+                                __typename?: 'infoLink'
+                                uri: string
+                                label: string | null
+                            }> | null
+                        }>
+                        stopPlace: {
+                            __typename?: 'StopPlace'
+                            id: string
+                            description: string | null
+                            name: string
+                            latitude: number | null
+                            longitude: number | null
+                            tariffZones: Array<{
+                                __typename?: 'TariffZone'
+                                id: string
+                            } | null>
+                        } | null
+                    }
+                    serviceJourney: {
+                        __typename?: 'ServiceJourney'
+                        id: string
+                        publicCode: string | null
+                        privateCode: string | null
+                        journeyPattern: {
+                            __typename?: 'JourneyPattern'
+                            line: {
+                                __typename?: 'Line'
+                                description: string | null
+                                flexibleLineType: string | null
+                                id: string
+                                name: string | null
+                                publicCode: string | null
+                                transportMode: TransportMode | null
+                                transportSubmode: TransportSubmode | null
+                                notices: Array<{
+                                    __typename?: 'Notice'
+                                    text: string | null
+                                }>
+                            }
+                            notices: Array<{
+                                __typename?: 'Notice'
+                                text: string | null
+                            }>
+                        } | null
+                        notices: Array<{
+                            __typename?: 'Notice'
+                            text: string | null
+                        }>
+                    }
+                }>
+                line: {
+                    __typename?: 'Line'
+                    description: string | null
+                    flexibleLineType: string | null
+                    id: string
+                    name: string | null
+                    publicCode: string | null
+                    transportMode: TransportMode | null
+                    transportSubmode: TransportSubmode | null
+                    notices: Array<{
+                        __typename?: 'Notice'
+                        text: string | null
+                    }>
+                } | null
+                nextLegs: Array<{
+                    __typename?: 'Leg'
+                    id: string | null
+                    mode: Mode
+                    transportSubmode: TransportSubmode | null
+                    aimedStartTime: string
+                    expectedStartTime: string
+                    fromEstimatedCall: {
+                        __typename?: 'EstimatedCall'
+                        actualDepartureTime: string | null
+                    } | null
+                    line: {
+                        __typename?: 'Line'
+                        publicCode: string | null
+                    } | null
+                    toPlace: { __typename?: 'Place'; name: string | null }
+                    fromPlace: { __typename?: 'Place'; name: string | null }
+                }> | null
+                operator: {
+                    __typename?: 'Operator'
+                    id: string
+                    name: string
+                    url: string | null
+                } | null
+                pointsOnLink: {
+                    __typename?: 'PointsOnLink'
+                    points: string | null
+                    length: number | null
+                } | null
+                previousLegs: Array<{
+                    __typename?: 'Leg'
+                    id: string | null
+                    mode: Mode
+                    transportSubmode: TransportSubmode | null
+                    aimedStartTime: string
+                    expectedStartTime: string
+                    fromEstimatedCall: {
+                        __typename?: 'EstimatedCall'
+                        actualDepartureTime: string | null
+                    } | null
+                    line: {
+                        __typename?: 'Line'
+                        publicCode: string | null
+                    } | null
+                    toPlace: { __typename?: 'Place'; name: string | null }
+                    fromPlace: { __typename?: 'Place'; name: string | null }
+                }> | null
+                serviceJourney: {
+                    __typename?: 'ServiceJourney'
+                    id: string
+                    publicCode: string | null
+                    privateCode: string | null
+                    journeyPattern: {
+                        __typename?: 'JourneyPattern'
+                        line: {
+                            __typename?: 'Line'
+                            description: string | null
+                            flexibleLineType: string | null
+                            id: string
+                            name: string | null
+                            publicCode: string | null
+                            transportMode: TransportMode | null
+                            transportSubmode: TransportSubmode | null
+                            notices: Array<{
+                                __typename?: 'Notice'
+                                text: string | null
+                            }>
+                        }
+                        notices: Array<{
+                            __typename?: 'Notice'
+                            text: string | null
+                        }>
+                    } | null
+                    notices: Array<{
+                        __typename?: 'Notice'
+                        text: string | null
+                    }>
+                } | null
+                situations: Array<{
+                    __typename?: 'PtSituationElement'
+                    situationNumber: string | null
+                    reportType: ReportType | null
+                    summary: Array<{
+                        __typename?: 'MultilingualString'
+                        language: string | null
+                        value: string
+                    }>
+                    description: Array<{
+                        __typename?: 'MultilingualString'
+                        language: string | null
+                        value: string
+                    }>
+                    advice: Array<{
+                        __typename?: 'MultilingualString'
+                        language: string | null
+                        value: string
+                    }>
+                    validityPeriod: {
+                        __typename?: 'ValidityPeriod'
+                        startTime: string | null
+                        endTime: string | null
+                    } | null
+                    infoLinks: Array<{
+                        __typename?: 'infoLink'
+                        uri: string
+                        label: string | null
+                    }> | null
+                }>
+                toEstimatedCall: {
+                    __typename?: 'EstimatedCall'
+                    actualArrivalTime: string | null
+                    actualDepartureTime: string | null
+                    aimedArrivalTime: string
+                    aimedDepartureTime: string
+                    cancellation: boolean
+                    date: string
+                    expectedDepartureTime: string
+                    expectedArrivalTime: string
+                    forAlighting: boolean
+                    forBoarding: boolean
+                    predictionInaccurate: boolean
+                    realtime: boolean
+                    requestStop: boolean
+                    destinationDisplay: {
+                        __typename?: 'DestinationDisplay'
+                        frontText: string | null
+                        via: Array<string | null> | null
+                    } | null
+                    notices: Array<{
+                        __typename?: 'Notice'
+                        text: string | null
+                    }>
+                    quay: {
+                        __typename?: 'Quay'
+                        id: string
+                        name: string
+                        description: string | null
+                        publicCode: string | null
+                        situations: Array<{
+                            __typename?: 'PtSituationElement'
+                            situationNumber: string | null
+                            reportType: ReportType | null
+                            summary: Array<{
+                                __typename?: 'MultilingualString'
+                                language: string | null
+                                value: string
+                            }>
+                            description: Array<{
+                                __typename?: 'MultilingualString'
+                                language: string | null
+                                value: string
+                            }>
+                            advice: Array<{
+                                __typename?: 'MultilingualString'
+                                language: string | null
+                                value: string
+                            }>
+                            validityPeriod: {
+                                __typename?: 'ValidityPeriod'
+                                startTime: string | null
+                                endTime: string | null
+                            } | null
+                            infoLinks: Array<{
+                                __typename?: 'infoLink'
+                                uri: string
+                                label: string | null
+                            }> | null
+                        }>
+                        stopPlace: {
+                            __typename?: 'StopPlace'
+                            id: string
+                            description: string | null
+                            name: string
+                            latitude: number | null
+                            longitude: number | null
+                            tariffZones: Array<{
+                                __typename?: 'TariffZone'
+                                id: string
+                            } | null>
+                        } | null
+                    }
+                    serviceJourney: {
+                        __typename?: 'ServiceJourney'
+                        id: string
+                        publicCode: string | null
+                        privateCode: string | null
+                        journeyPattern: {
+                            __typename?: 'JourneyPattern'
+                            line: {
+                                __typename?: 'Line'
+                                description: string | null
+                                flexibleLineType: string | null
+                                id: string
+                                name: string | null
+                                publicCode: string | null
+                                transportMode: TransportMode | null
+                                transportSubmode: TransportSubmode | null
+                                notices: Array<{
+                                    __typename?: 'Notice'
+                                    text: string | null
+                                }>
+                            }
+                            notices: Array<{
+                                __typename?: 'Notice'
+                                text: string | null
+                            }>
+                        } | null
+                        notices: Array<{
+                            __typename?: 'Notice'
+                            text: string | null
+                        }>
+                    }
+                } | null
+                toPlace: {
+                    __typename?: 'Place'
+                    name: string | null
+                    latitude: number
+                    longitude: number
+                    quay: {
+                        __typename?: 'Quay'
+                        id: string
+                        name: string
+                        description: string | null
+                        publicCode: string | null
+                        situations: Array<{
+                            __typename?: 'PtSituationElement'
+                            situationNumber: string | null
+                            reportType: ReportType | null
+                            summary: Array<{
+                                __typename?: 'MultilingualString'
+                                language: string | null
+                                value: string
+                            }>
+                            description: Array<{
+                                __typename?: 'MultilingualString'
+                                language: string | null
+                                value: string
+                            }>
+                            advice: Array<{
+                                __typename?: 'MultilingualString'
+                                language: string | null
+                                value: string
+                            }>
+                            validityPeriod: {
+                                __typename?: 'ValidityPeriod'
+                                startTime: string | null
+                                endTime: string | null
+                            } | null
+                            infoLinks: Array<{
+                                __typename?: 'infoLink'
+                                uri: string
+                                label: string | null
+                            }> | null
+                        }>
+                        stopPlace: {
+                            __typename?: 'StopPlace'
+                            id: string
+                            description: string | null
+                            name: string
+                            latitude: number | null
+                            longitude: number | null
+                            tariffZones: Array<{
+                                __typename?: 'TariffZone'
+                                id: string
+                            } | null>
+                        } | null
+                    } | null
+                    bikeRentalStation: {
+                        __typename?: 'BikeRentalStation'
+                        id: string
+                        name: string
+                        networks: Array<string | null>
+                        bikesAvailable: number | null
+                        spacesAvailable: number | null
+                        longitude: number | null
+                        latitude: number | null
+                    } | null
+                }
+                bookingArrangements: {
+                    __typename?: 'BookingArrangement'
+                    bookingMethods: Array<BookingMethod | null> | null
+                    bookingNote: string | null
+                    latestBookingTime: string | null
+                    minimumBookingPeriod: string | null
+                    bookWhen: PurchaseWhen | null
+                    bookingContact: {
+                        __typename?: 'Contact'
+                        phone: string | null
+                        url: string | null
+                    } | null
+                } | null
+            }>
+        }>
+    }
+}
+
+export type ReplaceLegQueryVariables = Exact<{
+    id: Scalars['ID']
+    numberOfNext: Scalars['Int']
+    numberOfPrevious: Scalars['Int']
+}>
+
+export type ReplaceLegQuery = {
+    __typename?: 'QueryType'
+    leg: {
+        __typename?: 'Leg'
+        id: string | null
+        aimedStartTime: string
+        nextLegs: Array<{
+            __typename?: 'Leg'
+            id: string | null
+            mode: Mode
+            transportSubmode: TransportSubmode | null
+            aimedStartTime: string
+            expectedStartTime: string
+            fromEstimatedCall: {
+                __typename?: 'EstimatedCall'
+                actualDepartureTime: string | null
+            } | null
+            line: { __typename?: 'Line'; publicCode: string | null } | null
+            toPlace: { __typename?: 'Place'; name: string | null }
+            fromPlace: { __typename?: 'Place'; name: string | null }
+        }> | null
+        previousLegs: Array<{
+            __typename?: 'Leg'
+            id: string | null
+            mode: Mode
+            transportSubmode: TransportSubmode | null
+            aimedStartTime: string
+            expectedStartTime: string
+            fromEstimatedCall: {
+                __typename?: 'EstimatedCall'
+                actualDepartureTime: string | null
+            } | null
+            line: { __typename?: 'Line'; publicCode: string | null } | null
+            toPlace: { __typename?: 'Place'; name: string | null }
+            fromPlace: { __typename?: 'Place'; name: string | null }
+        }> | null
+    } | null
+}
+
+export type UpdateTripQueryVariables = Exact<{
+    id: Scalars['String']
+    date: Scalars['Date']
+}>
+
+export type UpdateTripQuery = {
+    __typename?: 'QueryType'
+    serviceJourney: {
+        __typename?: 'ServiceJourney'
+        estimatedCalls: Array<{
+            __typename?: 'EstimatedCall'
+            realtime: boolean
+            predictionInaccurate: boolean
+            expectedArrivalTime: string
+            expectedDepartureTime: string
+            aimedArrivalTime: string
+            aimedDepartureTime: string
+            actualArrivalTime: string | null
+            actualDepartureTime: string | null
+            quay: {
+                __typename?: 'Quay'
+                id: string
+                name: string
+                description: string | null
+                publicCode: string | null
+                stopPlace: {
+                    __typename?: 'StopPlace'
+                    description: string | null
+                } | null
+            }
+            notices: Array<{ __typename?: 'Notice'; id: string }>
+        } | null> | null
     } | null
 }

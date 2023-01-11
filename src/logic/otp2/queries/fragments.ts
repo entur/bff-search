@@ -1,75 +1,8 @@
 import { gql } from 'graphql-request'
 
-export default gql`
-    query getTripPatterns(
-        $numTripPatterns: Int
-        $from: Location!
-        $to: Location!
-        $dateTime: DateTime!
-        $arriveBy: Boolean!
-        $wheelchairAccessible: Boolean!
-        $modes: Modes!
-        $walkSpeed: Float
-        $transferSlack: Int
-        $transferPenalty: Int
-        $banned: InputBanned
-        $whiteListed: InputWhiteListed
-        $debugItineraryFilter: Boolean
-        $searchWindow: Int
-        $walkReluctance: Float
-        $waitReluctance: Float
-    ) {
-        trip(
-            numTripPatterns: $numTripPatterns
-            from: $from
-            to: $to
-            dateTime: $dateTime
-            arriveBy: $arriveBy
-            wheelchairAccessible: $wheelchairAccessible
-            modes: $modes
-            walkSpeed: $walkSpeed
-            transferSlack: $transferSlack
-            transferPenalty: $transferPenalty
-            banned: $banned
-            whiteListed: $whiteListed
-            debugItineraryFilter: $debugItineraryFilter
-            searchWindow: $searchWindow
-            walkReluctance: $walkReluctance
-            waitReluctance: $waitReluctance
-        ) {
-            metadata {
-                searchWindowUsed
-                nextDateTime
-                prevDateTime
-            }
-            routingErrors {
-                inputField
-                description
-                code
-            }
-            tripPatterns {
-                generalizedCost
-                startTime
-                endTime
-                expectedStartTime
-                expectedEndTime
-                directDuration
-                duration
-                distance
-                walkDistance
-                systemNotices {
-                    tag
-                    text
-                }
-                legs {
-                    generalizedCost
-                    ...legFields
-                }
-            }
-        }
-    }
-
+export const legFields = gql`
     fragment legFields on Leg {
+        generalizedCost
         aimedEndTime
         aimedStartTime
         authority {
@@ -133,7 +66,9 @@ export default gql`
             ...bookingArrangementFields
         }
     }
+`
 
+export const replaceLegFields = gql`
     fragment replaceLegFields on Leg {
         id
         mode
@@ -153,7 +88,9 @@ export default gql`
             name
         }
     }
+`
 
+export const bookingArrangementFields = gql`
     fragment bookingArrangementFields on BookingArrangement {
         bookingMethods
         bookingNote
@@ -165,7 +102,9 @@ export default gql`
             url
         }
     }
+`
 
+export const lineFields = gql`
     fragment lineFields on Line {
         description
         flexibleLineType
@@ -178,11 +117,15 @@ export default gql`
         transportMode
         transportSubmode
     }
+`
 
+export const noticeFields = gql`
     fragment noticeFields on Notice {
         text
     }
+`
 
+export const placeFields = gql`
     fragment placeFields on Place {
         name
         latitude
@@ -194,7 +137,9 @@ export default gql`
             ...bikeRentalStationFields
         }
     }
+`
 
+export const quayFields = gql`
     fragment quayFields on Quay {
         id
         name
@@ -207,7 +152,8 @@ export default gql`
             ...stopPlaceFields
         }
     }
-
+`
+export const situationsFields = gql`
     fragment situationFields on PtSituationElement {
         situationNumber
         summary {
@@ -232,7 +178,9 @@ export default gql`
             label
         }
     }
+`
 
+export const stopPlaceFields = gql`
     fragment stopPlaceFields on StopPlace {
         id
         description
@@ -243,7 +191,9 @@ export default gql`
             id
         }
     }
+`
 
+export const bikeRentalStationFields = gql`
     fragment bikeRentalStationFields on BikeRentalStation {
         id
         name
@@ -253,19 +203,25 @@ export default gql`
         longitude
         latitude
     }
+`
 
+export const authorityFields = gql`
     fragment authorityFields on Authority {
         id
         name
         url
     }
+`
 
+export const operatorFields = gql`
     fragment operatorFields on Operator {
         id
         name
         url
     }
+`
 
+export const serviceJourneyFields = gql`
     fragment serviceJourneyFields on ServiceJourney {
         id
         journeyPattern {
@@ -282,7 +238,9 @@ export default gql`
         publicCode
         privateCode
     }
+`
 
+export const interchangeFields = gql`
     fragment interchangeFields on Interchange {
         guaranteed
         staySeated
@@ -294,12 +252,16 @@ export default gql`
             id
         }
     }
+`
 
+export const pointsOnLinkFields = gql`
     fragment pointsOnLinkFields on PointsOnLink {
         points
         length
     }
+`
 
+export const estimatedCallFields = gql`
     fragment estimatedCallFields on EstimatedCall {
         actualArrivalTime
         actualDepartureTime
@@ -326,6 +288,31 @@ export default gql`
         requestStop
         serviceJourney {
             ...serviceJourneyFields
+        }
+    }
+`
+
+export const updatedEstimatedCallFields = gql`
+    fragment updatedEstimatedCallFields on EstimatedCall {
+        quay {
+            id
+            name
+            description
+            publicCode
+            stopPlace {
+                description
+            }
+        }
+        realtime
+        predictionInaccurate
+        expectedArrivalTime
+        expectedDepartureTime
+        aimedArrivalTime
+        aimedDepartureTime
+        actualArrivalTime
+        actualDepartureTime
+        notices {
+            id
         }
     }
 `
