@@ -21,7 +21,6 @@ import {
 export default gql`
     query getLeg($id: ID!) {
         leg(id: $id) {
-            generalizedCost
             ...legFields
         }
     }

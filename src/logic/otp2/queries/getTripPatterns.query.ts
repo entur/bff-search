@@ -73,6 +73,7 @@ export default gql`
                 expectedEndTime
                 directDuration
                 duration
+                duration
                 distance
                 walkDistance
                 systemNotices {
@@ -80,7 +81,6 @@ export default gql`
                     text
                 }
                 legs {
-                    generalizedCost
                     ...legFields
                 }
             }
