@@ -9,20 +9,16 @@ export async function getLeg(
     id: string,
     extraHeaders: ExtraHeaders,
 ): Promise<Leg> {
-    try {
-        const { leg } = await graphqlRequest<GetLegQuery, GetLegQueryVariables>(
-            `${TRANSIT_HOST_OTP2}/graphql`,
-            GET_LEG_QUERY,
-            {
-                id,
-            },
-            extraHeaders,
-        )
-        if (!leg) {
-            return Promise.reject('No leg found')
-        }
-        return leg
-    } catch (error) {
-        return error
+    const { leg } = await graphqlRequest<GetLegQuery, GetLegQueryVariables>(
+        `${TRANSIT_HOST_OTP2}/graphql`,
+        GET_LEG_QUERY,
+        {
+            id,
+        },
+        extraHeaders,
+    )
+    if (!leg) {
+        return Promise.reject('No leg found')
     }
+    return leg
 }

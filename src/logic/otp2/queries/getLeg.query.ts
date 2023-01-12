@@ -12,6 +12,7 @@ import {
     placeFields,
     pointsOnLinkFields,
     quayFields,
+    replaceLegFields,
     serviceJourneyFields,
     situationsFields,
     stopPlaceFields,
@@ -27,6 +28,7 @@ export default gql`
     ${legFields}
     ${bookingArrangementFields}
     ${lineFields}
+    ${replaceLegFields}
     ${noticeFields}
     ${placeFields}
     ${quayFields}
