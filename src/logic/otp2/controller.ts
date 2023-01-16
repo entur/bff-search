@@ -22,7 +22,7 @@ import {
     StreetMode,
 } from '../../generated/graphql'
 
-import JOURNEY_PLANNER_QUERY from './query'
+import JOURNEY_PLANNER_QUERY from './queries/getTripPatterns.query'
 import { DEFAULT_MODES } from './modes'
 import {
     cleanQueryVariables,

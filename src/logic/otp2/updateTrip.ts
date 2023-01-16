@@ -16,6 +16,8 @@ import { toISOString } from '../../utils/time'
 import { TRANSIT_HOST_OTP2 } from '../../config'
 import logger from '../../logger'
 
+import UPDATE_TRIP_QUERY from './queries/updateTrip.query'
+
 import {
     TripPattern,
     Leg,
@@ -24,70 +26,26 @@ import {
     ExtraHeaders,
 } from '../../types'
 
-interface UpdatedEstimatedCall {
-    quay?: {
-        id: string
-        name: string
-        description: string
-        publicCode: string
-        stopPlace?: {
-            description?: string
-        }
-    }
-    realtime: boolean
-    expectedArrivalTime: string
-    expectedDepartureTime: string
-    aimedArrivalTime: string
-    aimedDepartureTime: string
-    actualArrivalTime: string | null
-    actualDepartureTime: string | null
-    predictionInaccurate: boolean
-    notices: {
-        id: string
-    }
-}
-interface ServiceJourneyResponse {
-    serviceJourney?: {
-        estimatedCalls?: UpdatedEstimatedCall[]
-    }
-}
+import {
+    UpdatedEstimatedCallFieldsFragment,
+    UpdateTripQuery,
+    UpdateTripQueryVariables,
+} from '../../generated/graphql'
+import { isNotNullOrUndefined } from '../../utils/misc'
+
+type UpdatedEstimatedCall = UpdatedEstimatedCallFieldsFragment
+
 async function getCallsForServiceJourney(
     id: string,
     date: string,
     extraHeaders: ExtraHeaders,
 ): Promise<UpdatedEstimatedCall[]> {
-    const query = `
-    query($id:String!,$date:Date!) {
-        serviceJourney(id:$id) {
-            estimatedCalls(date:$date) {
-                quay {
-                    id
-                    name
-                    description
-                    publicCode
-                    stopPlace {
-                        description
-                    }
-                }
-                realtime
-                predictionInaccurate
-                expectedArrivalTime
-                expectedDepartureTime
-                aimedArrivalTime
-                aimedDepartureTime
-                actualArrivalTime
-                actualDepartureTime
-                notices {
-                    id
-                }
-            }
-        }
-    }
-    `.trim()
-
-    const data = await graphqlRequest<ServiceJourneyResponse>(
+    const data = await graphqlRequest<
+        UpdateTripQuery,
+        UpdateTripQueryVariables
+    >(
         `${TRANSIT_HOST_OTP2}/graphql`,
-        query,
+        UPDATE_TRIP_QUERY,
         {
             id,
             date,
@@ -99,7 +57,7 @@ async function getCallsForServiceJourney(
         return Promise.reject('No service journey found')
     }
 
-    return data.serviceJourney.estimatedCalls
+    return data.serviceJourney.estimatedCalls.filter(isNotNullOrUndefined)
 }
 
 function createIsSameCallPredicate(

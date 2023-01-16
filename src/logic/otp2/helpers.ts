@@ -11,8 +11,8 @@ import { v4 as uuid } from 'uuid'
 
 import {
     Authority,
+    EstimatedCall,
     GraphqlQuery,
-    IntermediateEstimatedCall,
     Leg,
     Metadata,
     Notice,
@@ -25,7 +25,7 @@ import { GetTripPatternsQueryVariables } from '../../generated/graphql'
 import { parseLeg } from '../../utils/leg'
 import { isNotNullOrUndefined } from '../../utils/misc'
 
-import JOURNEY_PLANNER_QUERY from './query'
+import JOURNEY_PLANNER_QUERY from './queries/getTripPatterns.query'
 
 export function getQueryVariables({
     numTripPatterns,
@@ -261,7 +261,7 @@ function uniqBy<T, K>(arr: T[], getKey: (arg: T) => K): T[] {
 }
 
 function getNoticesFromIntermediateEstimatedCalls(
-    estimatedCalls: IntermediateEstimatedCall[],
+    estimatedCalls: EstimatedCall[],
 ): Notice[] {
     if (!estimatedCalls?.length) return []
     return estimatedCalls
