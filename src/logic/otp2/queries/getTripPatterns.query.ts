@@ -36,6 +36,7 @@ export default gql`
         $searchWindow: Int
         $walkReluctance: Float
         $waitReluctance: Float
+        $relaxTransitSearchGeneralizedCostAtDestination: Float
     ) {
         trip(
             numTripPatterns: $numTripPatterns
@@ -54,6 +55,7 @@ export default gql`
             searchWindow: $searchWindow
             walkReluctance: $walkReluctance
             waitReluctance: $waitReluctance
+            relaxTransitSearchGeneralizedCostAtDestination: $relaxTransitSearchGeneralizedCostAtDestination
         ) {
             metadata {
                 searchWindowUsed

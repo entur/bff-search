@@ -44,6 +44,8 @@ interface DevParams {
     walkReluctance?: number
     waitReluctance?: number
     transferPenalty?: number
+    searchWindow?: number
+    relaxTransitSearchGeneralizedCostAtDestination?: number
 }
 
 /**
