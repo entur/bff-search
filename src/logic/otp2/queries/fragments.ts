@@ -177,6 +177,10 @@ export const situationsFields = gql`
             uri
             label
         }
+        stopPlaces {
+            id
+            name
+        }
     }
 `
 

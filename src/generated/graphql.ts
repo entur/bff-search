@@ -16,13 +16,27 @@ export type Scalars = {
     Boolean: boolean
     Int: number
     Float: number
+    /** List of coordinates like: [[60.89, 11.12], [62.56, 12.10]] */
     Coordinates: Array<[lat: number, lon: number]>
+    /** Local date using the ISO 8601 format: `YYYY-MM-DD`. Example: `2020-05-17`. */
     Date: string
+    /**
+     * DateTime format accepting ISO 8601 dates with time zone offset.
+     *
+     * Format:  `YYYY-MM-DD'T'hh:mm[:ss](Z|±01:00)`
+     *
+     * Example: `2017-04-23T18:25:43+02:00` or `2017-04-23T16:25:43Z`
+     */
     DateTime: string
+    /** A linear function to calculate a value(y) based on a parameter (x): `y = f(x) = a + bx`. It allows setting both a constant(a) and a coefficient(b) and the use those in the computation. Format: `a + b x`. Example: `1800 + 2.0 x` */
     DoubleFunction: string
+    /** Duration in a lenient ISO-8601 duration format. Example P2DT2H12M40S, 2d2h12m40s or 1h */
     Duration: number
+    /** Time using the format: HH:mm:SS. Example: 18:25:SS */
     LocalTime: string
+    /** A 64-bit signed integer */
     Long: number
+    /** Time using the format: `HH:MM:SS`. Example: `18:25:43` */
     Time: string
 }
 
@@ -379,7 +393,7 @@ export type ItineraryFilters = {
     groupSimilarityKeepThree: InputMaybe<Scalars['Float']>
     /** Of the itineraries grouped to maximum of three itineraries, how much worse can the non-grouped legs be compared to the lowest cost. 2.0 means that they can be double the cost, and any itineraries having a higher cost will be filtered. Default value is 2.0, use a value lower than 1.0 to turn off */
     groupedOtherThanSameLegsMaxCostMultiplier: InputMaybe<Scalars['Float']>
-    /** Set a relative limit for all transit itineraries. The limit is calculated based on the transit itinerary generalized-cost and the time between itineraries Itineraries without transit legs are excluded from this filter. Example: costLimitFunction(x) = 3600 + 2.0 x and intervalRelaxFactor = 0.5. If the lowest cost returned is 10 000, then the limit is set to: 3 600 + 2 * 10 000 = 26 600 plus half of the time between either departure or arrival times of the itinerary. Default: {"costLimitFunction": 900.0 + 1.5 x, "intervalRelaxFactor": 0.4} */
+    /** Set a relative limit for all transit itineraries. The limit is calculated based on the transit itinerary generalized-cost and the time between itineraries Itineraries without transit legs are excluded from this filter. Example: costLimitFunction(x) = 3600 + 2.0 x and intervalRelaxFactor = 0.5. If the lowest cost returned is 10 000, then the limit is set to: 3 600 + 2 * 10 000 = 26 600 plus half of the time between either departure or arrival times of the itinerary. Default: {"costLimitFunction": 900.0 + 1.5 x, "intervalRelaxFactor": 0.75} */
     transitGeneralizedCostLimit: InputMaybe<TransitGeneralizedCostFilterParams>
 }
 
@@ -1952,6 +1966,11 @@ export type LegFieldsFragment = {
                     uri: string
                     label: string | null
                 }> | null
+                stopPlaces: Array<{
+                    __typename?: 'StopPlace'
+                    id: string
+                    name: string
+                }>
             }>
             stopPlace: {
                 __typename?: 'StopPlace'
@@ -2032,6 +2051,11 @@ export type LegFieldsFragment = {
                     uri: string
                     label: string | null
                 }> | null
+                stopPlaces: Array<{
+                    __typename?: 'StopPlace'
+                    id: string
+                    name: string
+                }>
             }>
             stopPlace: {
                 __typename?: 'StopPlace'
@@ -2129,6 +2153,11 @@ export type LegFieldsFragment = {
                     uri: string
                     label: string | null
                 }> | null
+                stopPlaces: Array<{
+                    __typename?: 'StopPlace'
+                    id: string
+                    name: string
+                }>
             }>
             stopPlace: {
                 __typename?: 'StopPlace'
@@ -2272,6 +2301,11 @@ export type LegFieldsFragment = {
             uri: string
             label: string | null
         }> | null
+        stopPlaces: Array<{
+            __typename?: 'StopPlace'
+            id: string
+            name: string
+        }>
     }>
     toEstimatedCall: {
         __typename?: 'EstimatedCall'
@@ -2329,6 +2363,11 @@ export type LegFieldsFragment = {
                     uri: string
                     label: string | null
                 }> | null
+                stopPlaces: Array<{
+                    __typename?: 'StopPlace'
+                    id: string
+                    name: string
+                }>
             }>
             stopPlace: {
                 __typename?: 'StopPlace'
@@ -2409,6 +2448,11 @@ export type LegFieldsFragment = {
                     uri: string
                     label: string | null
                 }> | null
+                stopPlaces: Array<{
+                    __typename?: 'StopPlace'
+                    id: string
+                    name: string
+                }>
             }>
             stopPlace: {
                 __typename?: 'StopPlace'
@@ -2536,6 +2580,11 @@ export type PlaceFieldsFragment = {
                 uri: string
                 label: string | null
             }> | null
+            stopPlaces: Array<{
+                __typename?: 'StopPlace'
+                id: string
+                name: string
+            }>
         }>
         stopPlace: {
             __typename?: 'StopPlace'
@@ -2594,6 +2643,11 @@ export type QuayFieldsFragment = {
             uri: string
             label: string | null
         }> | null
+        stopPlaces: Array<{
+            __typename?: 'StopPlace'
+            id: string
+            name: string
+        }>
     }>
     stopPlace: {
         __typename?: 'StopPlace'
@@ -2635,6 +2689,7 @@ export type SituationFieldsFragment = {
         uri: string
         label: string | null
     }> | null
+    stopPlaces: Array<{ __typename?: 'StopPlace'; id: string; name: string }>
 }
 
 export type StopPlaceFieldsFragment = {
@@ -2766,6 +2821,11 @@ export type EstimatedCallFieldsFragment = {
                 uri: string
                 label: string | null
             }> | null
+            stopPlaces: Array<{
+                __typename?: 'StopPlace'
+                id: string
+                name: string
+            }>
         }>
         stopPlace: {
             __typename?: 'StopPlace'
@@ -2909,6 +2969,11 @@ export type GetLegQuery = {
                         uri: string
                         label: string | null
                     }> | null
+                    stopPlaces: Array<{
+                        __typename?: 'StopPlace'
+                        id: string
+                        name: string
+                    }>
                 }>
                 stopPlace: {
                     __typename?: 'StopPlace'
@@ -2992,6 +3057,11 @@ export type GetLegQuery = {
                         uri: string
                         label: string | null
                     }> | null
+                    stopPlaces: Array<{
+                        __typename?: 'StopPlace'
+                        id: string
+                        name: string
+                    }>
                 }>
                 stopPlace: {
                     __typename?: 'StopPlace'
@@ -3101,6 +3171,11 @@ export type GetLegQuery = {
                         uri: string
                         label: string | null
                     }> | null
+                    stopPlaces: Array<{
+                        __typename?: 'StopPlace'
+                        id: string
+                        name: string
+                    }>
                 }>
                 stopPlace: {
                     __typename?: 'StopPlace'
@@ -3250,6 +3325,11 @@ export type GetLegQuery = {
                 uri: string
                 label: string | null
             }> | null
+            stopPlaces: Array<{
+                __typename?: 'StopPlace'
+                id: string
+                name: string
+            }>
         }>
         toEstimatedCall: {
             __typename?: 'EstimatedCall'
@@ -3307,6 +3387,11 @@ export type GetLegQuery = {
                         uri: string
                         label: string | null
                     }> | null
+                    stopPlaces: Array<{
+                        __typename?: 'StopPlace'
+                        id: string
+                        name: string
+                    }>
                 }>
                 stopPlace: {
                     __typename?: 'StopPlace'
@@ -3390,6 +3475,11 @@ export type GetLegQuery = {
                         uri: string
                         label: string | null
                     }> | null
+                    stopPlaces: Array<{
+                        __typename?: 'StopPlace'
+                        id: string
+                        name: string
+                    }>
                 }>
                 stopPlace: {
                     __typename?: 'StopPlace'
@@ -3563,6 +3653,11 @@ export type GetTripPatternsQuery = {
                                 uri: string
                                 label: string | null
                             }> | null
+                            stopPlaces: Array<{
+                                __typename?: 'StopPlace'
+                                id: string
+                                name: string
+                            }>
                         }>
                         stopPlace: {
                             __typename?: 'StopPlace'
@@ -3649,6 +3744,11 @@ export type GetTripPatternsQuery = {
                                 uri: string
                                 label: string | null
                             }> | null
+                            stopPlaces: Array<{
+                                __typename?: 'StopPlace'
+                                id: string
+                                name: string
+                            }>
                         }>
                         stopPlace: {
                             __typename?: 'StopPlace'
@@ -3761,6 +3861,11 @@ export type GetTripPatternsQuery = {
                                 uri: string
                                 label: string | null
                             }> | null
+                            stopPlaces: Array<{
+                                __typename?: 'StopPlace'
+                                id: string
+                                name: string
+                            }>
                         }>
                         stopPlace: {
                             __typename?: 'StopPlace'
@@ -3928,6 +4033,11 @@ export type GetTripPatternsQuery = {
                         uri: string
                         label: string | null
                     }> | null
+                    stopPlaces: Array<{
+                        __typename?: 'StopPlace'
+                        id: string
+                        name: string
+                    }>
                 }>
                 toEstimatedCall: {
                     __typename?: 'EstimatedCall'
@@ -3988,6 +4098,11 @@ export type GetTripPatternsQuery = {
                                 uri: string
                                 label: string | null
                             }> | null
+                            stopPlaces: Array<{
+                                __typename?: 'StopPlace'
+                                id: string
+                                name: string
+                            }>
                         }>
                         stopPlace: {
                             __typename?: 'StopPlace'
@@ -4074,6 +4189,11 @@ export type GetTripPatternsQuery = {
                                 uri: string
                                 label: string | null
                             }> | null
+                            stopPlaces: Array<{
+                                __typename?: 'StopPlace'
+                                id: string
+                                name: string
+                            }>
                         }>
                         stopPlace: {
                             __typename?: 'StopPlace'
