@@ -3538,6 +3538,9 @@ export type GetTripPatternsQueryVariables = Exact<{
     searchWindow?: InputMaybe<Scalars['Int']>
     walkReluctance?: InputMaybe<Scalars['Float']>
     waitReluctance?: InputMaybe<Scalars['Float']>
+    relaxTransitSearchGeneralizedCostAtDestination?: InputMaybe<
+        Scalars['Float']
+    >
 }>
 
 export type GetTripPatternsQuery = {
