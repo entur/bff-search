@@ -86,18 +86,7 @@ router.post<
 >('/', verifyPartnerToken, async (req, res, next) => {
     try {
         const { tripPattern, searchParams } = req.body
-
-        if (!tripPattern) {
-            throw new InvalidArgumentError(
-                'Found no `tripPattern` key in body.',
-            )
-        }
-
-        if (typeof tripPattern !== 'object') {
-            throw new InvalidArgumentError(
-                `\`tripPattern\` is invalid. Expected an object, got ${typeof tripPattern}`,
-            )
-        }
+        assertIsTripPattern(tripPattern)
 
         const tripPatternId = tripPattern.id || uuid()
         const searchParamsId = deriveSearchParamsId(tripPatternId)
@@ -122,6 +111,26 @@ router.post<
         next(error)
     }
 })
+
+function assertIsTripPattern(tripPattern?: unknown): void {
+    if (!tripPattern) {
+        throw new InvalidArgumentError('Found no `tripPattern` key in body.')
+    }
+
+    if (typeof tripPattern !== 'object') {
+        throw new InvalidArgumentError(
+            `\`tripPattern\` is invalid. Expected an object, got ${typeof tripPattern}`,
+        )
+    }
+
+    if (
+        !('expectedStartTime' in tripPattern) ||
+        !('expectedEndTime' in tripPattern) ||
+        !('legs' in tripPattern)
+    ) {
+        throw new InvalidArgumentError(`\`tripPattern\` is invalid`)
+    }
+}
 
 router.post<'/replace-leg/:id', { id: string }>(
     '/replace-leg/:id',
@@ -237,4 +246,26 @@ router.post<'/replace-trip-pattern', { id: string }>(
     },
 )
 
+router.post<
+    '/update',
+    Record<string, never>,
+    { tripPattern: TripPatternParsed },
+    { tripPattern: TripPatternParsed }
+>('/update', async (req, res, next) => {
+    try {
+        const { tripPattern } = req.body
+        assertIsTripPattern(tripPattern)
+
+        const extraHeaders = getHeadersFromClient(req)
+
+        const updatedTripPattern = await updateTripPattern(
+            tripPattern,
+            extraHeaders,
+        )
+
+        res.json({ tripPattern: { ...updatedTripPattern, id: tripPattern.id } })
+    } catch (error) {
+        next(error)
+    }
+})
 export default router
