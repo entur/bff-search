@@ -114,6 +114,7 @@ function updateEstimatedCall(
         aimedArrivalTime,
         actualArrivalTime,
         actualDepartureTime,
+        cancellation,
     } = updatedCall
 
     return {
@@ -126,6 +127,7 @@ function updateEstimatedCall(
         actualArrivalTime,
         aimedArrivalTime,
         expectedArrivalTime,
+        cancellation,
     }
 }
 interface UpdatedCalls {
