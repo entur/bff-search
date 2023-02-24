@@ -308,6 +308,7 @@ export const updatedEstimatedCallFields = gql`
             }
         }
         realtime
+        cancellation
         predictionInaccurate
         expectedArrivalTime
         expectedDepartureTime
