@@ -49,7 +49,7 @@ jobs:
             - image: google/cloud-sdk
         steps:
             - attach_workspace:
-                  at: workdir/workdir
+                  at: workdir
             - run:
                   name: Set gcloud Auth
                   command: |
