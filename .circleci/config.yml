@@ -61,7 +61,7 @@ jobs:
             - run:
                   name: Upload type defs to GCP bucket
                   command: |
-                      gsutil cp typeDeclarations.tar.gz "gs://<< parameters.project >>-bff-search-types/"
+                      gsutil cp typeDeclarations.tar.gz gs://<< parameters.project >>-bff-search-types/
             - run:
                   name: Deploy to Google App Engine
                   command: |
