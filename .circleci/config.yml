@@ -12,7 +12,6 @@ jobs:
         steps:
             - checkout
             - run: sudo npm install --global npm@8.3.0
-
             - run: npm ci
             - run: npm run ts
             - run: npm run lint
@@ -50,7 +49,7 @@ jobs:
             - image: google/cloud-sdk
         steps:
             - attach_workspace:
-                  at: workdir
+                  at: .
             - run:
                   name: Set gcloud Auth
                   command: |
