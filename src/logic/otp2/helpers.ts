@@ -66,7 +66,7 @@ export function getQueryVariables({
         transferPenalty: debugTransferPenalty || transferPenalty,
         searchWindow: searchWindow || undefined,
         relaxTransitSearchGeneralizedCostAtDestination:
-            debugRelaxTransitSearchGeneralizedCostAtDestination || -1,
+            debugRelaxTransitSearchGeneralizedCostAtDestination || undefined,
         debugItineraryFilter,
     }
 }
