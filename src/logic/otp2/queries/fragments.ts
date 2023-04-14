@@ -48,6 +48,7 @@ export const legFields = gql`
         realtime
         ride
         rentedBike
+        serviceDate
         serviceJourney {
             ...serviceJourneyFields
         }
