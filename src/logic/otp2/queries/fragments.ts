@@ -48,6 +48,7 @@ export const legFields = gql`
         realtime
         ride
         rentedBike
+        serviceDate
         serviceJourney {
             ...serviceJourneyFields
         }
@@ -180,6 +181,15 @@ export const situationsFields = gql`
         stopPlaces {
             id
             name
+        }
+        affects {
+            ... on AffectedStopPlace {
+                stopPlace {
+                    id
+                    name
+                }
+                stopConditions
+            }
         }
     }
 `
