@@ -2092,6 +2092,22 @@ export type LegFieldsFragment = {
                     id: string
                     name: string
                 }>
+                affects: Array<
+                    | { __typename?: 'AffectedLine' }
+                    | { __typename?: 'AffectedServiceJourney' }
+                    | {
+                          __typename?: 'AffectedStopPlace'
+                          stopConditions: Array<StopCondition>
+                          stopPlace: {
+                              __typename?: 'StopPlace'
+                              id: string
+                              name: string
+                          } | null
+                      }
+                    | { __typename?: 'AffectedStopPlaceOnLine' }
+                    | { __typename?: 'AffectedStopPlaceOnServiceJourney' }
+                    | { __typename?: 'AffectedUnknown' }
+                >
             }>
             stopPlace: {
                 __typename?: 'StopPlace'
@@ -2177,6 +2193,22 @@ export type LegFieldsFragment = {
                     id: string
                     name: string
                 }>
+                affects: Array<
+                    | { __typename?: 'AffectedLine' }
+                    | { __typename?: 'AffectedServiceJourney' }
+                    | {
+                          __typename?: 'AffectedStopPlace'
+                          stopConditions: Array<StopCondition>
+                          stopPlace: {
+                              __typename?: 'StopPlace'
+                              id: string
+                              name: string
+                          } | null
+                      }
+                    | { __typename?: 'AffectedStopPlaceOnLine' }
+                    | { __typename?: 'AffectedStopPlaceOnServiceJourney' }
+                    | { __typename?: 'AffectedUnknown' }
+                >
             }>
             stopPlace: {
                 __typename?: 'StopPlace'
@@ -2279,6 +2311,22 @@ export type LegFieldsFragment = {
                     id: string
                     name: string
                 }>
+                affects: Array<
+                    | { __typename?: 'AffectedLine' }
+                    | { __typename?: 'AffectedServiceJourney' }
+                    | {
+                          __typename?: 'AffectedStopPlace'
+                          stopConditions: Array<StopCondition>
+                          stopPlace: {
+                              __typename?: 'StopPlace'
+                              id: string
+                              name: string
+                          } | null
+                      }
+                    | { __typename?: 'AffectedStopPlaceOnLine' }
+                    | { __typename?: 'AffectedStopPlaceOnServiceJourney' }
+                    | { __typename?: 'AffectedUnknown' }
+                >
             }>
             stopPlace: {
                 __typename?: 'StopPlace'
@@ -2427,6 +2475,22 @@ export type LegFieldsFragment = {
             id: string
             name: string
         }>
+        affects: Array<
+            | { __typename?: 'AffectedLine' }
+            | { __typename?: 'AffectedServiceJourney' }
+            | {
+                  __typename?: 'AffectedStopPlace'
+                  stopConditions: Array<StopCondition>
+                  stopPlace: {
+                      __typename?: 'StopPlace'
+                      id: string
+                      name: string
+                  } | null
+              }
+            | { __typename?: 'AffectedStopPlaceOnLine' }
+            | { __typename?: 'AffectedStopPlaceOnServiceJourney' }
+            | { __typename?: 'AffectedUnknown' }
+        >
     }>
     toEstimatedCall: {
         __typename?: 'EstimatedCall'
@@ -2489,6 +2553,22 @@ export type LegFieldsFragment = {
                     id: string
                     name: string
                 }>
+                affects: Array<
+                    | { __typename?: 'AffectedLine' }
+                    | { __typename?: 'AffectedServiceJourney' }
+                    | {
+                          __typename?: 'AffectedStopPlace'
+                          stopConditions: Array<StopCondition>
+                          stopPlace: {
+                              __typename?: 'StopPlace'
+                              id: string
+                              name: string
+                          } | null
+                      }
+                    | { __typename?: 'AffectedStopPlaceOnLine' }
+                    | { __typename?: 'AffectedStopPlaceOnServiceJourney' }
+                    | { __typename?: 'AffectedUnknown' }
+                >
             }>
             stopPlace: {
                 __typename?: 'StopPlace'
@@ -2574,6 +2654,22 @@ export type LegFieldsFragment = {
                     id: string
                     name: string
                 }>
+                affects: Array<
+                    | { __typename?: 'AffectedLine' }
+                    | { __typename?: 'AffectedServiceJourney' }
+                    | {
+                          __typename?: 'AffectedStopPlace'
+                          stopConditions: Array<StopCondition>
+                          stopPlace: {
+                              __typename?: 'StopPlace'
+                              id: string
+                              name: string
+                          } | null
+                      }
+                    | { __typename?: 'AffectedStopPlaceOnLine' }
+                    | { __typename?: 'AffectedStopPlaceOnServiceJourney' }
+                    | { __typename?: 'AffectedUnknown' }
+                >
             }>
             stopPlace: {
                 __typename?: 'StopPlace'
@@ -2706,6 +2802,22 @@ export type PlaceFieldsFragment = {
                 id: string
                 name: string
             }>
+            affects: Array<
+                | { __typename?: 'AffectedLine' }
+                | { __typename?: 'AffectedServiceJourney' }
+                | {
+                      __typename?: 'AffectedStopPlace'
+                      stopConditions: Array<StopCondition>
+                      stopPlace: {
+                          __typename?: 'StopPlace'
+                          id: string
+                          name: string
+                      } | null
+                  }
+                | { __typename?: 'AffectedStopPlaceOnLine' }
+                | { __typename?: 'AffectedStopPlaceOnServiceJourney' }
+                | { __typename?: 'AffectedUnknown' }
+            >
         }>
         stopPlace: {
             __typename?: 'StopPlace'
@@ -2769,6 +2881,22 @@ export type QuayFieldsFragment = {
             id: string
             name: string
         }>
+        affects: Array<
+            | { __typename?: 'AffectedLine' }
+            | { __typename?: 'AffectedServiceJourney' }
+            | {
+                  __typename?: 'AffectedStopPlace'
+                  stopConditions: Array<StopCondition>
+                  stopPlace: {
+                      __typename?: 'StopPlace'
+                      id: string
+                      name: string
+                  } | null
+              }
+            | { __typename?: 'AffectedStopPlaceOnLine' }
+            | { __typename?: 'AffectedStopPlaceOnServiceJourney' }
+            | { __typename?: 'AffectedUnknown' }
+        >
     }>
     stopPlace: {
         __typename?: 'StopPlace'
@@ -2811,6 +2939,22 @@ export type SituationFieldsFragment = {
         label: string | null
     }> | null
     stopPlaces: Array<{ __typename?: 'StopPlace'; id: string; name: string }>
+    affects: Array<
+        | { __typename?: 'AffectedLine' }
+        | { __typename?: 'AffectedServiceJourney' }
+        | {
+              __typename?: 'AffectedStopPlace'
+              stopConditions: Array<StopCondition>
+              stopPlace: {
+                  __typename?: 'StopPlace'
+                  id: string
+                  name: string
+              } | null
+          }
+        | { __typename?: 'AffectedStopPlaceOnLine' }
+        | { __typename?: 'AffectedStopPlaceOnServiceJourney' }
+        | { __typename?: 'AffectedUnknown' }
+    >
 }
 
 export type StopPlaceFieldsFragment = {
@@ -2947,6 +3091,22 @@ export type EstimatedCallFieldsFragment = {
                 id: string
                 name: string
             }>
+            affects: Array<
+                | { __typename?: 'AffectedLine' }
+                | { __typename?: 'AffectedServiceJourney' }
+                | {
+                      __typename?: 'AffectedStopPlace'
+                      stopConditions: Array<StopCondition>
+                      stopPlace: {
+                          __typename?: 'StopPlace'
+                          id: string
+                          name: string
+                      } | null
+                  }
+                | { __typename?: 'AffectedStopPlaceOnLine' }
+                | { __typename?: 'AffectedStopPlaceOnServiceJourney' }
+                | { __typename?: 'AffectedUnknown' }
+            >
         }>
         stopPlace: {
             __typename?: 'StopPlace'
@@ -3097,6 +3257,22 @@ export type GetLegQuery = {
                         id: string
                         name: string
                     }>
+                    affects: Array<
+                        | { __typename?: 'AffectedLine' }
+                        | { __typename?: 'AffectedServiceJourney' }
+                        | {
+                              __typename?: 'AffectedStopPlace'
+                              stopConditions: Array<StopCondition>
+                              stopPlace: {
+                                  __typename?: 'StopPlace'
+                                  id: string
+                                  name: string
+                              } | null
+                          }
+                        | { __typename?: 'AffectedStopPlaceOnLine' }
+                        | { __typename?: 'AffectedStopPlaceOnServiceJourney' }
+                        | { __typename?: 'AffectedUnknown' }
+                    >
                 }>
                 stopPlace: {
                     __typename?: 'StopPlace'
@@ -3185,6 +3361,22 @@ export type GetLegQuery = {
                         id: string
                         name: string
                     }>
+                    affects: Array<
+                        | { __typename?: 'AffectedLine' }
+                        | { __typename?: 'AffectedServiceJourney' }
+                        | {
+                              __typename?: 'AffectedStopPlace'
+                              stopConditions: Array<StopCondition>
+                              stopPlace: {
+                                  __typename?: 'StopPlace'
+                                  id: string
+                                  name: string
+                              } | null
+                          }
+                        | { __typename?: 'AffectedStopPlaceOnLine' }
+                        | { __typename?: 'AffectedStopPlaceOnServiceJourney' }
+                        | { __typename?: 'AffectedUnknown' }
+                    >
                 }>
                 stopPlace: {
                     __typename?: 'StopPlace'
@@ -3299,6 +3491,22 @@ export type GetLegQuery = {
                         id: string
                         name: string
                     }>
+                    affects: Array<
+                        | { __typename?: 'AffectedLine' }
+                        | { __typename?: 'AffectedServiceJourney' }
+                        | {
+                              __typename?: 'AffectedStopPlace'
+                              stopConditions: Array<StopCondition>
+                              stopPlace: {
+                                  __typename?: 'StopPlace'
+                                  id: string
+                                  name: string
+                              } | null
+                          }
+                        | { __typename?: 'AffectedStopPlaceOnLine' }
+                        | { __typename?: 'AffectedStopPlaceOnServiceJourney' }
+                        | { __typename?: 'AffectedUnknown' }
+                    >
                 }>
                 stopPlace: {
                     __typename?: 'StopPlace'
@@ -3453,6 +3661,22 @@ export type GetLegQuery = {
                 id: string
                 name: string
             }>
+            affects: Array<
+                | { __typename?: 'AffectedLine' }
+                | { __typename?: 'AffectedServiceJourney' }
+                | {
+                      __typename?: 'AffectedStopPlace'
+                      stopConditions: Array<StopCondition>
+                      stopPlace: {
+                          __typename?: 'StopPlace'
+                          id: string
+                          name: string
+                      } | null
+                  }
+                | { __typename?: 'AffectedStopPlaceOnLine' }
+                | { __typename?: 'AffectedStopPlaceOnServiceJourney' }
+                | { __typename?: 'AffectedUnknown' }
+            >
         }>
         toEstimatedCall: {
             __typename?: 'EstimatedCall'
@@ -3515,6 +3739,22 @@ export type GetLegQuery = {
                         id: string
                         name: string
                     }>
+                    affects: Array<
+                        | { __typename?: 'AffectedLine' }
+                        | { __typename?: 'AffectedServiceJourney' }
+                        | {
+                              __typename?: 'AffectedStopPlace'
+                              stopConditions: Array<StopCondition>
+                              stopPlace: {
+                                  __typename?: 'StopPlace'
+                                  id: string
+                                  name: string
+                              } | null
+                          }
+                        | { __typename?: 'AffectedStopPlaceOnLine' }
+                        | { __typename?: 'AffectedStopPlaceOnServiceJourney' }
+                        | { __typename?: 'AffectedUnknown' }
+                    >
                 }>
                 stopPlace: {
                     __typename?: 'StopPlace'
@@ -3603,6 +3843,22 @@ export type GetLegQuery = {
                         id: string
                         name: string
                     }>
+                    affects: Array<
+                        | { __typename?: 'AffectedLine' }
+                        | { __typename?: 'AffectedServiceJourney' }
+                        | {
+                              __typename?: 'AffectedStopPlace'
+                              stopConditions: Array<StopCondition>
+                              stopPlace: {
+                                  __typename?: 'StopPlace'
+                                  id: string
+                                  name: string
+                              } | null
+                          }
+                        | { __typename?: 'AffectedStopPlaceOnLine' }
+                        | { __typename?: 'AffectedStopPlaceOnServiceJourney' }
+                        | { __typename?: 'AffectedUnknown' }
+                    >
                 }>
                 stopPlace: {
                     __typename?: 'StopPlace'
@@ -3785,6 +4041,24 @@ export type GetTripPatternsQuery = {
                                 id: string
                                 name: string
                             }>
+                            affects: Array<
+                                | { __typename?: 'AffectedLine' }
+                                | { __typename?: 'AffectedServiceJourney' }
+                                | {
+                                      __typename?: 'AffectedStopPlace'
+                                      stopConditions: Array<StopCondition>
+                                      stopPlace: {
+                                          __typename?: 'StopPlace'
+                                          id: string
+                                          name: string
+                                      } | null
+                                  }
+                                | { __typename?: 'AffectedStopPlaceOnLine' }
+                                | {
+                                      __typename?: 'AffectedStopPlaceOnServiceJourney'
+                                  }
+                                | { __typename?: 'AffectedUnknown' }
+                            >
                         }>
                         stopPlace: {
                             __typename?: 'StopPlace'
@@ -3876,6 +4150,24 @@ export type GetTripPatternsQuery = {
                                 id: string
                                 name: string
                             }>
+                            affects: Array<
+                                | { __typename?: 'AffectedLine' }
+                                | { __typename?: 'AffectedServiceJourney' }
+                                | {
+                                      __typename?: 'AffectedStopPlace'
+                                      stopConditions: Array<StopCondition>
+                                      stopPlace: {
+                                          __typename?: 'StopPlace'
+                                          id: string
+                                          name: string
+                                      } | null
+                                  }
+                                | { __typename?: 'AffectedStopPlaceOnLine' }
+                                | {
+                                      __typename?: 'AffectedStopPlaceOnServiceJourney'
+                                  }
+                                | { __typename?: 'AffectedUnknown' }
+                            >
                         }>
                         stopPlace: {
                             __typename?: 'StopPlace'
@@ -3993,6 +4285,24 @@ export type GetTripPatternsQuery = {
                                 id: string
                                 name: string
                             }>
+                            affects: Array<
+                                | { __typename?: 'AffectedLine' }
+                                | { __typename?: 'AffectedServiceJourney' }
+                                | {
+                                      __typename?: 'AffectedStopPlace'
+                                      stopConditions: Array<StopCondition>
+                                      stopPlace: {
+                                          __typename?: 'StopPlace'
+                                          id: string
+                                          name: string
+                                      } | null
+                                  }
+                                | { __typename?: 'AffectedStopPlaceOnLine' }
+                                | {
+                                      __typename?: 'AffectedStopPlaceOnServiceJourney'
+                                  }
+                                | { __typename?: 'AffectedUnknown' }
+                            >
                         }>
                         stopPlace: {
                             __typename?: 'StopPlace'
@@ -4165,6 +4475,22 @@ export type GetTripPatternsQuery = {
                         id: string
                         name: string
                     }>
+                    affects: Array<
+                        | { __typename?: 'AffectedLine' }
+                        | { __typename?: 'AffectedServiceJourney' }
+                        | {
+                              __typename?: 'AffectedStopPlace'
+                              stopConditions: Array<StopCondition>
+                              stopPlace: {
+                                  __typename?: 'StopPlace'
+                                  id: string
+                                  name: string
+                              } | null
+                          }
+                        | { __typename?: 'AffectedStopPlaceOnLine' }
+                        | { __typename?: 'AffectedStopPlaceOnServiceJourney' }
+                        | { __typename?: 'AffectedUnknown' }
+                    >
                 }>
                 toEstimatedCall: {
                     __typename?: 'EstimatedCall'
@@ -4230,6 +4556,24 @@ export type GetTripPatternsQuery = {
                                 id: string
                                 name: string
                             }>
+                            affects: Array<
+                                | { __typename?: 'AffectedLine' }
+                                | { __typename?: 'AffectedServiceJourney' }
+                                | {
+                                      __typename?: 'AffectedStopPlace'
+                                      stopConditions: Array<StopCondition>
+                                      stopPlace: {
+                                          __typename?: 'StopPlace'
+                                          id: string
+                                          name: string
+                                      } | null
+                                  }
+                                | { __typename?: 'AffectedStopPlaceOnLine' }
+                                | {
+                                      __typename?: 'AffectedStopPlaceOnServiceJourney'
+                                  }
+                                | { __typename?: 'AffectedUnknown' }
+                            >
                         }>
                         stopPlace: {
                             __typename?: 'StopPlace'
@@ -4321,6 +4665,24 @@ export type GetTripPatternsQuery = {
                                 id: string
                                 name: string
                             }>
+                            affects: Array<
+                                | { __typename?: 'AffectedLine' }
+                                | { __typename?: 'AffectedServiceJourney' }
+                                | {
+                                      __typename?: 'AffectedStopPlace'
+                                      stopConditions: Array<StopCondition>
+                                      stopPlace: {
+                                          __typename?: 'StopPlace'
+                                          id: string
+                                          name: string
+                                      } | null
+                                  }
+                                | { __typename?: 'AffectedStopPlaceOnLine' }
+                                | {
+                                      __typename?: 'AffectedStopPlaceOnServiceJourney'
+                                  }
+                                | { __typename?: 'AffectedUnknown' }
+                            >
                         }>
                         stopPlace: {
                             __typename?: 'StopPlace'

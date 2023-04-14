@@ -182,6 +182,15 @@ export const situationsFields = gql`
             id
             name
         }
+        affects {
+            ... on AffectedStopPlace {
+                stopPlace {
+                    id
+                    name
+                }
+                stopConditions
+            }
+        }
     }
 `
 
