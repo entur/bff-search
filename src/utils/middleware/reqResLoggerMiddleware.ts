@@ -76,6 +76,7 @@ function reqResLoggerMiddleware(
     })
 
     const originalResEnd = res.end
+    // @ts-ignore
     res.end = (chunk: any, ...rest: any[]) => {
         // @ts-ignore
         originalResEnd.call(res, chunk, ...rest)
