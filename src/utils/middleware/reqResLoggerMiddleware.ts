@@ -56,6 +56,7 @@ function reqHeadersMapper(req: Request): { [key: string]: string } {
         'Content-Type': req.get('Content-Type'),
         'User-Agent': req.get('User-Agent'),
         Origin: req.get('Origin'),
+        'X-Forwarded-For': req.get('X-Forwarded-For'),
     })
 }
 
