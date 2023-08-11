@@ -72,14 +72,9 @@ npm t
 
 ## 🚢 Deploy
 
-```
-npm run deploy // dev is the default
-npm run deploy dev
-npm run deploy staging
-npm run deploy prod
-```
+Deploy is done from CircleCI:
 
-This will deploy the app to **gcloud**.
+https://app.circleci.com/pipelines/github/entur/bff-search
 
 ---
 
@@ -95,6 +90,22 @@ npm run apigee prod
 This will deploy the app to **Apigee**.
 
 ❗Please note that, when deploying to `staging` or `prod`, the script will deploy the version (revision) that is currently running on `dev`. So, if you have made any new changes to the api endpoints **ALWAYS** deploy to `dev` first!
+
+### Headers + CORS
+
+New request headers must be whitelisted before they can be used, or the request will
+be blocked by the user's browser.
+
+Edit
+
+`api/client-search/apiproxy/policies/assignMessage.addCors.xml`
+
+Add your header to
+
+`<Header name="Access-Control-Allow-Headers">`
+
+PS: CORS checks are only done by the web client, the App does not
+attempt to check headers, so use the web client when testing new headers!
 
 ### GUI
 
