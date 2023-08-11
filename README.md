@@ -96,13 +96,13 @@ This will deploy the app to **Apigee**.
 New request headers must be whitelisted before they can be used, or the request will
 be blocked by the user's browser.
 
-Edit 
+Edit
 
-```api/client-search/apiproxy/policies/assignMessage.addCors.xml```
+`api/client-search/apiproxy/policies/assignMessage.addCors.xml`
 
 Add your header to
 
-```<Header name="Access-Control-Allow-Headers">```
+`<Header name="Access-Control-Allow-Headers">`
 
 PS: CORS checks are only done by the web client, the App does not
 attempt to check headers, so use the web client when testing new headers!

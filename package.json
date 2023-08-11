@@ -11,9 +11,11 @@
     "scripts": {
         "start": "node dist/server.js",
         "test": "jest && npm run unused-exports",
-        "lint": "eslint . --ext .js,.jsx,.ts,.tsx && npm run format:check",
+        "lint": "npm run eslint && npm run format:check",
+        "lintfix": "npm run eslint --fix && npm run format",
         "format": "prettier . --write",
         "format:check": "prettier . --check",
+        "eslint": "eslint . --ext .js,.jsx,.ts,.tsx",
         "ts": "tsc --noEmit && tsc -p scripts/tsconfig.json",
         "debug": "./scripts/debug.sh",
         "build": "./scripts/build.sh",
