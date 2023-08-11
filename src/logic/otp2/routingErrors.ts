@@ -9,7 +9,6 @@ import { getTripPatternsQuery } from './helpers'
 // There is no point in continuing the search if any of these routing errors
 // are received
 const HOPELESS_ROUTING_ERRORS = [
-    RoutingErrorCode.NoTransitConnection,
     RoutingErrorCode.OutsideServicePeriod,
     RoutingErrorCode.OutsideBounds,
     RoutingErrorCode.LocationNotFound,

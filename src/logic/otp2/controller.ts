@@ -49,7 +49,6 @@ export async function searchTransit(
     extraHeaders: { [key: string]: string },
 ): Promise<TransitTripPatterns> {
     const { searchDate, arriveBy } = searchParams
-
     const getTripPatternsParams = getQueryVariables(searchParams)
 
     // We do two searches in parallel here to speed things up a bit. One is a
@@ -72,6 +71,7 @@ export async function searchTransit(
     // If the normal search failed with a hopeless error, indicating we shouldn't
     // continue with normal searches, we may still have a flexible result.
     // If so, return that instead of aborting by throwing an exception
+
     if (hasHopelessRoutingError(routingErrors)) {
         if (flexibleResults?.tripPatterns?.length) {
             return {
@@ -98,28 +98,20 @@ export async function searchTransit(
     const noStopsInRangeErrorsOrNoTransitConnectionErrors =
         routingErrors.filter(
             ({ code }) =>
-                code ===
-                (RoutingErrorCode.NoStopsInRange ||
-                    RoutingErrorCode.NoTransitConnection),
+                code === RoutingErrorCode.NoStopsInRange ||
+                code === RoutingErrorCode.NoTransitConnection,
         )
+
     const hasStopsInRange =
         noStopsInRangeErrorsOrNoTransitConnectionErrors.length === 0
+
     let taxiTripPatterns: TripPatternParsed[] = []
     if (!hasStopsInRange) {
-        const noFromStopOrTransitConnectionInRange =
-            noStopsInRangeErrorsOrNoTransitConnectionErrors.some(
-                (e) => e.inputField === 'from',
-            )
-        const noToStopOrTransitConnectionInRange =
-            noStopsInRangeErrorsOrNoTransitConnectionErrors.some(
-                (e) => e.inputField === 'to',
-            )
-
         const taxiResults = await searchTaxiFrontBack(
             getQueryVariables(searchParams),
             {
-                access: noFromStopOrTransitConnectionInRange,
-                egress: noToStopOrTransitConnectionInRange,
+                access: true,
+                egress: true,
             },
             extraHeaders,
         )
