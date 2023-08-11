@@ -92,27 +92,34 @@ export async function searchTransit(
         isValidTransitAlternative,
     )
 
-    // If we have any noStopsInRange errors, we couldn't find a means of
+    // If we have any noStopsInRange or noTransitConnection errors, we couldn't find a means of
     // transport from where the traveler wants to start or end the trip. Try to
     // find an option using taxi for those parts instead.
-    const noStopsInRangeErrors = routingErrors.filter(
-        ({ code }) => code === RoutingErrorCode.NoStopsInRange,
-    )
-    const hasStopsInRange = noStopsInRangeErrors.length === 0
+    const noStopsInRangeErrorsOrNoTransitConnectionErrors =
+        routingErrors.filter(
+            ({ code }) =>
+                code ===
+                (RoutingErrorCode.NoStopsInRange ||
+                    RoutingErrorCode.NoTransitConnection),
+        )
+    const hasStopsInRange =
+        noStopsInRangeErrorsOrNoTransitConnectionErrors.length === 0
     let taxiTripPatterns: TripPatternParsed[] = []
     if (!hasStopsInRange) {
-        const noFromStopInRange = noStopsInRangeErrors.some(
-            (e) => e.inputField === 'from',
-        )
-        const noToStopInRange = noStopsInRangeErrors.some(
-            (e) => e.inputField === 'to',
-        )
+        const noFromStopOrTransitConnectionInRange =
+            noStopsInRangeErrorsOrNoTransitConnectionErrors.some(
+                (e) => e.inputField === 'from',
+            )
+        const noToStopOrTransitConnectionInRange =
+            noStopsInRangeErrorsOrNoTransitConnectionErrors.some(
+                (e) => e.inputField === 'to',
+            )
 
         const taxiResults = await searchTaxiFrontBack(
             getQueryVariables(searchParams),
             {
-                access: noFromStopInRange,
-                egress: noToStopInRange,
+                access: noFromStopOrTransitConnectionInRange,
+                egress: noToStopOrTransitConnectionInRange,
             },
             extraHeaders,
         )
