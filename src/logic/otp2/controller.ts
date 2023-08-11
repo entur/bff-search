@@ -49,7 +49,6 @@ export async function searchTransit(
     extraHeaders: { [key: string]: string },
 ): Promise<TransitTripPatterns> {
     const { searchDate, arriveBy } = searchParams
-
     const getTripPatternsParams = getQueryVariables(searchParams)
 
     // We do two searches in parallel here to speed things up a bit. One is a
@@ -72,6 +71,7 @@ export async function searchTransit(
     // If the normal search failed with a hopeless error, indicating we shouldn't
     // continue with normal searches, we may still have a flexible result.
     // If so, return that instead of aborting by throwing an exception
+
     if (hasHopelessRoutingError(routingErrors)) {
         if (flexibleResults?.tripPatterns?.length) {
             return {
@@ -92,27 +92,26 @@ export async function searchTransit(
         isValidTransitAlternative,
     )
 
-    // If we have any noStopsInRange errors, we couldn't find a means of
+    // If we have any noStopsInRange or noTransitConnection errors, we couldn't find a means of
     // transport from where the traveler wants to start or end the trip. Try to
     // find an option using taxi for those parts instead.
-    const noStopsInRangeErrors = routingErrors.filter(
-        ({ code }) => code === RoutingErrorCode.NoStopsInRange,
-    )
-    const hasStopsInRange = noStopsInRangeErrors.length === 0
-    let taxiTripPatterns: TripPatternParsed[] = []
-    if (!hasStopsInRange) {
-        const noFromStopInRange = noStopsInRangeErrors.some(
-            (e) => e.inputField === 'from',
-        )
-        const noToStopInRange = noStopsInRangeErrors.some(
-            (e) => e.inputField === 'to',
+    const noStopsInRangeErrorsOrNoTransitConnectionErrors =
+        routingErrors.filter(
+            ({ code }) =>
+                code === RoutingErrorCode.NoStopsInRange ||
+                code === RoutingErrorCode.NoTransitConnection,
         )
 
+    const hasStopsInRange =
+        noStopsInRangeErrorsOrNoTransitConnectionErrors.length === 0
+
+    let taxiTripPatterns: TripPatternParsed[] = []
+    if (!hasStopsInRange) {
         const taxiResults = await searchTaxiFrontBack(
             getQueryVariables(searchParams),
             {
-                access: noFromStopInRange,
-                egress: noToStopInRange,
+                access: true,
+                egress: true,
             },
             extraHeaders,
         )
