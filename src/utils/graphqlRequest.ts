@@ -17,9 +17,7 @@ export const graphqlRequest = async <T = any, V = Variables>(
         variables,
         extraHeaders,
     )
-
     const rateLimitHeaders = {
-        url,
         rateLimitAllowed: headers.get('rate-limit-allowed'),
         rateLimitUsed: headers.get('rate-limit-used'),
         rateLimitAvailable: headers.get('rate-limit-available'),
@@ -28,11 +26,10 @@ export const graphqlRequest = async <T = any, V = Variables>(
 
     if (currentTimestamp - lastLoggedTimestamp > 60000) {
         lastLoggedTimestamp = currentTimestamp
-        logger.log('info', 'OTP Rate limit info', rateLimitHeaders)
+        if (process.env.NODE_ENV === 'production') {
+            logger.log('info', 'OTP Rate limit', rateLimitHeaders)
+        }
     }
 
     return data
 }
-
-// if (process.env.NODE_ENV === 'production') {
-//
