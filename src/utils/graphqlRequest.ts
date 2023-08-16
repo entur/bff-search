@@ -16,6 +16,7 @@ export const graphqlRequest = async <T = any, V = Variables>(
     )
 
     const rateLimitHeaders = {
+        url,
         rateLimitAllowed: headers.get('rate-limit-allowed'),
         rateLimitUsed: headers.get('rate-limit-used'),
         rateLimitAvailable: headers.get('rate-limit-available'),
