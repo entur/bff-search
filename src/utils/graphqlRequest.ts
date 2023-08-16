@@ -1,6 +1,7 @@
 import { Variables, rawRequest } from 'graphql-request'
-import { set as cacheSet, get as cacheGet } from '../cache'
 import logger from '../logger'
+
+let lastLoggedTimestamp = 0
 
 export const graphqlRequest = async <T = any, V = Variables>(
     url: string,
@@ -8,6 +9,8 @@ export const graphqlRequest = async <T = any, V = Variables>(
     variables: any,
     extraHeaders: Record<string, string>,
 ): Promise<T> => {
+    const currentTimestamp = Date.now()
+
     const { data, headers } = await rawRequest<T, V>(
         url,
         query,
@@ -23,9 +26,8 @@ export const graphqlRequest = async <T = any, V = Variables>(
         rateLimitRange: headers.get('rate-limit-range'),
     }
 
-    const otpRateLimitCache = await cacheGet('otp-rate-limit')
-    if (!otpRateLimitCache) {
-        await cacheSet('otp-rate-limit', rateLimitHeaders, 60)
+    if (currentTimestamp - lastLoggedTimestamp > 60000) {
+        lastLoggedTimestamp = currentTimestamp
         logger.log('info', 'OTP Rate limit info', rateLimitHeaders)
     }
 
