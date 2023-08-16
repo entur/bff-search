@@ -56,17 +56,18 @@ export async function searchTransit(
     // of transport that has to be booked in advance the second is a regular
     // search.
 
+    const comment = 'First regular search'
     const [
         flexibleResults,
         [regularTripPatternsUnfiltered, initialMetadata, routingErrors],
     ] = await Promise.all([
         searchFlexible(getTripPatternsParams, extraHeaders),
-        getTripPatterns(getTripPatternsParams, extraHeaders),
+        getTripPatterns(getTripPatternsParams, extraHeaders, comment),
     ])
 
     let queries = [
         ...(flexibleResults?.queries || []),
-        getTripPatternsQuery(getTripPatternsParams, 'First regular search'),
+        getTripPatternsQuery(getTripPatternsParams, comment),
     ]
 
     // If the normal search failed with a hopeless error, indicating we shouldn't
@@ -223,9 +224,12 @@ export async function searchNonTransit(
                 numTripPatterns: 1,
             }
 
+            const comment = 'Search non transit'
+
             const [result] = await getTripPatterns(
                 getTripPatternsParams,
                 extraHeaders,
+                comment,
             )
 
             /**
@@ -259,10 +263,7 @@ export async function searchNonTransit(
                 )
             })
 
-            const query = getTripPatternsQuery(
-                getTripPatternsParams,
-                'Search non transit',
-            )
+            const query = getTripPatternsQuery(getTripPatternsParams, comment)
 
             return { mode, tripPattern: candidate, query }
         }),
@@ -292,10 +293,12 @@ export async function searchNonTransit(
 async function getAndVerifyTripPatterns(
     params: GetTripPatternsQueryVariables,
     extraHeaders: Record<string, string>,
+    comment: string,
 ): Promise<[TripPatternParsed[], Metadata | undefined, RoutingError[]]> {
     const [tripPatterns, metadata, routingErrors] = await getTripPatterns(
         params,
         extraHeaders,
+        comment,
     )
     verifyRoutingErrors(routingErrors, params)
     return [tripPatterns, metadata, routingErrors]
@@ -304,6 +307,7 @@ async function getAndVerifyTripPatterns(
 async function getTripPatterns(
     params: GetTripPatternsQueryVariables,
     extraHeaders: Record<string, string>,
+    comment: string,
 ): Promise<[TripPatternParsed[], Metadata | undefined, RoutingError[]]> {
     let res: GetTripPatternsQuery
 
@@ -316,6 +320,7 @@ async function getTripPatterns(
             JOURNEY_PLANNER_QUERY,
             cleanQueryVariables(params),
             extraHeaders,
+            comment,
         )
     } catch (error) {
         throw new GetTripPatternError(
@@ -370,15 +375,14 @@ async function searchBeforeFlexible(
         searchWindow,
     }
 
+    const comment = 'Search before flexible'
     const [transitResultsBeforeFlexible, metadata] =
-        await getAndVerifyTripPatterns(nextSearchParams, extraHeaders)
+        await getAndVerifyTripPatterns(nextSearchParams, extraHeaders, comment)
 
     const tripPatterns: TripPatternParsed[] =
         transitResultsBeforeFlexible.filter(isValidTransitAlternative)
 
-    const queries = [
-        getTripPatternsQuery(nextSearchParams, 'Search before flexible'),
-    ]
+    const queries = [getTripPatternsQuery(nextSearchParams, comment)]
     return {
         queries,
         metadata,
@@ -398,19 +402,19 @@ async function searchTransitUntilMaxRetries(
         previousMetadata,
     )
 
+    const comment = `Search again (${prevQueries.length + 1}) ${
+        previousMetadata ? 'with' : 'without'
+    } metadata`
+
     const queries = [
         ...prevQueries,
-        getTripPatternsQuery(
-            nextSearchParams,
-            `Search again (${prevQueries.length + 1}) ${
-                previousMetadata ? 'with' : 'without'
-            } metadata`,
-        ),
+        getTripPatternsQuery(nextSearchParams, comment),
     ]
 
     const [response, metadata] = await getAndVerifyTripPatterns(
         nextSearchParams,
         extraHeaders,
+        comment,
     )
 
     const tripPatterns = response.filter(isValidTransitAlternative)
@@ -490,13 +494,14 @@ async function searchFlexible(
         numTripPatterns: 1,
     }
 
-    const queries = [
-        getTripPatternsQuery(getTripPatternsParams, 'Search flexible'),
-    ]
+    const comment = 'Search flexible'
+
+    const queries = [getTripPatternsQuery(getTripPatternsParams, comment)]
 
     const [returnedTripPatterns] = await getTripPatterns(
         getTripPatternsParams,
         extraHeaders,
+        comment,
     )
 
     const tripPatterns = returnedTripPatterns.filter(({ legs }) => {
@@ -537,13 +542,14 @@ async function searchTaxiFrontBack(
         numTripPatterns: egress && access ? 2 : 1,
     }
 
+    const comment = 'Search taxi front back'
+
     const [tripPatterns] = await getAndVerifyTripPatterns(
         getTripPatternsParams,
         extraHeaders,
+        comment,
     )
-    const queries = [
-        getTripPatternsQuery(getTripPatternsParams, 'Search taxi front back'),
-    ]
+    const queries = [getTripPatternsQuery(getTripPatternsParams, comment)]
 
     // If no access or egress leg is necessary, we can get trip patterns with
     // no car legs. We therefore filter the results to prevent it from

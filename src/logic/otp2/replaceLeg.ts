@@ -10,6 +10,7 @@ import {
 export async function getAlternativeLegs(
     variables: ReplaceLegQueryVariables,
     extraHeaders: ExtraHeaders,
+    comment: string,
 ): Promise<ReplaceLegQuery> {
     try {
         return graphqlRequest<ReplaceLegQuery, ReplaceLegQueryVariables>(
@@ -17,6 +18,7 @@ export async function getAlternativeLegs(
             REPLACE_LEG_QUERY,
             variables,
             extraHeaders,
+            comment,
         )
     } catch (error) {
         return error

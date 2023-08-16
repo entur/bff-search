@@ -145,7 +145,12 @@ router.post<'/replace-leg/:id', { id: string }>(
                 numberOfNext,
                 numberOfPrevious,
             }
-            const { leg } = await getAlternativeLegs(variables, extraHeaders)
+            const comment = 'Get alternative legs'
+            const { leg } = await getAlternativeLegs(
+                variables,
+                extraHeaders,
+                comment,
+            )
 
             res.json(leg)
         } catch (error) {
@@ -200,7 +205,8 @@ router.post<'/replace-trip-pattern', { id: string }>(
             const { newLegId, originalLegId, originalTripPatternId } = req.body
             const extraHeaders = getHeadersFromClient(req)
 
-            const newLeg = await getLeg(newLegId, extraHeaders)
+            const comment = 'Get leg for replace leg'
+            const newLeg = await getLeg(newLegId, extraHeaders, comment)
 
             const originalTripPattern = await cacheGet<TripPattern>(
                 `trip-pattern:${originalTripPatternId}`,
