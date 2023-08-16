@@ -7,8 +7,7 @@ import {
     differenceInMinutes,
 } from 'date-fns'
 
-import { request as graphqlRequest } from 'graphql-request'
-
+import { graphqlRequest } from '../../utils/graphqlRequest'
 import { first, last } from '../../utils/array'
 import { isFlexibleLeg, isTransitLeg } from '../../utils/leg'
 import { toISOString } from '../../utils/time'

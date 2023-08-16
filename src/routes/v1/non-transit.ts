@@ -38,7 +38,6 @@ router.post<
     try {
         const params = getParams(req.body)
         const extraHeaders = getHeadersFromClient(req)
-
         const result = await searchNonTransit(params, extraHeaders)
 
         res.json(result)

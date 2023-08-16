@@ -1,4 +1,4 @@
-import { request as graphqlRequest } from 'graphql-request'
+import { graphqlRequest } from '../../utils/graphqlRequest'
 
 import { TRANSIT_HOST_OTP2 } from '../../config'
 import { Leg, ExtraHeaders } from '../../types'

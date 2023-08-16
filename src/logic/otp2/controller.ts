@@ -1,6 +1,6 @@
-import { request as graphqlRequest } from 'graphql-request'
 import { differenceInDays, parseISO } from 'date-fns'
 
+import { graphqlRequest } from '../../utils/graphqlRequest'
 import { isValidTransitAlternative } from '../../utils/tripPattern'
 import { TRANSIT_HOST_OTP2 } from '../../config'
 import { GetTripPatternError, RoutingErrorsError } from '../../errors'
@@ -55,6 +55,7 @@ export async function searchTransit(
     // flexible search where we explicitly look for trips that may include means
     // of transport that has to be booked in advance the second is a regular
     // search.
+
     const [
         flexibleResults,
         [regularTripPatternsUnfiltered, initialMetadata, routingErrors],
@@ -305,6 +306,7 @@ async function getTripPatterns(
     extraHeaders: Record<string, string>,
 ): Promise<[TripPatternParsed[], Metadata | undefined, RoutingError[]]> {
     let res: GetTripPatternsQuery
+
     try {
         res = await graphqlRequest<
             GetTripPatternsQuery,
