@@ -113,7 +113,12 @@ function reqResLoggerMiddleware(
             level,
             message,
             req: {
-                headers: reqHeadersMapper(req),
+                headers: {
+                    ...reqHeadersMapper(req),
+                    'rate-limit-allowed': res.get('rate-limit-allowed'),
+                    'rate-limit-used': res.get('rate-limit-used'),
+                    'rate-limit-available': res.get('rate-limit-available'),
+                },
             },
             res: response,
             status: res.statusCode,
