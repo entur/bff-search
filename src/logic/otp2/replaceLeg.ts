@@ -1,5 +1,4 @@
-import { request as graphqlRequest } from 'graphql-request'
-
+import { graphqlRequest } from '../../utils/graphqlRequest'
 import { TRANSIT_HOST_OTP2 } from '../../config'
 import { ExtraHeaders } from '../../types'
 import REPLACE_LEG_QUERY from './queries/replaceLeg.query'
@@ -11,6 +10,7 @@ import {
 export async function getAlternativeLegs(
     variables: ReplaceLegQueryVariables,
     extraHeaders: ExtraHeaders,
+    comment: string,
 ): Promise<ReplaceLegQuery> {
     try {
         return graphqlRequest<ReplaceLegQuery, ReplaceLegQueryVariables>(
@@ -18,6 +18,7 @@ export async function getAlternativeLegs(
             REPLACE_LEG_QUERY,
             variables,
             extraHeaders,
+            comment,
         )
     } catch (error) {
         return error

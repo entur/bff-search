@@ -1,4 +1,4 @@
-import { request as graphqlRequest } from 'graphql-request'
+import { graphqlRequest } from '../../utils/graphqlRequest'
 
 import { TRANSIT_HOST_OTP2 } from '../../config'
 import { Leg, ExtraHeaders } from '../../types'
@@ -8,6 +8,7 @@ import { GetLegQuery, GetLegQueryVariables } from '../../generated/graphql'
 export async function getLeg(
     id: string,
     extraHeaders: ExtraHeaders,
+    comment: string,
 ): Promise<Leg> {
     const { leg } = await graphqlRequest<GetLegQuery, GetLegQueryVariables>(
         `${TRANSIT_HOST_OTP2}/graphql`,
@@ -16,6 +17,7 @@ export async function getLeg(
             id,
         },
         extraHeaders,
+        comment,
     )
     if (!leg) {
         return Promise.reject('No leg found')

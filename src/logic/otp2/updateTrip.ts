@@ -7,8 +7,7 @@ import {
     differenceInMinutes,
 } from 'date-fns'
 
-import { request as graphqlRequest } from 'graphql-request'
-
+import { graphqlRequest } from '../../utils/graphqlRequest'
 import { first, last } from '../../utils/array'
 import { isFlexibleLeg, isTransitLeg } from '../../utils/leg'
 import { toISOString } from '../../utils/time'
@@ -39,6 +38,7 @@ async function getCallsForServiceJourney(
     id: string,
     date: string,
     extraHeaders: ExtraHeaders,
+    comment: string,
 ): Promise<UpdatedEstimatedCall[]> {
     const data = await graphqlRequest<
         UpdateTripQuery,
@@ -51,6 +51,7 @@ async function getCallsForServiceJourney(
             date,
         },
         extraHeaders,
+        comment,
     )
 
     if (!data || !data.serviceJourney || !data.serviceJourney.estimatedCalls) {
@@ -155,11 +156,13 @@ async function updateLeg(
         return { leg }
     }
 
+    const comment = 'Update leg'
     const { serviceJourney, fromEstimatedCall, toEstimatedCall } = leg
     const updatedEstimatedCalls = await getCallsForServiceJourney(
         serviceJourney.id,
         fromEstimatedCallDate,
         extraHeaders,
+        comment,
     )
 
     const fromIndex = updatedEstimatedCalls.findIndex(
