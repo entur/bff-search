@@ -20,16 +20,16 @@ export const graphqlRequest = async <T = any, V = Variables>(
         extraHeaders,
     )
 
-    const rateLimitHeaders = {
-        comment,
-        clientName: extraHeaders['entur-pos'],
-        rateLimitAllowed: headers.get('rate-limit-allowed'),
-        rateLimitUsed: headers.get('rate-limit-used'),
-        rateLimitAvailable: headers.get('rate-limit-available'),
-        rateLimitRange: headers.get('rate-limit-range'),
-    }
-
     if (currentTimestamp - lastLoggedTimestamp > logInterval) {
+        const rateLimitHeaders = {
+            comment,
+            clientName: extraHeaders['entur-pos'],
+            rateLimitAllowed: headers.get('rate-limit-allowed'),
+            rateLimitUsed: headers.get('rate-limit-used'),
+            rateLimitAvailable: headers.get('rate-limit-available'),
+            rateLimitRange: headers.get('rate-limit-range'),
+        }
+
         lastLoggedTimestamp = currentTimestamp
         if (process.env.NODE_ENV === 'production') {
             logger.log('info', 'OTP Rate limit', rateLimitHeaders)
