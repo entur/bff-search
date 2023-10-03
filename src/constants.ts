@@ -31,6 +31,8 @@ export const ALL_WATER_SUBMODES: TransportSubmode[] = [
     TransportSubmode.RegionalCarFerry,
     TransportSubmode.LocalPassengerFerry,
     TransportSubmode.InternationalCarFerry,
+    TransportSubmode.HighSpeedPassengerService,
+    TransportSubmode.HighSpeedVehicleService,
 ]
 
 export const ALL_CAR_FERRY_SUBMODES: TransportSubmode[] = [
@@ -38,6 +40,7 @@ export const ALL_CAR_FERRY_SUBMODES: TransportSubmode[] = [
     TransportSubmode.LocalCarFerry,
     TransportSubmode.NationalCarFerry,
     TransportSubmode.RegionalCarFerry,
+    TransportSubmode.HighSpeedVehicleService,
 ]
 
 export const TAXI_LIMITS = {
