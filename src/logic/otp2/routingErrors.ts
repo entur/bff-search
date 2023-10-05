@@ -13,7 +13,6 @@ const HOPELESS_ROUTING_ERRORS = [
     RoutingErrorCode.OutsideBounds,
     RoutingErrorCode.LocationNotFound,
     RoutingErrorCode.WalkingBetterThanTransit,
-    RoutingErrorCode.SystemError,
 ]
 
 export function hasHopelessRoutingError(

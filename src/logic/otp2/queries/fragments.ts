@@ -194,6 +194,83 @@ export const situationsFields = gql`
     }
 `
 
+export const situationsFieldsNew = gql`
+    fragment situationsFieldsNew on PtSituationElement {
+        situationNumber
+        summary {
+            language
+            value
+        }
+        description {
+            language
+            value
+        }
+        advice {
+            language
+            value
+        }
+        validityPeriod {
+            startTime
+            endTime
+        }
+        reportType
+        infoLinks {
+            uri
+            label
+        }
+        stopPlaces {
+            id
+            name
+        }
+        affects {
+            __typename
+            ... on AffectedLine {
+                line {
+                    id
+                }
+            }
+            ... on AffectedStopPlace {
+                stopPlace {
+                    id
+                    name
+                    latitude
+                }
+                quay {
+                    id
+                    name
+                }
+            }
+            ... on AffectedServiceJourney {
+                serviceJourney {
+                    id
+                }
+            }
+            ... on AffectedStopPlaceOnServiceJourney {
+                stopPlace {
+                    id
+                    name
+                    longitude
+                }
+                quay {
+                    id
+                    name
+                }
+            }
+            ... on AffectedStopPlaceOnLine {
+                stopPlace {
+                    id
+                    name
+                    longitude
+                }
+                quay {
+                    id
+                    name
+                }
+            }
+        }
+    }
+`
+
 export const stopPlaceFields = gql`
     fragment stopPlaceFields on StopPlace {
         id
