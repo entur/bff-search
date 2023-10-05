@@ -4181,36 +4181,43 @@ export type GetTripPatternsQuery = {
                             __typename?: 'PtSituationElement'
                             situationNumber: string | null
                             reportType: ReportType | null
+                            // @deprecated
                             summary: Array<{
                                 __typename?: 'MultilingualString'
                                 language: string | null
                                 value: string
                             }>
+                            // @deprecated
                             description: Array<{
                                 __typename?: 'MultilingualString'
                                 language: string | null
                                 value: string
                             }>
+                            // @deprecated
                             advice: Array<{
                                 __typename?: 'MultilingualString'
                                 language: string | null
                                 value: string
                             }>
+                            // @deprecated
                             validityPeriod: {
                                 __typename?: 'ValidityPeriod'
                                 startTime: string | null
                                 endTime: string | null
                             } | null
+                            // @deprecated
                             infoLinks: Array<{
                                 __typename?: 'infoLink'
                                 uri: string
                                 label: string | null
                             }> | null
+                            // @deprecated
                             stopPlaces: Array<{
                                 __typename?: 'StopPlace'
                                 id: string
                                 name: string
                             }>
+                            // @deprecated
                             affects: Array<
                                 | { __typename?: 'AffectedLine' }
                                 | { __typename?: 'AffectedServiceJourney' }

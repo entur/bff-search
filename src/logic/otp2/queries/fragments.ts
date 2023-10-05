@@ -154,6 +154,11 @@ export const quayFields = gql`
         }
     }
 `
+
+/* @deprecated
+ * Will be removed from TripPattern, legs, serviceJourney etc.
+ * Use new situation endpoint.
+ */
 export const situationsFields = gql`
     fragment situationFields on PtSituationElement {
         situationNumber
