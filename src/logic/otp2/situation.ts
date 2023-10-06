@@ -1,16 +1,12 @@
 import { graphqlRequest } from '../../utils/graphqlRequest'
 
+import { Affected, ExtraHeaders, SituationResponse } from '../../types'
 import { TRANSIT_HOST_OTP2 } from '../../config'
 import SITUATIONS_QUERY from './queries/situation.query'
 import {
-    InfoLink,
-    MultilingualString,
-    ReportType,
     SituationFieldsNewFragment,
     SituationQueryVariables,
-    ValidityPeriod,
 } from '../../generated/graphql'
-import { ExtraHeaders } from '../../types'
 
 export async function getSituation(
     situationNumber: string,
@@ -55,81 +51,22 @@ export async function getSituation(
 }
 
 type ResponseAffected = SituationFieldsNewFragment['affects'][0]
+
 function mapAffected(affected: ResponseAffected): Affected {
     if ('line' in affected && affected.line) {
-        return {
-            __typename: 'AffectedLine',
-            line: affected.line,
-        }
+        return { __type: 'AffectedLine', line: affected.line }
     }
     if ('serviceJourney' in affected && affected.serviceJourney) {
         return {
-            __typename: 'AffectedServiceJourney',
+            __type: 'AffectedServiceJourney',
             serviceJourney: affected.serviceJourney,
         }
     }
-    if ('stopPlace' in affected && affected.stopPlace) {
-        return {
-            __typename: 'AffectedStopPlace',
-            stopPlace: affected.stopPlace,
-        }
-    }
     if ('quay' in affected && affected.quay) {
-        return {
-            __typename: 'AffectedQuay',
-            quay: affected.quay,
-        }
+        return { __type: 'AffectedQuay', quay: affected.quay }
     }
-    return { __typename: 'AffectedUnknown' }
-}
-
-export interface SituationResponse {
-    situationNumber: string
-    reportType: ReportType
-    summary: MultilingualString[]
-    description: MultilingualString[]
-    advice: MultilingualString[]
-    validityPeriod: ValidityPeriod | undefined
-    infoLinks: InfoLink[] | undefined
-    affects: Affected[]
-}
-
-export type Affected =
-    | AffectedLine
-    | AffectedServiceJourney
-    | AffectedStopPlace
-    | AffectedQuay
-    | AffectedUnknown
-
-export interface AffectedLine {
-    __typename: 'AffectedLine'
-    line: {
-        id: string
+    if ('stopPlace' in affected && affected.stopPlace) {
+        return { __type: 'AffectedStopPlace', stopPlace: affected.stopPlace }
     }
-}
-export interface AffectedServiceJourney {
-    __typename: 'AffectedServiceJourney'
-    serviceJourney: {
-        id: string
-    }
-}
-
-export interface AffectedStopPlace {
-    __typename: 'AffectedStopPlace'
-    stopPlace: {
-        id: string
-        name: string
-    }
-}
-
-export interface AffectedQuay {
-    __typename: 'AffectedQuay'
-    quay: {
-        id: string
-        name: string
-    }
-}
-
-export interface AffectedUnknown {
-    __typename: 'AffectedUnknown'
+    return { __type: 'AffectedUnknown' }
 }

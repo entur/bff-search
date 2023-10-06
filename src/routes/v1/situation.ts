@@ -1,5 +1,7 @@
 import { Router } from 'express'
-import { getSituation, SituationResponse } from '../../logic/otp2'
+
+import { SituationResponse } from '../../types'
+import { getSituation } from '../../logic/otp2'
 import { getHeadersFromClient } from './helper'
 
 const router = Router()
