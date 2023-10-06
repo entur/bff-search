@@ -2,18 +2,20 @@ import { graphqlRequest } from '../../utils/graphqlRequest'
 
 import { Affected, ExtraHeaders, SituationResponse } from '../../types'
 import { TRANSIT_HOST_OTP2 } from '../../config'
-import SITUATIONS_QUERY from './queries/situation.query'
+import { uniqBy } from '../../utils/array'
 import {
-    SituationFieldsNewFragment,
+    SituationsFieldsNewFragment,
     SituationQueryVariables,
 } from '../../generated/graphql'
+
+import SITUATIONS_QUERY from './queries/situation.query'
 
 export async function getSituation(
     situationNumber: string,
     extraHeaders: ExtraHeaders,
 ): Promise<SituationResponse | undefined> {
     const data = await graphqlRequest<
-        { situation: SituationFieldsNewFragment },
+        { situation?: SituationsFieldsNewFragment },
         SituationQueryVariables
     >(
         `${TRANSIT_HOST_OTP2}/graphql`,
@@ -25,7 +27,7 @@ export async function getSituation(
         'getSituation',
     )
 
-    if (!data) return
+    if (!data || !data.situation || !data.situation.reportType) return
 
     const {
         reportType,
@@ -46,11 +48,11 @@ export async function getSituation(
         advice,
         validityPeriod: validityPeriod || undefined,
         infoLinks: infoLinks || undefined,
-        affects: affects.map(mapAffected),
+        affects: uniqBy(affects.map(mapAffected), getIdForAffected),
     }
 }
 
-type ResponseAffected = SituationFieldsNewFragment['affects'][0]
+type ResponseAffected = SituationsFieldsNewFragment['affects'][0]
 
 function mapAffected(affected: ResponseAffected): Affected {
     if ('line' in affected && affected.line) {
@@ -69,4 +71,19 @@ function mapAffected(affected: ResponseAffected): Affected {
         return { __type: 'AffectedStopPlace', stopPlace: affected.stopPlace }
     }
     return { __type: 'AffectedUnknown' }
+}
+
+function getIdForAffected(affected: Affected): string {
+    switch (affected.__type) {
+        case 'AffectedStopPlace':
+            return affected.stopPlace.id
+        case 'AffectedLine':
+            return affected.line.id
+        case 'AffectedQuay':
+            return affected.quay.id
+        case 'AffectedServiceJourney':
+            return affected.serviceJourney.id
+        case 'AffectedUnknown':
+            return 'AffectedUnknown'
+    }
 }

@@ -238,7 +238,6 @@ export const situationsFieldsNew = gql`
                 stopPlace {
                     id
                     name
-                    latitude
                 }
                 quay {
                     id
@@ -254,7 +253,6 @@ export const situationsFieldsNew = gql`
                 stopPlace {
                     id
                     name
-                    longitude
                 }
                 quay {
                     id
@@ -265,7 +263,6 @@ export const situationsFieldsNew = gql`
                 stopPlace {
                     id
                     name
-                    longitude
                 }
                 quay {
                     id
