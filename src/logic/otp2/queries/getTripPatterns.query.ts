@@ -37,6 +37,7 @@ export default gql`
         $walkReluctance: Float
         $waitReluctance: Float
         $relaxTransitSearchGeneralizedCostAtDestination: Float
+        $pageCursor: String
     ) {
         trip(
             numTripPatterns: $numTripPatterns
@@ -56,12 +57,13 @@ export default gql`
             walkReluctance: $walkReluctance
             waitReluctance: $waitReluctance
             relaxTransitSearchGeneralizedCostAtDestination: $relaxTransitSearchGeneralizedCostAtDestination
+            pageCursor: $pageCursor
         ) {
             metadata {
                 searchWindowUsed
-                nextDateTime
-                prevDateTime
             }
+            nextPageCursor
+            previousPageCursor
             routingErrors {
                 inputField
                 description

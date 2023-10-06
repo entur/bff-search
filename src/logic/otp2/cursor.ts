@@ -27,21 +27,19 @@ export function parseCursor(cursor?: string): CursorData | undefined {
 
 export function generateCursor(
     params: SearchParams,
-    metadata: Metadata | undefined,
+    otpCursor?: string | null,
 ): string | undefined {
-    if (!metadata) return
+    // const { prevDateTime, nextDateTime, searchWindowUsed } = metadata
 
-    const { prevDateTime, nextDateTime, searchWindowUsed } = metadata
-
-    const nextDate = new Date(params.arriveBy ? prevDateTime : nextDateTime)
+    // const nextDate = new Date(params.arriveBy ? prevDateTime : nextDateTime)
 
     const cursorData = {
         v: 1,
         params: {
             ...params,
-            searchDate: nextDate,
+            //      searchDate: nextDate,
             useFlex: false,
-            searchWindow: searchWindowUsed,
+            pageCursor: otpCursor,
         },
     }
 

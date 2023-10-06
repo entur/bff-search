@@ -256,12 +256,25 @@ export enum DirectionType {
     Unknown = 'unknown',
 }
 
+/** Individual step of an elevation profile. */
+export type ElevationProfileStep = {
+    __typename?: 'ElevationProfileStep'
+    /** The horizontal distance from the start of the step, in meters. */
+    distance: Maybe<Scalars['Float']>
+    /**
+     * The elevation at this distance, in meters above sea level. It is negative if the
+     * location is below sea level.
+     *
+     */
+    elevation: Maybe<Scalars['Float']>
+}
+
 /** List of visits to quays as part of vehicle journeys. Updated with real time information where available */
 export type EstimatedCall = {
     __typename?: 'EstimatedCall'
-    /** Actual time of arrival at quay. Updated from real time information if available. NOT IMPLEMENTED */
+    /** Actual time of arrival at quay. Updated from real time information if available. */
     actualArrivalTime: Maybe<Scalars['DateTime']>
-    /** Actual time of departure from quay. Updated with real time information if available. NOT IMPLEMENTED */
+    /** Actual time of departure from quay. Updated with real time information if available. */
     actualDepartureTime: Maybe<Scalars['DateTime']>
     /** Scheduled time of arrival at quay. Not affected by read time updated */
     aimedArrivalTime: Scalars['DateTime']
@@ -357,6 +370,7 @@ export type InputCoordinates = {
 export enum InputField {
     DateTime = 'dateTime',
     From = 'from',
+    IntermediatePlace = 'intermediatePlace',
     To = 'to',
 }
 
@@ -395,9 +409,9 @@ export type Interchange = {
     ToServiceJourney: Maybe<ServiceJourney>
     fromServiceJourney: Maybe<ServiceJourney>
     guaranteed: Maybe<Scalars['Boolean']>
-    /** Maximum time after scheduled departure time the connecting transport is guarantied to wait for the delayed trip. [NOT RESPECTED DURING ROUTING, JUST PASSED THROUGH] */
+    /** Maximum time after scheduled departure time the connecting transport is guaranteed to wait for the delayed trip. [NOT RESPECTED DURING ROUTING, JUST PASSED THROUGH] */
     maximumWaitTime: Maybe<Scalars['Int']>
-    /** The transfer priority is used to decide where a transfer should happen, at the highest prioritized location. If the guarantied flag is set it take precedence priority. A guarantied ALLOWED transfer is preferred over a PREFERRED none-guarantied transfer. */
+    /** The transfer priority is used to decide where a transfer should happen, at the highest prioritized location. If the guaranteed flag is set it take precedence priority. A guaranteed ALLOWED transfer is preferred over a PREFERRED none-guaranteed transfer. */
     priority: Maybe<InterchangePriority>
     staySeated: Maybe<Scalars['Boolean']>
     toServiceJourney: Maybe<ServiceJourney>
@@ -421,15 +435,44 @@ export enum InterchangeWeighting {
     RecommendedInterchange = 'recommendedInterchange',
 }
 
+/**
+ * Enable this to attach a system notice to itineraries instead of removing them. This is very
+ * convenient when tuning the itinerary-filter-chain.
+ */
+export enum ItineraryFilterDebugProfile {
+    /**
+     * Only return the requested number of itineraries, counting both actual and deleted ones.
+     * The top `numItineraries` using the request sort order is returned. This does not work
+     * with paging, itineraries after the limit, but inside the search-window are skipped when
+     * moving to the next page.
+     */
+    LimitToNumOfItineraries = 'limitToNumOfItineraries',
+    /**
+     * Return all itineraries, including deleted ones, inside the actual search-window used
+     * (the requested search-window may differ).
+     */
+    LimitToSearchWindow = 'limitToSearchWindow',
+    /** List all itineraries, including all deleted itineraries. */
+    ListAll = 'listAll',
+    /** By default, the debug itinerary filters is turned off. */
+    Off = 'off',
+}
+
 /** Parameters for the OTP Itinerary Filter Chain. These parameters SHOULD be configured on the server side and should not be used by the client. They are made available here to be able to experiment and tune the server. */
 export type ItineraryFilters = {
+    /**
+     * Use this parameter to debug the itinerary-filter-chain. The default is `off`
+     * (itineraries are filtered and not returned). For all other values the unwanted
+     * itineraries are returned with a system notice, and not deleted.
+     */
+    debug: InputMaybe<ItineraryFilterDebugProfile>
     /** Pick ONE itinerary from each group after putting itineraries that is 85% similar together. */
     groupSimilarityKeepOne: InputMaybe<Scalars['Float']>
     /** Reduce the number of itineraries in each group to to maximum 3 itineraries. The itineraries are grouped by similar legs (on board same journey). So, if  68% of the distance is traveled by similar legs, then two itineraries are in the same group. Default value is 68%, must be at least 50%. */
     groupSimilarityKeepThree: InputMaybe<Scalars['Float']>
     /** Of the itineraries grouped to maximum of three itineraries, how much worse can the non-grouped legs be compared to the lowest cost. 2.0 means that they can be double the cost, and any itineraries having a higher cost will be filtered. Default value is 2.0, use a value lower than 1.0 to turn off */
     groupedOtherThanSameLegsMaxCostMultiplier: InputMaybe<Scalars['Float']>
-    /** Set a relative limit for all transit itineraries. The limit is calculated based on the transit itinerary generalized-cost and the time between itineraries Itineraries without transit legs are excluded from this filter. Example: costLimitFunction(x) = 3600 + 2.0 x and intervalRelaxFactor = 0.5. If the lowest cost returned is 10 000, then the limit is set to: 3 600 + 2 * 10 000 = 26 600 plus half of the time between either departure or arrival times of the itinerary. Default: {"costLimitFunction": 900.0 + 1.5 x, "intervalRelaxFactor": 0.75} */
+    /** Set a relative limit for all transit itineraries. The limit is calculated based on the transit itinerary generalized-cost and the time between itineraries Itineraries without transit legs are excluded from this filter. Example: costLimitFunction(x) = 3600 + 2.0 x and intervalRelaxFactor = 0.5. If the lowest cost returned is 10 000, then the limit is set to: 3 600 + 2 * 10 000 = 26 600 plus half of the time between either departure or arrival times of the itinerary. Default: {"costLimitFunction": 15m + 1.50 t, "intervalRelaxFactor": 0.75} */
     transitGeneralizedCostLimit: InputMaybe<TransitGeneralizedCostFilterParams>
 }
 
@@ -475,6 +518,13 @@ export type Leg = {
     distance: Scalars['Float']
     /** The leg's duration in seconds */
     duration: Scalars['Long']
+    /**
+     * The leg's elevation profile. All elevation values, including the first one, are in meters
+     * above sea level. The elevation is negative for places below sea level. The profile
+     * includes both the start and end coordinate.
+     *
+     */
+    elevationProfile: Array<Maybe<ElevationProfileStep>>
     /** The expected, realtime adjusted date and time this leg ends. */
     expectedEndTime: Scalars['DateTime']
     /** The expected, realtime adjusted date and time this leg starts. */
@@ -605,6 +655,7 @@ export enum Mode {
     Monorail = 'monorail',
     Rail = 'rail',
     Scooter = 'scooter',
+    Taxi = 'taxi',
     Tram = 'tram',
     Trolleybus = 'trolleybus',
     Water = 'water',
@@ -693,6 +744,13 @@ export type PathGuidance = {
     bogusName: Maybe<Scalars['Boolean']>
     /** The distance in meters that this step takes. */
     distance: Maybe<Scalars['Float']>
+    /**
+     * The step's elevation profile. All elevation values, including the first one, are in meters
+     * above sea level. The elevation is negative for places below sea level. The profile
+     * includes both the start and end coordinate.
+     *
+     */
+    elevationProfile: Array<Maybe<ElevationProfileStep>>
     /** When exiting a highway or traffic circle, the exit name/number. */
     exit: Maybe<Scalars['String']>
     /** The absolute direction of this step. */
@@ -707,6 +765,28 @@ export type PathGuidance = {
     stayOn: Maybe<Scalars['Boolean']>
     /** The name of the street. */
     streetName: Maybe<Scalars['String']>
+}
+
+/** A combination of street mode and penalty for time and cost. */
+export type PenaltyForStreetMode = {
+    /**
+     *     This is used to take the time-penalty and multiply by the `costFactor`.
+     *     The result is added to the generalized-cost.
+     *
+     */
+    costFactor: InputMaybe<Scalars['Float']>
+    /**
+     * List of modes with the given penalty is applied to. A street-mode should not be listed
+     * in more than one element. If empty or null the penalty is applied to all unlisted modes,
+     * it becomes the default penalty for this query.
+     *
+     */
+    streetMode: StreetMode
+    /**
+     * Penalty applied to the time for the given list of modes.
+     *
+     */
+    timePenalty: Scalars['DoubleFunction']
 }
 
 /** Common super class for all places (stop places, quays, car parks, bike parks and bike rental stations ) */
@@ -864,7 +944,7 @@ export type QuayEstimatedCallsArgs = {
 
 /** A place such as platform, stance, or quayside where passengers have access to PT vehicles. */
 export type QuayNameArgs = {
-    lang?: InputMaybe<Scalars['String']>
+    language?: InputMaybe<Scalars['String']>
 }
 
 export type QuayAtDistance = {
@@ -917,7 +997,7 @@ export type QueryType = {
     quays: Array<Maybe<Quay>>
     /** Get all quays within the specified bounding box */
     quaysByBbox: Array<Maybe<Quay>>
-    /** Get all quays within the specified walking radius from a location. The returned type has two fields quay and distance */
+    /** Get all quays within the specified walking radius from a location. There are no maximum limits for the input parameters, but the query will timeout and return if the parameters are too high. */
     quaysByRadius: Maybe<QuayAtDistanceConnection>
     /** Get default routing parameters. */
     routingParameters: Maybe<RoutingParameters>
@@ -1090,6 +1170,7 @@ export type QueryTypeStopPlacesByBboxArgs = {
 }
 
 export type QueryTypeTripArgs = {
+    accessEgressPenalty?: InputMaybe<Array<PenaltyForStreetMode>>
     alightSlackDefault?: InputMaybe<Scalars['Int']>
     alightSlackList?: InputMaybe<Array<InputMaybe<TransportModeSlack>>>
     arriveBy?: InputMaybe<Scalars['Boolean']>
@@ -1109,6 +1190,7 @@ export type QueryTypeTripArgs = {
     itineraryFilters?: InputMaybe<ItineraryFilters>
     locale?: InputMaybe<Locale>
     maxAccessEgressDurationForMode?: InputMaybe<Array<StreetModeDurationInput>>
+    maxDirectDurationForMode?: InputMaybe<Array<StreetModeDurationInput>>
     maximumAdditionalTransfers?: InputMaybe<Scalars['Int']>
     maximumTransfers?: InputMaybe<Scalars['Int']>
     modes?: InputMaybe<Modes>
@@ -1223,8 +1305,6 @@ export enum RoutingErrorCode {
     OutsideBounds = 'outsideBounds',
     /** The date specified is outside the range of data currently loaded into the system */
     OutsideServicePeriod = 'outsideServicePeriod',
-    /** An unknown error happened during the search. The details have been logged to the server logs */
-    SystemError = 'systemError',
     /** The origin and destination are so close to each other, that walking is always better, but no direct mode was specified for the search */
     WalkingBetterThanTransit = 'walkingBetterThanTransit',
 }
@@ -1268,6 +1348,7 @@ export type RoutingParameters = {
     carSpeed: Maybe<Scalars['Float']>
     /** @deprecated NOT IN USE IN OTP2. */
     compactLegsByReversedSearch: Maybe<Scalars['Boolean']>
+    /** @deprecated Use `itineraryFilter.debug` instead. */
     debugItineraryFilter: Maybe<Scalars['Boolean']>
     /**
      * Option to disable the default filtering of GTFS-RT alerts by time.
@@ -1487,7 +1568,7 @@ export type StopPlaceEstimatedCallsArgs = {
 
 /** Named place where public transport may be accessed. May be a building complex (e.g. a station) or an on-street location. */
 export type StopPlaceNameArgs = {
-    lang?: InputMaybe<Scalars['String']>
+    language?: InputMaybe<Scalars['String']>
 }
 
 /** Named place where public transport may be accessed. May be a building complex (e.g. a station) or an on-street location. */
@@ -1543,7 +1624,17 @@ export type StreetModes = {
     egressMode: InputMaybe<StreetMode>
 }
 
-/** A system notice is used to tag elements with system information for debugging or other system related purpose. One use-case is to run a routing search with 'itineraryFilters.debug: true'. This will then tag itineraries instead of removing them from the result. This make it possible to inspect the itinerary-filter-chain. A SystemNotice only have english text, because the primary user are technical staff, like testers and developers. */
+/**
+ * A system notice is used to tag elements with system information for debugging or other
+ * system related purpose. One use-case is to run a routing search with
+ * `itineraryFilters.debug=listAll`. This will then tag itineraries instead of removing
+ * them from the result. This make it possible to inspect the itinerary-filter-chain. A
+ * SystemNotice only have english text, because the primary user are technical staff, like
+ * testers and developers.
+ *
+ * **NOTE!** _A SystemNotice is for debugging the system, avoid putting logic on it in the
+ * client. The tags and usage may change without notice._
+ */
 export type SystemNotice = {
     __typename?: 'SystemNotice'
     tag: Maybe<Scalars['String']>
@@ -1606,6 +1697,7 @@ export enum TransportMode {
     Metro = 'metro',
     Monorail = 'monorail',
     Rail = 'rail',
+    Taxi = 'taxi',
     Tram = 'tram',
     Trolleybus = 'trolleybus',
     Unknown = 'unknown',
@@ -1856,6 +1948,8 @@ export type TripPattern = {
      * @deprecated Replaced with expectedStartTime
      */
     startTime: Maybe<Scalars['DateTime']>
+    /** How far the user has to walk, bike and/or drive in meters. It includes all street(none transit) modes. */
+    streetDistance: Maybe<Scalars['Float']>
     /** Get all system notices. */
     systemNotices: Array<SystemNotice>
     /** A cost calculated to favor transfer with higher priority. This field is meant for debugging only. */
@@ -1864,7 +1958,7 @@ export type TripPattern = {
     waitTimeOptimizedCost: Maybe<Scalars['Int']>
     /** How much time is spent waiting for transit to arrive, in seconds. */
     waitingTime: Maybe<Scalars['Long']>
-    /** How far the user has to walk, in meters. */
+    /** @deprecated Replaced by `streetDistance`. */
     walkDistance: Maybe<Scalars['Float']>
     /** How much time is spent walking, in seconds. */
     walkTime: Maybe<Scalars['Long']>
@@ -3920,17 +4014,18 @@ export type GetTripPatternsQueryVariables = Exact<{
     relaxTransitSearchGeneralizedCostAtDestination?: InputMaybe<
         Scalars['Float']
     >
+    pageCursor?: InputMaybe<Scalars['String']>
 }>
 
 export type GetTripPatternsQuery = {
     __typename?: 'QueryType'
     trip: {
         __typename?: 'Trip'
+        nextPageCursor: string | null
+        previousPageCursor: string | null
         metadata: {
             __typename?: 'TripSearchData'
             searchWindowUsed: number
-            nextDateTime: string | null
-            prevDateTime: string | null
         } | null
         routingErrors: Array<{
             __typename?: 'RoutingError'

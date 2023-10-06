@@ -34,7 +34,7 @@ export interface RawSearchParams {
     searchDate?: Date
     walkSpeed?: number
     minimumTransferTime?: number
-    cursor?: string
+    pageCursor?: string
     searchFilter?: SearchFilter[]
     searchPreset?: SearchPreset
 }
@@ -58,24 +58,11 @@ export type SearchParams = Omit<RawSearchParams, 'searchFilter'> &
         modes: Modes
         numTripPatterns?: number
     }
-
-export interface CursorData {
-    v: number
-    params: SearchParams
-}
-
 export interface GraphqlQuery {
     query: string
     variables?: Record<string, unknown>
     comment?: string
 }
-
-export interface Metadata {
-    searchWindowUsed: number
-    nextDateTime: string
-    prevDateTime: string
-}
-
 export interface NonTransitTripPatterns {
     bicycle?: TripPatternParsed
     bicycle_rent?: TripPatternParsed
