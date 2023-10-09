@@ -57,12 +57,20 @@ export type SearchParams = Omit<RawSearchParams, 'searchFilter'> &
         searchWindow?: number
         modes: Modes
         numTripPatterns?: number
+        pageCursor?: string
     }
+
+export interface CursorData {
+    v: number
+    params: SearchParams
+}
+
 export interface GraphqlQuery {
     query: string
     variables?: Record<string, unknown>
     comment?: string
 }
+
 export interface NonTransitTripPatterns {
     bicycle?: TripPatternParsed
     bicycle_rent?: TripPatternParsed

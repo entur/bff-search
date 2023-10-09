@@ -89,127 +89,121 @@ export interface PostTransitResponse {
     routingErrors?: RoutingError[]
 }
 
-// export type PostTransitRequestBody = RawSearchParams & {
-//     cursor?: string
-// }
+export type PostTransitRequestBody = RawSearchParams & {
+    cursor?: string
+}
 
-router.post<'/', Record<string, never>, PostTransitResponse, RawSearchParams>(
+router.post<
     '/',
-    async (req, res, next) => {
-        try {
-            console.log('TRANSIT CALL')
-            // console.log(nextCursor)
-            let stopTrace = trace('parseCursor')
+    Record<string, never>,
+    PostTransitResponse,
+    PostTransitRequestBody
+>('/', async (req, res, next) => {
+    try {
+        let stopTrace = trace('parseCursor')
+        const cursorData = parseCursor(req.body?.cursor)
+        stopTrace()
 
-            const cursorData = parseCursor(req.body?.cursor)
-            stopTrace()
-            // console.log('req.body ', req.body)
-            // const params = getParams(req.body)
-            const params = cursorData?.params || getParams(req.body)
+        const params = cursorData?.params || getParams(req.body)
 
-            const isApp = req.header('et-client-platform') === 'APP'
-            if (
-                isApp &&
-                REPLACE_MY_LOCATION_WITH_NEAREST_STOP === 'true' &&
-                isMyLocation(params)
-            ) {
-                const lon = params.from.coordinates?.longitude
-                const lat = params.from.coordinates?.latitude
+        const isApp = req.header('et-client-platform') === 'APP'
+        if (
+            isApp &&
+            REPLACE_MY_LOCATION_WITH_NEAREST_STOP === 'true' &&
+            isMyLocation(params)
+        ) {
+            const lon = params.from.coordinates?.longitude
+            const lat = params.from.coordinates?.latitude
 
-                const nearestStopPlace = await getNearestStopPlace(lon, lat)
+            const nearestStopPlace = await getNearestStopPlace(lon, lat)
 
-                if (nearestStopPlace) {
-                    logger.debug(
-                        `Searched from my location and found ${nearestStopPlace.place}`,
-                        {
-                            originalFrom: params.from,
-                            nearestStopPlace,
-                        },
-                    )
-                    params.from = nearestStopPlace
-                } else {
-                    logger.debug(
-                        `Searched from my location but found nothing but boogers`,
-                        {
-                            originalFrom: params.from,
-                        },
-                    )
-                }
+            if (nearestStopPlace) {
+                logger.debug(
+                    `Searched from my location and found ${nearestStopPlace.place}`,
+                    {
+                        originalFrom: params.from,
+                        nearestStopPlace,
+                    },
+                )
+                params.from = nearestStopPlace
             } else {
-                //  logger.info('Replacement disabled')
+                logger.debug(
+                    `Searched from my location but found nothing but boogers`,
+                    {
+                        originalFrom: params.from,
+                    },
+                )
             }
-
-            const extraHeaders = getHeadersFromClient(req)
-
-            // stopTrace = trace(
-            //     cursorData ? 'searchTransit' : 'searchTransitWithTaxi',
-            // )
-
-            console.log('Cursor som brukes i nytt søk ', params.pageCursor)
-            const {
-                tripPatterns,
-                queries,
-                previousPageCursor,
-                nextPageCursor,
-            } = await searchTransit(params, extraHeaders)
-            stopTrace()
-
-            stopTrace = trace('generateCursor')
-            const otpCursor = params.arriveBy
-                ? previousPageCursor
-                : nextPageCursor
-
-            const generatedCursor = generateCursor(params, otpCursor)
-            stopTrace()
-
-            stopTrace = trace('generateShamashLinks')
-            const mappedQueries = mapQueries(queries)
-            stopTrace()
-
-            const stopCacheTrace = trace('cache')
-            const searchParamsIds = uniq(
-                tripPatterns.map(({ id = '' }) => deriveSearchParamsId(id)),
-            )
-
-            Promise.all([
-                ...tripPatterns.map((tripPattern) =>
-                    cacheSet(`trip-pattern:${tripPattern.id}`, tripPattern),
-                ),
-                ...searchParamsIds.map((searchParamsId) =>
-                    cacheSet(
-                        `search-params:${searchParamsId}`,
-                        params,
-                        SEARCH_PARAMS_EXPIRE_IN_SECONDS,
-                    ),
-                ),
-            ])
-                .catch((error) => logger.error(error))
-                .finally(stopCacheTrace)
-
-            res.json({
-                tripPatterns,
-                nextCursor: generatedCursor,
-                queries: mappedQueries,
-            })
-        } catch (error) {
-            console.log(error)
-            if (error instanceof RoutingErrorsError) {
-                return res.json({
-                    tripPatterns: [],
-                    hasFlexibleTripPattern: false,
-                    queries: mapQueries(error.getQueries()),
-                    routingErrors: error.getRoutingErrors(),
-                })
-            } else if (error instanceof GetTripPatternError) {
-                logger.error(error.message, error)
-                return res.status(500).json({
-                    tripPatterns: [],
-                    queries: mapQueries([error.getQuery()]),
-                })
-            }
-            next(error)
+        } else {
+            // logger.info('Replacement disabled')
         }
-    },
-)
+
+        const extraHeaders = getHeadersFromClient(req)
+
+        stopTrace = trace(
+            cursorData ? 'searchTransit' : 'searchTransitWithTaxi',
+        )
+
+        const { tripPatterns, queries, previousPageCursor, nextPageCursor } =
+            await searchTransit(params, extraHeaders)
+        stopTrace()
+
+        stopTrace = trace('generateCursor')
+        const otpCursor = params.arriveBy ? previousPageCursor : nextPageCursor
+
+        let customCursor
+        if (otpCursor) {
+            customCursor = generateCursor(params, otpCursor)
+        }
+
+        stopTrace()
+
+        stopTrace = trace('generateShamashLinks')
+        const mappedQueries = mapQueries(queries)
+        stopTrace()
+
+        const stopCacheTrace = trace('cache')
+        const searchParamsIds = uniq(
+            tripPatterns.map(({ id = '' }) => deriveSearchParamsId(id)),
+        )
+
+        Promise.all([
+            ...tripPatterns.map((tripPattern) =>
+                cacheSet(`trip-pattern:${tripPattern.id}`, tripPattern),
+            ),
+            ...searchParamsIds.map((searchParamsId) =>
+                cacheSet(
+                    `search-params:${searchParamsId}`,
+                    params,
+                    SEARCH_PARAMS_EXPIRE_IN_SECONDS,
+                ),
+            ),
+        ])
+            .catch((error) => logger.error(error))
+            .finally(stopCacheTrace)
+
+        res.json({
+            tripPatterns,
+            nextCursor: customCursor,
+            queries: mappedQueries,
+        })
+    } catch (error) {
+        if (error instanceof RoutingErrorsError) {
+            return res.json({
+                tripPatterns: [],
+                hasFlexibleTripPattern: false,
+                queries: mapQueries(error.getQueries()),
+                routingErrors: error.getRoutingErrors(),
+            })
+        } else if (error instanceof GetTripPatternError) {
+            logger.error(error.message, error)
+            return res.status(500).json({
+                tripPatterns: [],
+                queries: mapQueries([error.getQuery()]),
+            })
+        }
+        next(error)
+    }
+})
 
 export default router

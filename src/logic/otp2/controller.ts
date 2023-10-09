@@ -1,4 +1,4 @@
-import { differenceInDays, parseISO } from 'date-fns'
+import { parseISO } from 'date-fns'
 
 import { graphqlRequest } from '../../utils/graphqlRequest'
 import { isValidTransitAlternative } from '../../utils/tripPattern'
@@ -6,7 +6,6 @@ import { TRANSIT_HOST_OTP2 } from '../../config'
 import { GetTripPatternError, RoutingErrorsError } from '../../errors'
 import {
     GraphqlQuery,
-    Metadata,
     NonTransitTripPatterns,
     RoutingError,
     RoutingErrorCode,
@@ -29,8 +28,6 @@ import {
     combineAndSortFlexibleAndTransitTripPatterns,
     createParseTripPattern,
     getMinutesBetweenDates,
-    getNextQueryVariables,
-    getNextSearchDateFromMetadata,
     getQueryVariables,
     getTripPatternsQuery,
     legMapper,
@@ -52,8 +49,6 @@ export async function searchTransit(
     const { searchDate, arriveBy } = searchParams
 
     const getTripPatternsParams = getQueryVariables(searchParams)
-
-    console.log(getTripPatternsParams)
 
     // We do two searches in parallel here to speed things up a bit. One is a
     // flexible search where we explicitly look for trips that may include means
@@ -78,14 +73,6 @@ export async function searchTransit(
         ...(flexibleResults?.queries || []),
         getTripPatternsQuery(getTripPatternsParams, comment),
     ]
-
-    console.log(
-        'Cursor inn ',
-        searchParams.pageCursor,
-        ' - cursor resultat',
-        nextPageCursor,
-    )
-    console.log('Antall treff ', regularTripPatternsUnfiltered.length)
 
     // If the normal search failed with a hopeless error, indicating we shouldn't
     // continue with normal searches, we may still have a flexible result.
@@ -147,8 +134,8 @@ export async function searchTransit(
     const flexibleTripPattern = flexibleResults?.tripPatterns[0]
     const hasFlexibleResultsOnly =
         flexibleTripPattern && !regularTripPatterns.length
+
     if (hasFlexibleResultsOnly && hasStopsInRange) {
-        // TODO Legge på cursor på flexible?
         const beforeFlexibleResult = await searchBeforeFlexible(
             searchDate,
             arriveBy,
@@ -157,9 +144,6 @@ export async function searchTransit(
             extraHeaders,
         )
         regularTripPatterns = beforeFlexibleResult.tripPatterns
-        //  metadata = beforeFlexibleResult.metadata
-        // nextSearchDateFromMetadata =
-        //     metadata && getNextSearchDateFromMetadata(metadata, arriveBy)
 
         queries = [...queries, ...beforeFlexibleResult.queries]
     }
@@ -169,21 +153,9 @@ export async function searchTransit(
         ...combineAndSortFlexibleAndTransitTripPatterns(
             regularTripPatterns,
             flexibleTripPattern,
-            //nextSearchDateFromMetadata,
             arriveBy,
         ),
     ]
-
-    console.log('Trippatterrns length ', tripPatterns.length)
-
-    // if (tripPatterns.length) {
-    //     return {
-    //         tripPatterns,
-    //         queries,
-    //         previousPageCursor,
-    //         nextPageCursor,
-    //     }
-    // }
 
     // Searching for normal transport options again will not suddenly make new
     // stops magically appear, so we abort further searching.
@@ -201,18 +173,6 @@ export async function searchTransit(
         previousPageCursor,
         nextPageCursor,
     }
-}
-
-    // Try again without taxi and flex searches until we either find something
-    // or reach the maximum retries/maximum days back/forwards
-    // return searchTransitUntilMaxRetries(
-    //     searchDate,
-    //     getTripPatternsParams,
-    //     previousPageCursor,
-    //     nextPageCursor,
-    //     queries,
-    //     extraHeaders,
-    // )
 }
 
 type NonTransitMode =
@@ -371,7 +331,7 @@ async function getTripPatterns(
             inputField: routingError.inputField || null,
         })) || [],
         previousPageCursor,
-        nextPageCursor
+        nextPageCursor,
     ]
 }
 
@@ -405,8 +365,11 @@ async function searchBeforeFlexible(
     }
 
     const comment = 'Search before flexible'
-    const [transitResultsBeforeFlexible, metadata] =
-        await getAndVerifyTripPatterns(nextSearchParams, extraHeaders, comment)
+    const [transitResultsBeforeFlexible] = await getAndVerifyTripPatterns(
+        nextSearchParams,
+        extraHeaders,
+        comment,
+    )
 
     const tripPatterns: TripPatternParsed[] =
         transitResultsBeforeFlexible.filter(isValidTransitAlternative)
@@ -414,87 +377,7 @@ async function searchBeforeFlexible(
     const queries = [getTripPatternsQuery(nextSearchParams, comment)]
     return {
         queries,
-        metadata,
         tripPatterns,
-    }
-}
-
-async function searchTransitUntilMaxRetries(
-    initialSearchDate: Date,
-    previousSearchParams: GetTripPatternsQueryVariables,
-    previousCursor: string | null,
-    nextCursor: string | null,
-    prevQueries: GraphqlQuery[],
-    extraHeaders: Record<string, string>,
-): Promise<TransitTripPatterns> {
-    const cursor = previousSearchParams.arriveBy ? previousCursor : nextCursor
-    const nextSearchParams = {
-        ...previousSearchParams,
-        pageCursor: cursor,
-    }
-
-    console.log('nextSearchParams ', nextSearchParams)
-
-    const comment = `Search again (${prevQueries.length + 1})`
-
-    const queries = [
-        ...prevQueries,
-        getTripPatternsQuery({ ...nextSearchParams }, comment),
-    ]
-
-    const [response, , previousPageCursor, nextPageCursor] =
-        await getAndVerifyTripPatterns(nextSearchParams, extraHeaders, comment)
-
-    console.log('response', response)
-
-    const tripPatterns = response.filter(isValidTransitAlternative)
-
-    if (tripPatterns.length) {
-        return {
-            tripPatterns,
-            queries,
-            previousPageCursor,
-            nextPageCursor,
-        }
-    }
-
-    const daysSearched = Math.abs(
-        differenceInDays(
-            parseISO(nextSearchParams.dateTime),
-            initialSearchDate,
-        ),
-    )
-
-    // When we have metadata, we limit by the number of queries as each result
-    // may only be for parts of a day. Queries where metadata is missing is
-    // limited by a set number of days, and each query spans a full day, as we
-    // have no information about the next search window to use.
-
-    const shouldSearchAgain =
-        queries.length <= 2 || (!cursor && daysSearched < 7)
-    console.log(
-        'Should serach again ',
-        shouldSearchAgain,
-        ' curosr ',
-        cursor,
-        'queries-lenght ',
-        queries.length,
-    )
-    if (shouldSearchAgain) {
-        return searchTransitUntilMaxRetries(
-            initialSearchDate,
-            nextSearchParams,
-            previousPageCursor,
-            nextPageCursor,
-            queries,
-            extraHeaders,
-        )
-    }
-
-    // Returning metadata undefined will stop generation of a new cursor
-    return {
-        tripPatterns: [],
-        queries,
     }
 }
 
