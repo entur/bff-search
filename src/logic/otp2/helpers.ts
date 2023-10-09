@@ -1,11 +1,4 @@
-import {
-    addDays,
-    differenceInMinutes,
-    endOfDay,
-    parseISO,
-    startOfDay,
-    subDays,
-} from 'date-fns'
+import { differenceInMinutes } from 'date-fns'
 import cleanDeep from 'clean-deep'
 import { v4 as uuid } from 'uuid'
 
@@ -14,7 +7,6 @@ import {
     EstimatedCall,
     GraphqlQuery,
     Leg,
-    Metadata,
     Notice,
     SearchParams,
     SearchPreset,
@@ -149,18 +141,9 @@ function sortTripPatternsByExpectedTime<T extends TripPattern>(
     })
 }
 
-// export function getNextSearchDateFromMetadata(
-//     pageCursor: string,
-//     arriveBy = false,
-// ): Date {
-//     const dateTime = arriveBy ? metadata.prevDateTime : metadata.nextDateTime
-//     return parseISO(dateTime)
-// }
-
 export function combineAndSortFlexibleAndTransitTripPatterns(
     regularTripPatterns: TripPatternParsed[],
     flexibleTripPattern?: TripPatternParsed,
-    // nextDateTime?: Date,
     arriveBy = false,
 ): TripPatternParsed[] {
     if (!flexibleTripPattern) return regularTripPatterns
@@ -169,18 +152,6 @@ export function combineAndSortFlexibleAndTransitTripPatterns(
         [flexibleTripPattern, ...regularTripPatterns],
         arriveBy,
     )
-
-    // if (!nextDateTime) {
-    //     return sortedTripPatterns
-    // }
-
-    // const flexIsOutsideTransitSearchWindowUsed = arriveBy
-    //     ? parseISO(flexibleTripPattern.expectedEndTime) < nextDateTime
-    //     : parseISO(flexibleTripPattern.expectedStartTime) > nextDateTime
-
-    // if (flexIsOutsideTransitSearchWindowUsed) {
-    //     return regularTripPatterns
-    // }
 
     return sortedTripPatterns
 }

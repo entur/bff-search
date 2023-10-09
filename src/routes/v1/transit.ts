@@ -135,7 +135,7 @@ router.post<
                 )
             }
         } else {
-            // logger.info('Replacement disabled')
+            logger.info('Replacement disabled')
         }
 
         const extraHeaders = getHeadersFromClient(req)

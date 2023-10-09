@@ -29,15 +29,10 @@ export function generateCursor(
     params: SearchParams,
     otpCursor?: string | null,
 ): string | undefined {
-    // const { prevDateTime, nextDateTime, searchWindowUsed } = metadata
-
-    // const nextDate = new Date(params.arriveBy ? prevDateTime : nextDateTime)
-
     const cursorData = {
         v: 1,
         params: {
             ...params,
-            //      searchDate: nextDate,
             useFlex: false,
             pageCursor: otpCursor,
         },
