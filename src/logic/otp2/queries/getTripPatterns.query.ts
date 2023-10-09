@@ -14,7 +14,7 @@ import {
     quayFields,
     replaceLegFields,
     serviceJourneyFields,
-    situationsFields,
+    situationRefFields,
     stopPlaceFields,
 } from './fragments'
 
@@ -97,7 +97,7 @@ export default gql`
     ${noticeFields}
     ${placeFields}
     ${quayFields}
-    ${situationsFields}
+    ${situationRefFields}
     ${stopPlaceFields}
     ${bikeRentalStationFields}
     ${authorityFields}

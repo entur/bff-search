@@ -2246,52 +2246,6 @@ export type LegFieldsFragment = {
                 __typename?: 'PtSituationElement'
                 situationNumber: string | null
                 reportType: ReportType | null
-                summary: Array<{
-                    __typename?: 'MultilingualString'
-                    language: string | null
-                    value: string
-                }>
-                description: Array<{
-                    __typename?: 'MultilingualString'
-                    language: string | null
-                    value: string
-                }>
-                advice: Array<{
-                    __typename?: 'MultilingualString'
-                    language: string | null
-                    value: string
-                }>
-                validityPeriod: {
-                    __typename?: 'ValidityPeriod'
-                    startTime: string | null
-                    endTime: string | null
-                } | null
-                infoLinks: Array<{
-                    __typename?: 'infoLink'
-                    uri: string
-                    label: string | null
-                }> | null
-                stopPlaces: Array<{
-                    __typename?: 'StopPlace'
-                    id: string
-                    name: string
-                }>
-                affects: Array<
-                    | { __typename?: 'AffectedLine' }
-                    | { __typename?: 'AffectedServiceJourney' }
-                    | {
-                          __typename?: 'AffectedStopPlace'
-                          stopConditions: Array<StopCondition>
-                          stopPlace: {
-                              __typename?: 'StopPlace'
-                              id: string
-                              name: string
-                          } | null
-                      }
-                    | { __typename?: 'AffectedStopPlaceOnLine' }
-                    | { __typename?: 'AffectedStopPlaceOnServiceJourney' }
-                    | { __typename?: 'AffectedUnknown' }
-                >
             }>
             stopPlace: {
                 __typename?: 'StopPlace'
@@ -2347,52 +2301,6 @@ export type LegFieldsFragment = {
                 __typename?: 'PtSituationElement'
                 situationNumber: string | null
                 reportType: ReportType | null
-                summary: Array<{
-                    __typename?: 'MultilingualString'
-                    language: string | null
-                    value: string
-                }>
-                description: Array<{
-                    __typename?: 'MultilingualString'
-                    language: string | null
-                    value: string
-                }>
-                advice: Array<{
-                    __typename?: 'MultilingualString'
-                    language: string | null
-                    value: string
-                }>
-                validityPeriod: {
-                    __typename?: 'ValidityPeriod'
-                    startTime: string | null
-                    endTime: string | null
-                } | null
-                infoLinks: Array<{
-                    __typename?: 'infoLink'
-                    uri: string
-                    label: string | null
-                }> | null
-                stopPlaces: Array<{
-                    __typename?: 'StopPlace'
-                    id: string
-                    name: string
-                }>
-                affects: Array<
-                    | { __typename?: 'AffectedLine' }
-                    | { __typename?: 'AffectedServiceJourney' }
-                    | {
-                          __typename?: 'AffectedStopPlace'
-                          stopConditions: Array<StopCondition>
-                          stopPlace: {
-                              __typename?: 'StopPlace'
-                              id: string
-                              name: string
-                          } | null
-                      }
-                    | { __typename?: 'AffectedStopPlaceOnLine' }
-                    | { __typename?: 'AffectedStopPlaceOnServiceJourney' }
-                    | { __typename?: 'AffectedUnknown' }
-                >
             }>
             stopPlace: {
                 __typename?: 'StopPlace'
@@ -2465,52 +2373,6 @@ export type LegFieldsFragment = {
                 __typename?: 'PtSituationElement'
                 situationNumber: string | null
                 reportType: ReportType | null
-                summary: Array<{
-                    __typename?: 'MultilingualString'
-                    language: string | null
-                    value: string
-                }>
-                description: Array<{
-                    __typename?: 'MultilingualString'
-                    language: string | null
-                    value: string
-                }>
-                advice: Array<{
-                    __typename?: 'MultilingualString'
-                    language: string | null
-                    value: string
-                }>
-                validityPeriod: {
-                    __typename?: 'ValidityPeriod'
-                    startTime: string | null
-                    endTime: string | null
-                } | null
-                infoLinks: Array<{
-                    __typename?: 'infoLink'
-                    uri: string
-                    label: string | null
-                }> | null
-                stopPlaces: Array<{
-                    __typename?: 'StopPlace'
-                    id: string
-                    name: string
-                }>
-                affects: Array<
-                    | { __typename?: 'AffectedLine' }
-                    | { __typename?: 'AffectedServiceJourney' }
-                    | {
-                          __typename?: 'AffectedStopPlace'
-                          stopConditions: Array<StopCondition>
-                          stopPlace: {
-                              __typename?: 'StopPlace'
-                              id: string
-                              name: string
-                          } | null
-                      }
-                    | { __typename?: 'AffectedStopPlaceOnLine' }
-                    | { __typename?: 'AffectedStopPlaceOnServiceJourney' }
-                    | { __typename?: 'AffectedUnknown' }
-                >
             }>
             stopPlace: {
                 __typename?: 'StopPlace'
@@ -2629,52 +2491,6 @@ export type LegFieldsFragment = {
         __typename?: 'PtSituationElement'
         situationNumber: string | null
         reportType: ReportType | null
-        summary: Array<{
-            __typename?: 'MultilingualString'
-            language: string | null
-            value: string
-        }>
-        description: Array<{
-            __typename?: 'MultilingualString'
-            language: string | null
-            value: string
-        }>
-        advice: Array<{
-            __typename?: 'MultilingualString'
-            language: string | null
-            value: string
-        }>
-        validityPeriod: {
-            __typename?: 'ValidityPeriod'
-            startTime: string | null
-            endTime: string | null
-        } | null
-        infoLinks: Array<{
-            __typename?: 'infoLink'
-            uri: string
-            label: string | null
-        }> | null
-        stopPlaces: Array<{
-            __typename?: 'StopPlace'
-            id: string
-            name: string
-        }>
-        affects: Array<
-            | { __typename?: 'AffectedLine' }
-            | { __typename?: 'AffectedServiceJourney' }
-            | {
-                  __typename?: 'AffectedStopPlace'
-                  stopConditions: Array<StopCondition>
-                  stopPlace: {
-                      __typename?: 'StopPlace'
-                      id: string
-                      name: string
-                  } | null
-              }
-            | { __typename?: 'AffectedStopPlaceOnLine' }
-            | { __typename?: 'AffectedStopPlaceOnServiceJourney' }
-            | { __typename?: 'AffectedUnknown' }
-        >
     }>
     toEstimatedCall: {
         __typename?: 'EstimatedCall'
@@ -2707,52 +2523,6 @@ export type LegFieldsFragment = {
                 __typename?: 'PtSituationElement'
                 situationNumber: string | null
                 reportType: ReportType | null
-                summary: Array<{
-                    __typename?: 'MultilingualString'
-                    language: string | null
-                    value: string
-                }>
-                description: Array<{
-                    __typename?: 'MultilingualString'
-                    language: string | null
-                    value: string
-                }>
-                advice: Array<{
-                    __typename?: 'MultilingualString'
-                    language: string | null
-                    value: string
-                }>
-                validityPeriod: {
-                    __typename?: 'ValidityPeriod'
-                    startTime: string | null
-                    endTime: string | null
-                } | null
-                infoLinks: Array<{
-                    __typename?: 'infoLink'
-                    uri: string
-                    label: string | null
-                }> | null
-                stopPlaces: Array<{
-                    __typename?: 'StopPlace'
-                    id: string
-                    name: string
-                }>
-                affects: Array<
-                    | { __typename?: 'AffectedLine' }
-                    | { __typename?: 'AffectedServiceJourney' }
-                    | {
-                          __typename?: 'AffectedStopPlace'
-                          stopConditions: Array<StopCondition>
-                          stopPlace: {
-                              __typename?: 'StopPlace'
-                              id: string
-                              name: string
-                          } | null
-                      }
-                    | { __typename?: 'AffectedStopPlaceOnLine' }
-                    | { __typename?: 'AffectedStopPlaceOnServiceJourney' }
-                    | { __typename?: 'AffectedUnknown' }
-                >
             }>
             stopPlace: {
                 __typename?: 'StopPlace'
@@ -2808,52 +2578,6 @@ export type LegFieldsFragment = {
                 __typename?: 'PtSituationElement'
                 situationNumber: string | null
                 reportType: ReportType | null
-                summary: Array<{
-                    __typename?: 'MultilingualString'
-                    language: string | null
-                    value: string
-                }>
-                description: Array<{
-                    __typename?: 'MultilingualString'
-                    language: string | null
-                    value: string
-                }>
-                advice: Array<{
-                    __typename?: 'MultilingualString'
-                    language: string | null
-                    value: string
-                }>
-                validityPeriod: {
-                    __typename?: 'ValidityPeriod'
-                    startTime: string | null
-                    endTime: string | null
-                } | null
-                infoLinks: Array<{
-                    __typename?: 'infoLink'
-                    uri: string
-                    label: string | null
-                }> | null
-                stopPlaces: Array<{
-                    __typename?: 'StopPlace'
-                    id: string
-                    name: string
-                }>
-                affects: Array<
-                    | { __typename?: 'AffectedLine' }
-                    | { __typename?: 'AffectedServiceJourney' }
-                    | {
-                          __typename?: 'AffectedStopPlace'
-                          stopConditions: Array<StopCondition>
-                          stopPlace: {
-                              __typename?: 'StopPlace'
-                              id: string
-                              name: string
-                          } | null
-                      }
-                    | { __typename?: 'AffectedStopPlaceOnLine' }
-                    | { __typename?: 'AffectedStopPlaceOnServiceJourney' }
-                    | { __typename?: 'AffectedUnknown' }
-                >
             }>
             stopPlace: {
                 __typename?: 'StopPlace'
@@ -2956,52 +2680,6 @@ export type PlaceFieldsFragment = {
             __typename?: 'PtSituationElement'
             situationNumber: string | null
             reportType: ReportType | null
-            summary: Array<{
-                __typename?: 'MultilingualString'
-                language: string | null
-                value: string
-            }>
-            description: Array<{
-                __typename?: 'MultilingualString'
-                language: string | null
-                value: string
-            }>
-            advice: Array<{
-                __typename?: 'MultilingualString'
-                language: string | null
-                value: string
-            }>
-            validityPeriod: {
-                __typename?: 'ValidityPeriod'
-                startTime: string | null
-                endTime: string | null
-            } | null
-            infoLinks: Array<{
-                __typename?: 'infoLink'
-                uri: string
-                label: string | null
-            }> | null
-            stopPlaces: Array<{
-                __typename?: 'StopPlace'
-                id: string
-                name: string
-            }>
-            affects: Array<
-                | { __typename?: 'AffectedLine' }
-                | { __typename?: 'AffectedServiceJourney' }
-                | {
-                      __typename?: 'AffectedStopPlace'
-                      stopConditions: Array<StopCondition>
-                      stopPlace: {
-                          __typename?: 'StopPlace'
-                          id: string
-                          name: string
-                      } | null
-                  }
-                | { __typename?: 'AffectedStopPlaceOnLine' }
-                | { __typename?: 'AffectedStopPlaceOnServiceJourney' }
-                | { __typename?: 'AffectedUnknown' }
-            >
         }>
         stopPlace: {
             __typename?: 'StopPlace'
@@ -3035,52 +2713,6 @@ export type QuayFieldsFragment = {
         __typename?: 'PtSituationElement'
         situationNumber: string | null
         reportType: ReportType | null
-        summary: Array<{
-            __typename?: 'MultilingualString'
-            language: string | null
-            value: string
-        }>
-        description: Array<{
-            __typename?: 'MultilingualString'
-            language: string | null
-            value: string
-        }>
-        advice: Array<{
-            __typename?: 'MultilingualString'
-            language: string | null
-            value: string
-        }>
-        validityPeriod: {
-            __typename?: 'ValidityPeriod'
-            startTime: string | null
-            endTime: string | null
-        } | null
-        infoLinks: Array<{
-            __typename?: 'infoLink'
-            uri: string
-            label: string | null
-        }> | null
-        stopPlaces: Array<{
-            __typename?: 'StopPlace'
-            id: string
-            name: string
-        }>
-        affects: Array<
-            | { __typename?: 'AffectedLine' }
-            | { __typename?: 'AffectedServiceJourney' }
-            | {
-                  __typename?: 'AffectedStopPlace'
-                  stopConditions: Array<StopCondition>
-                  stopPlace: {
-                      __typename?: 'StopPlace'
-                      id: string
-                      name: string
-                  } | null
-              }
-            | { __typename?: 'AffectedStopPlaceOnLine' }
-            | { __typename?: 'AffectedStopPlaceOnServiceJourney' }
-            | { __typename?: 'AffectedUnknown' }
-        >
     }>
     stopPlace: {
         __typename?: 'StopPlace'
@@ -3093,125 +2725,10 @@ export type QuayFieldsFragment = {
     } | null
 }
 
-export type SituationFieldsFragment = {
+export type SituationRefFieldsFragment = {
     __typename?: 'PtSituationElement'
     situationNumber: string | null
     reportType: ReportType | null
-    summary: Array<{
-        __typename?: 'MultilingualString'
-        language: string | null
-        value: string
-    }>
-    description: Array<{
-        __typename?: 'MultilingualString'
-        language: string | null
-        value: string
-    }>
-    advice: Array<{
-        __typename?: 'MultilingualString'
-        language: string | null
-        value: string
-    }>
-    validityPeriod: {
-        __typename?: 'ValidityPeriod'
-        startTime: string | null
-        endTime: string | null
-    } | null
-    infoLinks: Array<{
-        __typename?: 'infoLink'
-        uri: string
-        label: string | null
-    }> | null
-    stopPlaces: Array<{ __typename?: 'StopPlace'; id: string; name: string }>
-    affects: Array<
-        | { __typename?: 'AffectedLine' }
-        | { __typename?: 'AffectedServiceJourney' }
-        | {
-              __typename?: 'AffectedStopPlace'
-              stopConditions: Array<StopCondition>
-              stopPlace: {
-                  __typename?: 'StopPlace'
-                  id: string
-                  name: string
-              } | null
-          }
-        | { __typename?: 'AffectedStopPlaceOnLine' }
-        | { __typename?: 'AffectedStopPlaceOnServiceJourney' }
-        | { __typename?: 'AffectedUnknown' }
-    >
-}
-
-export type SituationsFieldsNewFragment = {
-    __typename?: 'PtSituationElement'
-    situationNumber: string | null
-    reportType: ReportType | null
-    summary: Array<{
-        __typename?: 'MultilingualString'
-        language: string | null
-        value: string
-    }>
-    description: Array<{
-        __typename?: 'MultilingualString'
-        language: string | null
-        value: string
-    }>
-    advice: Array<{
-        __typename?: 'MultilingualString'
-        language: string | null
-        value: string
-    }>
-    validityPeriod: {
-        __typename?: 'ValidityPeriod'
-        startTime: string | null
-        endTime: string | null
-    } | null
-    infoLinks: Array<{
-        __typename?: 'infoLink'
-        uri: string
-        label: string | null
-    }> | null
-    stopPlaces: Array<{ __typename?: 'StopPlace'; id: string; name: string }>
-    affects: Array<
-        | {
-              __typename: 'AffectedLine'
-              line: { __typename?: 'Line'; id: string } | null
-          }
-        | {
-              __typename: 'AffectedServiceJourney'
-              serviceJourney: {
-                  __typename?: 'ServiceJourney'
-                  id: string
-              } | null
-          }
-        | {
-              __typename: 'AffectedStopPlace'
-              stopPlace: {
-                  __typename?: 'StopPlace'
-                  id: string
-                  name: string
-              } | null
-              quay: { __typename?: 'Quay'; id: string; name: string } | null
-          }
-        | {
-              __typename: 'AffectedStopPlaceOnLine'
-              stopPlace: {
-                  __typename?: 'StopPlace'
-                  id: string
-                  name: string
-              } | null
-              quay: { __typename?: 'Quay'; id: string; name: string } | null
-          }
-        | {
-              __typename: 'AffectedStopPlaceOnServiceJourney'
-              stopPlace: {
-                  __typename?: 'StopPlace'
-                  id: string
-                  name: string
-              } | null
-              quay: { __typename?: 'Quay'; id: string; name: string } | null
-          }
-        | { __typename: 'AffectedUnknown' }
-    >
 }
 
 export type StopPlaceFieldsFragment = {
@@ -3318,52 +2835,6 @@ export type EstimatedCallFieldsFragment = {
             __typename?: 'PtSituationElement'
             situationNumber: string | null
             reportType: ReportType | null
-            summary: Array<{
-                __typename?: 'MultilingualString'
-                language: string | null
-                value: string
-            }>
-            description: Array<{
-                __typename?: 'MultilingualString'
-                language: string | null
-                value: string
-            }>
-            advice: Array<{
-                __typename?: 'MultilingualString'
-                language: string | null
-                value: string
-            }>
-            validityPeriod: {
-                __typename?: 'ValidityPeriod'
-                startTime: string | null
-                endTime: string | null
-            } | null
-            infoLinks: Array<{
-                __typename?: 'infoLink'
-                uri: string
-                label: string | null
-            }> | null
-            stopPlaces: Array<{
-                __typename?: 'StopPlace'
-                id: string
-                name: string
-            }>
-            affects: Array<
-                | { __typename?: 'AffectedLine' }
-                | { __typename?: 'AffectedServiceJourney' }
-                | {
-                      __typename?: 'AffectedStopPlace'
-                      stopConditions: Array<StopCondition>
-                      stopPlace: {
-                          __typename?: 'StopPlace'
-                          id: string
-                          name: string
-                      } | null
-                  }
-                | { __typename?: 'AffectedStopPlaceOnLine' }
-                | { __typename?: 'AffectedStopPlaceOnServiceJourney' }
-                | { __typename?: 'AffectedUnknown' }
-            >
         }>
         stopPlace: {
             __typename?: 'StopPlace'
@@ -3459,52 +2930,6 @@ export type GetLegQuery = {
                     __typename?: 'PtSituationElement'
                     situationNumber: string | null
                     reportType: ReportType | null
-                    summary: Array<{
-                        __typename?: 'MultilingualString'
-                        language: string | null
-                        value: string
-                    }>
-                    description: Array<{
-                        __typename?: 'MultilingualString'
-                        language: string | null
-                        value: string
-                    }>
-                    advice: Array<{
-                        __typename?: 'MultilingualString'
-                        language: string | null
-                        value: string
-                    }>
-                    validityPeriod: {
-                        __typename?: 'ValidityPeriod'
-                        startTime: string | null
-                        endTime: string | null
-                    } | null
-                    infoLinks: Array<{
-                        __typename?: 'infoLink'
-                        uri: string
-                        label: string | null
-                    }> | null
-                    stopPlaces: Array<{
-                        __typename?: 'StopPlace'
-                        id: string
-                        name: string
-                    }>
-                    affects: Array<
-                        | { __typename?: 'AffectedLine' }
-                        | { __typename?: 'AffectedServiceJourney' }
-                        | {
-                              __typename?: 'AffectedStopPlace'
-                              stopConditions: Array<StopCondition>
-                              stopPlace: {
-                                  __typename?: 'StopPlace'
-                                  id: string
-                                  name: string
-                              } | null
-                          }
-                        | { __typename?: 'AffectedStopPlaceOnLine' }
-                        | { __typename?: 'AffectedStopPlaceOnServiceJourney' }
-                        | { __typename?: 'AffectedUnknown' }
-                    >
                 }>
                 stopPlace: {
                     __typename?: 'StopPlace'
@@ -3563,52 +2988,6 @@ export type GetLegQuery = {
                     __typename?: 'PtSituationElement'
                     situationNumber: string | null
                     reportType: ReportType | null
-                    summary: Array<{
-                        __typename?: 'MultilingualString'
-                        language: string | null
-                        value: string
-                    }>
-                    description: Array<{
-                        __typename?: 'MultilingualString'
-                        language: string | null
-                        value: string
-                    }>
-                    advice: Array<{
-                        __typename?: 'MultilingualString'
-                        language: string | null
-                        value: string
-                    }>
-                    validityPeriod: {
-                        __typename?: 'ValidityPeriod'
-                        startTime: string | null
-                        endTime: string | null
-                    } | null
-                    infoLinks: Array<{
-                        __typename?: 'infoLink'
-                        uri: string
-                        label: string | null
-                    }> | null
-                    stopPlaces: Array<{
-                        __typename?: 'StopPlace'
-                        id: string
-                        name: string
-                    }>
-                    affects: Array<
-                        | { __typename?: 'AffectedLine' }
-                        | { __typename?: 'AffectedServiceJourney' }
-                        | {
-                              __typename?: 'AffectedStopPlace'
-                              stopConditions: Array<StopCondition>
-                              stopPlace: {
-                                  __typename?: 'StopPlace'
-                                  id: string
-                                  name: string
-                              } | null
-                          }
-                        | { __typename?: 'AffectedStopPlaceOnLine' }
-                        | { __typename?: 'AffectedStopPlaceOnServiceJourney' }
-                        | { __typename?: 'AffectedUnknown' }
-                    >
                 }>
                 stopPlace: {
                     __typename?: 'StopPlace'
@@ -3693,52 +3072,6 @@ export type GetLegQuery = {
                     __typename?: 'PtSituationElement'
                     situationNumber: string | null
                     reportType: ReportType | null
-                    summary: Array<{
-                        __typename?: 'MultilingualString'
-                        language: string | null
-                        value: string
-                    }>
-                    description: Array<{
-                        __typename?: 'MultilingualString'
-                        language: string | null
-                        value: string
-                    }>
-                    advice: Array<{
-                        __typename?: 'MultilingualString'
-                        language: string | null
-                        value: string
-                    }>
-                    validityPeriod: {
-                        __typename?: 'ValidityPeriod'
-                        startTime: string | null
-                        endTime: string | null
-                    } | null
-                    infoLinks: Array<{
-                        __typename?: 'infoLink'
-                        uri: string
-                        label: string | null
-                    }> | null
-                    stopPlaces: Array<{
-                        __typename?: 'StopPlace'
-                        id: string
-                        name: string
-                    }>
-                    affects: Array<
-                        | { __typename?: 'AffectedLine' }
-                        | { __typename?: 'AffectedServiceJourney' }
-                        | {
-                              __typename?: 'AffectedStopPlace'
-                              stopConditions: Array<StopCondition>
-                              stopPlace: {
-                                  __typename?: 'StopPlace'
-                                  id: string
-                                  name: string
-                              } | null
-                          }
-                        | { __typename?: 'AffectedStopPlaceOnLine' }
-                        | { __typename?: 'AffectedStopPlaceOnServiceJourney' }
-                        | { __typename?: 'AffectedUnknown' }
-                    >
                 }>
                 stopPlace: {
                     __typename?: 'StopPlace'
@@ -3863,52 +3196,6 @@ export type GetLegQuery = {
             __typename?: 'PtSituationElement'
             situationNumber: string | null
             reportType: ReportType | null
-            summary: Array<{
-                __typename?: 'MultilingualString'
-                language: string | null
-                value: string
-            }>
-            description: Array<{
-                __typename?: 'MultilingualString'
-                language: string | null
-                value: string
-            }>
-            advice: Array<{
-                __typename?: 'MultilingualString'
-                language: string | null
-                value: string
-            }>
-            validityPeriod: {
-                __typename?: 'ValidityPeriod'
-                startTime: string | null
-                endTime: string | null
-            } | null
-            infoLinks: Array<{
-                __typename?: 'infoLink'
-                uri: string
-                label: string | null
-            }> | null
-            stopPlaces: Array<{
-                __typename?: 'StopPlace'
-                id: string
-                name: string
-            }>
-            affects: Array<
-                | { __typename?: 'AffectedLine' }
-                | { __typename?: 'AffectedServiceJourney' }
-                | {
-                      __typename?: 'AffectedStopPlace'
-                      stopConditions: Array<StopCondition>
-                      stopPlace: {
-                          __typename?: 'StopPlace'
-                          id: string
-                          name: string
-                      } | null
-                  }
-                | { __typename?: 'AffectedStopPlaceOnLine' }
-                | { __typename?: 'AffectedStopPlaceOnServiceJourney' }
-                | { __typename?: 'AffectedUnknown' }
-            >
         }>
         toEstimatedCall: {
             __typename?: 'EstimatedCall'
@@ -3941,52 +3228,6 @@ export type GetLegQuery = {
                     __typename?: 'PtSituationElement'
                     situationNumber: string | null
                     reportType: ReportType | null
-                    summary: Array<{
-                        __typename?: 'MultilingualString'
-                        language: string | null
-                        value: string
-                    }>
-                    description: Array<{
-                        __typename?: 'MultilingualString'
-                        language: string | null
-                        value: string
-                    }>
-                    advice: Array<{
-                        __typename?: 'MultilingualString'
-                        language: string | null
-                        value: string
-                    }>
-                    validityPeriod: {
-                        __typename?: 'ValidityPeriod'
-                        startTime: string | null
-                        endTime: string | null
-                    } | null
-                    infoLinks: Array<{
-                        __typename?: 'infoLink'
-                        uri: string
-                        label: string | null
-                    }> | null
-                    stopPlaces: Array<{
-                        __typename?: 'StopPlace'
-                        id: string
-                        name: string
-                    }>
-                    affects: Array<
-                        | { __typename?: 'AffectedLine' }
-                        | { __typename?: 'AffectedServiceJourney' }
-                        | {
-                              __typename?: 'AffectedStopPlace'
-                              stopConditions: Array<StopCondition>
-                              stopPlace: {
-                                  __typename?: 'StopPlace'
-                                  id: string
-                                  name: string
-                              } | null
-                          }
-                        | { __typename?: 'AffectedStopPlaceOnLine' }
-                        | { __typename?: 'AffectedStopPlaceOnServiceJourney' }
-                        | { __typename?: 'AffectedUnknown' }
-                    >
                 }>
                 stopPlace: {
                     __typename?: 'StopPlace'
@@ -4045,52 +3286,6 @@ export type GetLegQuery = {
                     __typename?: 'PtSituationElement'
                     situationNumber: string | null
                     reportType: ReportType | null
-                    summary: Array<{
-                        __typename?: 'MultilingualString'
-                        language: string | null
-                        value: string
-                    }>
-                    description: Array<{
-                        __typename?: 'MultilingualString'
-                        language: string | null
-                        value: string
-                    }>
-                    advice: Array<{
-                        __typename?: 'MultilingualString'
-                        language: string | null
-                        value: string
-                    }>
-                    validityPeriod: {
-                        __typename?: 'ValidityPeriod'
-                        startTime: string | null
-                        endTime: string | null
-                    } | null
-                    infoLinks: Array<{
-                        __typename?: 'infoLink'
-                        uri: string
-                        label: string | null
-                    }> | null
-                    stopPlaces: Array<{
-                        __typename?: 'StopPlace'
-                        id: string
-                        name: string
-                    }>
-                    affects: Array<
-                        | { __typename?: 'AffectedLine' }
-                        | { __typename?: 'AffectedServiceJourney' }
-                        | {
-                              __typename?: 'AffectedStopPlace'
-                              stopConditions: Array<StopCondition>
-                              stopPlace: {
-                                  __typename?: 'StopPlace'
-                                  id: string
-                                  name: string
-                              } | null
-                          }
-                        | { __typename?: 'AffectedStopPlaceOnLine' }
-                        | { __typename?: 'AffectedStopPlaceOnServiceJourney' }
-                        | { __typename?: 'AffectedUnknown' }
-                    >
                 }>
                 stopPlace: {
                     __typename?: 'StopPlace'
@@ -4242,54 +3437,6 @@ export type GetTripPatternsQuery = {
                             __typename?: 'PtSituationElement'
                             situationNumber: string | null
                             reportType: ReportType | null
-                            summary: Array<{
-                                __typename?: 'MultilingualString'
-                                language: string | null
-                                value: string
-                            }>
-                            description: Array<{
-                                __typename?: 'MultilingualString'
-                                language: string | null
-                                value: string
-                            }>
-                            advice: Array<{
-                                __typename?: 'MultilingualString'
-                                language: string | null
-                                value: string
-                            }>
-                            validityPeriod: {
-                                __typename?: 'ValidityPeriod'
-                                startTime: string | null
-                                endTime: string | null
-                            } | null
-                            infoLinks: Array<{
-                                __typename?: 'infoLink'
-                                uri: string
-                                label: string | null
-                            }> | null
-                            stopPlaces: Array<{
-                                __typename?: 'StopPlace'
-                                id: string
-                                name: string
-                            }>
-                            affects: Array<
-                                | { __typename?: 'AffectedLine' }
-                                | { __typename?: 'AffectedServiceJourney' }
-                                | {
-                                      __typename?: 'AffectedStopPlace'
-                                      stopConditions: Array<StopCondition>
-                                      stopPlace: {
-                                          __typename?: 'StopPlace'
-                                          id: string
-                                          name: string
-                                      } | null
-                                  }
-                                | { __typename?: 'AffectedStopPlaceOnLine' }
-                                | {
-                                      __typename?: 'AffectedStopPlaceOnServiceJourney'
-                                  }
-                                | { __typename?: 'AffectedUnknown' }
-                            >
                         }>
                         stopPlace: {
                             __typename?: 'StopPlace'
@@ -4351,54 +3498,6 @@ export type GetTripPatternsQuery = {
                             __typename?: 'PtSituationElement'
                             situationNumber: string | null
                             reportType: ReportType | null
-                            summary: Array<{
-                                __typename?: 'MultilingualString'
-                                language: string | null
-                                value: string
-                            }>
-                            description: Array<{
-                                __typename?: 'MultilingualString'
-                                language: string | null
-                                value: string
-                            }>
-                            advice: Array<{
-                                __typename?: 'MultilingualString'
-                                language: string | null
-                                value: string
-                            }>
-                            validityPeriod: {
-                                __typename?: 'ValidityPeriod'
-                                startTime: string | null
-                                endTime: string | null
-                            } | null
-                            infoLinks: Array<{
-                                __typename?: 'infoLink'
-                                uri: string
-                                label: string | null
-                            }> | null
-                            stopPlaces: Array<{
-                                __typename?: 'StopPlace'
-                                id: string
-                                name: string
-                            }>
-                            affects: Array<
-                                | { __typename?: 'AffectedLine' }
-                                | { __typename?: 'AffectedServiceJourney' }
-                                | {
-                                      __typename?: 'AffectedStopPlace'
-                                      stopConditions: Array<StopCondition>
-                                      stopPlace: {
-                                          __typename?: 'StopPlace'
-                                          id: string
-                                          name: string
-                                      } | null
-                                  }
-                                | { __typename?: 'AffectedStopPlaceOnLine' }
-                                | {
-                                      __typename?: 'AffectedStopPlaceOnServiceJourney'
-                                  }
-                                | { __typename?: 'AffectedUnknown' }
-                            >
                         }>
                         stopPlace: {
                             __typename?: 'StopPlace'
@@ -4486,54 +3585,6 @@ export type GetTripPatternsQuery = {
                             __typename?: 'PtSituationElement'
                             situationNumber: string | null
                             reportType: ReportType | null
-                            summary: Array<{
-                                __typename?: 'MultilingualString'
-                                language: string | null
-                                value: string
-                            }>
-                            description: Array<{
-                                __typename?: 'MultilingualString'
-                                language: string | null
-                                value: string
-                            }>
-                            advice: Array<{
-                                __typename?: 'MultilingualString'
-                                language: string | null
-                                value: string
-                            }>
-                            validityPeriod: {
-                                __typename?: 'ValidityPeriod'
-                                startTime: string | null
-                                endTime: string | null
-                            } | null
-                            infoLinks: Array<{
-                                __typename?: 'infoLink'
-                                uri: string
-                                label: string | null
-                            }> | null
-                            stopPlaces: Array<{
-                                __typename?: 'StopPlace'
-                                id: string
-                                name: string
-                            }>
-                            affects: Array<
-                                | { __typename?: 'AffectedLine' }
-                                | { __typename?: 'AffectedServiceJourney' }
-                                | {
-                                      __typename?: 'AffectedStopPlace'
-                                      stopConditions: Array<StopCondition>
-                                      stopPlace: {
-                                          __typename?: 'StopPlace'
-                                          id: string
-                                          name: string
-                                      } | null
-                                  }
-                                | { __typename?: 'AffectedStopPlaceOnLine' }
-                                | {
-                                      __typename?: 'AffectedStopPlaceOnServiceJourney'
-                                  }
-                                | { __typename?: 'AffectedUnknown' }
-                            >
                         }>
                         stopPlace: {
                             __typename?: 'StopPlace'
@@ -4676,52 +3727,6 @@ export type GetTripPatternsQuery = {
                     __typename?: 'PtSituationElement'
                     situationNumber: string | null
                     reportType: ReportType | null
-                    summary: Array<{
-                        __typename?: 'MultilingualString'
-                        language: string | null
-                        value: string
-                    }>
-                    description: Array<{
-                        __typename?: 'MultilingualString'
-                        language: string | null
-                        value: string
-                    }>
-                    advice: Array<{
-                        __typename?: 'MultilingualString'
-                        language: string | null
-                        value: string
-                    }>
-                    validityPeriod: {
-                        __typename?: 'ValidityPeriod'
-                        startTime: string | null
-                        endTime: string | null
-                    } | null
-                    infoLinks: Array<{
-                        __typename?: 'infoLink'
-                        uri: string
-                        label: string | null
-                    }> | null
-                    stopPlaces: Array<{
-                        __typename?: 'StopPlace'
-                        id: string
-                        name: string
-                    }>
-                    affects: Array<
-                        | { __typename?: 'AffectedLine' }
-                        | { __typename?: 'AffectedServiceJourney' }
-                        | {
-                              __typename?: 'AffectedStopPlace'
-                              stopConditions: Array<StopCondition>
-                              stopPlace: {
-                                  __typename?: 'StopPlace'
-                                  id: string
-                                  name: string
-                              } | null
-                          }
-                        | { __typename?: 'AffectedStopPlaceOnLine' }
-                        | { __typename?: 'AffectedStopPlaceOnServiceJourney' }
-                        | { __typename?: 'AffectedUnknown' }
-                    >
                 }>
                 toEstimatedCall: {
                     __typename?: 'EstimatedCall'
@@ -4757,54 +3762,6 @@ export type GetTripPatternsQuery = {
                             __typename?: 'PtSituationElement'
                             situationNumber: string | null
                             reportType: ReportType | null
-                            summary: Array<{
-                                __typename?: 'MultilingualString'
-                                language: string | null
-                                value: string
-                            }>
-                            description: Array<{
-                                __typename?: 'MultilingualString'
-                                language: string | null
-                                value: string
-                            }>
-                            advice: Array<{
-                                __typename?: 'MultilingualString'
-                                language: string | null
-                                value: string
-                            }>
-                            validityPeriod: {
-                                __typename?: 'ValidityPeriod'
-                                startTime: string | null
-                                endTime: string | null
-                            } | null
-                            infoLinks: Array<{
-                                __typename?: 'infoLink'
-                                uri: string
-                                label: string | null
-                            }> | null
-                            stopPlaces: Array<{
-                                __typename?: 'StopPlace'
-                                id: string
-                                name: string
-                            }>
-                            affects: Array<
-                                | { __typename?: 'AffectedLine' }
-                                | { __typename?: 'AffectedServiceJourney' }
-                                | {
-                                      __typename?: 'AffectedStopPlace'
-                                      stopConditions: Array<StopCondition>
-                                      stopPlace: {
-                                          __typename?: 'StopPlace'
-                                          id: string
-                                          name: string
-                                      } | null
-                                  }
-                                | { __typename?: 'AffectedStopPlaceOnLine' }
-                                | {
-                                      __typename?: 'AffectedStopPlaceOnServiceJourney'
-                                  }
-                                | { __typename?: 'AffectedUnknown' }
-                            >
                         }>
                         stopPlace: {
                             __typename?: 'StopPlace'
@@ -4866,54 +3823,6 @@ export type GetTripPatternsQuery = {
                             __typename?: 'PtSituationElement'
                             situationNumber: string | null
                             reportType: ReportType | null
-                            summary: Array<{
-                                __typename?: 'MultilingualString'
-                                language: string | null
-                                value: string
-                            }>
-                            description: Array<{
-                                __typename?: 'MultilingualString'
-                                language: string | null
-                                value: string
-                            }>
-                            advice: Array<{
-                                __typename?: 'MultilingualString'
-                                language: string | null
-                                value: string
-                            }>
-                            validityPeriod: {
-                                __typename?: 'ValidityPeriod'
-                                startTime: string | null
-                                endTime: string | null
-                            } | null
-                            infoLinks: Array<{
-                                __typename?: 'infoLink'
-                                uri: string
-                                label: string | null
-                            }> | null
-                            stopPlaces: Array<{
-                                __typename?: 'StopPlace'
-                                id: string
-                                name: string
-                            }>
-                            affects: Array<
-                                | { __typename?: 'AffectedLine' }
-                                | { __typename?: 'AffectedServiceJourney' }
-                                | {
-                                      __typename?: 'AffectedStopPlace'
-                                      stopConditions: Array<StopCondition>
-                                      stopPlace: {
-                                          __typename?: 'StopPlace'
-                                          id: string
-                                          name: string
-                                      } | null
-                                  }
-                                | { __typename?: 'AffectedStopPlaceOnLine' }
-                                | {
-                                      __typename?: 'AffectedStopPlaceOnServiceJourney'
-                                  }
-                                | { __typename?: 'AffectedUnknown' }
-                            >
                         }>
                         stopPlace: {
                             __typename?: 'StopPlace'
