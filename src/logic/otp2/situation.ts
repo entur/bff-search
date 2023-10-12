@@ -48,7 +48,7 @@ export async function getSituation(
         advice,
         validityPeriod: validityPeriod || undefined,
         infoLinks: infoLinks || undefined,
-        affects: uniqBy(affects.map(mapAffected), getIdForAffected),
+        affects: uniqueAffected(affects.map(mapAffected)),
     }
 }
 
@@ -64,26 +64,28 @@ function mapAffected(affected: ResponseAffected): Affected {
             serviceJourney: affected.serviceJourney,
         }
     }
-    if ('quay' in affected && affected.quay) {
-        return { __type: 'AffectedQuay', quay: affected.quay }
-    }
     if ('stopPlace' in affected && affected.stopPlace) {
         return { __type: 'AffectedStopPlace', stopPlace: affected.stopPlace }
+    }
+    if ('quay' in affected && affected.quay) {
+        return { __type: 'AffectedQuay', quay: affected.quay }
     }
     return { __type: 'AffectedUnknown' }
 }
 
-function getIdForAffected(affected: Affected): string {
-    switch (affected.__type) {
-        case 'AffectedStopPlace':
-            return affected.stopPlace.id
-        case 'AffectedLine':
-            return affected.line.id
-        case 'AffectedQuay':
-            return affected.quay.id
-        case 'AffectedServiceJourney':
-            return affected.serviceJourney.id
-        case 'AffectedUnknown':
-            return 'AffectedUnknown'
-    }
+function uniqueAffected(affects: Affected[]): Affected[] {
+    return uniqBy(affects, (affected) => {
+        switch (affected.__type) {
+            case 'AffectedStopPlace':
+                return affected.stopPlace.id
+            case 'AffectedLine':
+                return affected.line.id
+            case 'AffectedQuay':
+                return affected.quay.name
+            case 'AffectedServiceJourney':
+                return affected.serviceJourney.id
+            case 'AffectedUnknown':
+                return 'AffectedUnknown'
+        }
+    })
 }
