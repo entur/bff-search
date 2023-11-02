@@ -58,6 +58,7 @@ export async function searchTransit(
     const comment = 'First regular search'
     const [
         flexibleResults,
+        flexibleEgressResults,
         [
             regularTripPatternsUnfiltered,
             routingErrors,
@@ -66,6 +67,7 @@ export async function searchTransit(
         ],
     ] = await Promise.all([
         searchFlexible(getTripPatternsParams, extraHeaders),
+        searchFlexibleEgress(getTripPatternsParams, extraHeaders),
         getTripPatterns(getTripPatternsParams, extraHeaders, comment),
     ])
 
@@ -73,6 +75,8 @@ export async function searchTransit(
         ...(flexibleResults?.queries || []),
         getTripPatternsQuery(getTripPatternsParams, comment),
     ]
+
+    console.log('flexibleEgressResults ', flexibleEgressResults.tripPatterns)
 
     // If the normal search failed with a hopeless error, indicating we shouldn't
     // continue with normal searches, we may still have a flexible result.
@@ -152,6 +156,7 @@ export async function searchTransit(
         ...taxiTripPatterns,
         ...combineAndSortFlexibleAndTransitTripPatterns(
             regularTripPatterns,
+            flexibleEgressResults.tripPatterns,
             flexibleTripPattern,
             arriveBy,
         ),
@@ -299,6 +304,7 @@ async function getTripPatterns(
 > {
     let res: GetTripPatternsQuery
 
+    console.log('Vanlig søk ', params)
     try {
         res = await graphqlRequest<
             GetTripPatternsQuery,
@@ -418,6 +424,42 @@ async function searchFlexible(
     }
 
     const comment = 'Search flexible'
+
+    const queries = [getTripPatternsQuery(getTripPatternsParams, comment)]
+
+    const [returnedTripPatterns] = await getTripPatterns(
+        getTripPatternsParams,
+        extraHeaders,
+        comment,
+    )
+
+    const tripPatterns = returnedTripPatterns.filter(({ legs }) => {
+        const isFootOnly = legs.length === 1 && legs[0]?.mode === Mode.Foot
+        return !isFootOnly
+    })
+
+    return {
+        tripPatterns,
+        queries,
+    }
+}
+
+async function searchFlexibleEgress(
+    searchParams: GetTripPatternsQueryVariables,
+    extraHeaders: Record<string, string>,
+): Promise<{
+    tripPatterns: TripPatternParsed[]
+    queries: GraphqlQuery[]
+}> {
+    const getTripPatternsParams = {
+        ...searchParams,
+        modes: {
+            ...searchParams.modes,
+            egressMode: StreetMode.Flexible,
+        },
+    }
+
+    const comment = 'Search ordinary with flexible Egress'
 
     const queries = [getTripPatternsQuery(getTripPatternsParams, comment)]
 

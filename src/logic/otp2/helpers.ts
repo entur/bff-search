@@ -143,13 +143,18 @@ function sortTripPatternsByExpectedTime<T extends TripPattern>(
 
 export function combineAndSortFlexibleAndTransitTripPatterns(
     regularTripPatterns: TripPatternParsed[],
+    flexibleEgressTripPattern: TripPatternParsed[],
     flexibleTripPattern?: TripPatternParsed,
     arriveBy = false,
 ): TripPatternParsed[] {
     if (!flexibleTripPattern) return regularTripPatterns
 
     const sortedTripPatterns = sortTripPatternsByExpectedTime(
-        [flexibleTripPattern, ...regularTripPatterns],
+        [
+            flexibleTripPattern,
+            ...flexibleEgressTripPattern,
+            ...regularTripPatterns,
+        ],
         arriveBy,
     )
 
