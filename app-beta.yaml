@@ -5,7 +5,7 @@ inbound_services:
 automatic_scaling:
     min_idle_instances: 1
 vpc_access_connector:
-    name: 'projects/entur-beta/locations/us-central1/connectors/bff-search-redis'
+    name: 'projects/ent-enturbeta-prd/locations/europe-west1/connectors/bff-search-redis'
 env_variables:
     ENVIRONMENT: beta
     TRANSIT_HOST_OTP2: https://api.entur.io/journey-planner/v3

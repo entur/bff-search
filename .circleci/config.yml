@@ -29,18 +29,15 @@ jobs:
         parameters:
             env:
                 type: enum
-                enum:
-                    ['terraform', 'nordicdev', 'dev', 'staging', 'beta', 'prod']
+                enum: ['dev', 'staging', 'beta', 'prod']
             project:
                 type: enum
                 enum:
                     [
-                        'ent-selvbet-terraform-dev',
-                        'ent-client-nordic-dev',
-                        'entur-dev',
-                        'entur-staging',
-                        'entur-beta',
-                        'entur-prod',
+                        'ent-enturapp-dev',
+                        'ent-enturapp-tst',
+                        'ent-enturbeta-prd',
+                        'ent-enturapp-prd',
                     ]
             function:
                 type: string
@@ -50,10 +47,13 @@ jobs:
         steps:
             - attach_workspace:
                   at: .
+            # $GCLOUD_SERVICE_KEY_GCP2_dev etc. are found in CircleCI project settings -> environment variables
+            # The values are stored in LastPass as "App Engine Default Serviceaccount keys" and generated from the service
+            # accounts <projectId>@appspot.gserviceaccount.com
             - run:
                   name: Set gcloud Auth
                   command: |
-                      echo $GCLOUD_SERVICE_KEY_<< parameters.env >> | gcloud auth activate-service-account --key-file=-
+                      echo $GCLOUD_SERVICE_KEY_GCP2_<< parameters.env >> | gcloud auth activate-service-account --key-file=-
             - run:
                   name: Set gcloud project
                   command: |
@@ -61,7 +61,7 @@ jobs:
             - run:
                   name: Upload type defs to GCP bucket
                   command: |
-                      gsutil cp typeDeclarations.tar.gz "gs://<< parameters.project >>-bff-search-types/"
+                      gsutil cp typeDeclarations.tar.gz "gs://<< parameters.project >>-search-types/"
             - run:
                   name: Deploy to Google App Engine
                   command: |
@@ -87,7 +87,7 @@ workflows:
             - deploy:
                   env: 'dev'
                   name: dev
-                  project: 'entur-dev'
+                  project: 'ent-enturapp-dev'
                   requires:
                       - approval-dev
 
@@ -99,7 +99,7 @@ workflows:
             - deploy:
                   env: 'staging'
                   name: staging
-                  project: 'entur-staging'
+                  project: 'ent-enturapp-tst'
                   requires:
                       - approval-staging
 
@@ -111,7 +111,7 @@ workflows:
             - deploy:
                   env: 'beta'
                   name: beta
-                  project: 'entur-beta'
+                  project: 'ent-enturbeta-prd'
                   requires:
                       - approval-beta
 
@@ -123,30 +123,6 @@ workflows:
             - deploy:
                   env: 'prod'
                   name: prod
-                  project: 'entur-prod'
+                  project: 'ent-enturapp-prd'
                   requires:
                       - approval-prod
-
-            - approval-terraform:
-                  type: approval
-                  requires:
-                      - build
-
-            - deploy:
-                  env: 'terraform'
-                  name: terraform
-                  project: 'ent-selvbet-terraform-dev'
-                  requires:
-                      - approval-terraform
-
-            - approval-nordic-dev:
-                  type: approval
-                  requires:
-                      - build
-
-            - deploy:
-                  env: 'nordicdev'
-                  name: nordic dev
-                  project: 'ent-client-nordic-dev'
-                  requires:
-                      - approval-nordic-dev
