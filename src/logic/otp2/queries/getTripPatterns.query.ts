@@ -32,7 +32,7 @@ export default gql`
         $transferPenalty: Int
         $banned: InputBanned
         $whiteListed: InputWhiteListed
-        $debugItineraryFilter: Boolean
+        $debugItineraryFilter: ItineraryFilterDebugProfile
         $searchWindow: Int
         $walkReluctance: Float
         $waitReluctance: Float
@@ -51,7 +51,7 @@ export default gql`
             transferPenalty: $transferPenalty
             banned: $banned
             whiteListed: $whiteListed
-            debugItineraryFilter: $debugItineraryFilter
+            itineraryFilters: { debug: $debugItineraryFilter }
             searchWindow: $searchWindow
             walkReluctance: $walkReluctance
             waitReluctance: $waitReluctance

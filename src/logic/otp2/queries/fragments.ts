@@ -384,29 +384,3 @@ export const estimatedCallFields = gql`
         }
     }
 `
-
-export const updatedEstimatedCallFields = gql`
-    fragment updatedEstimatedCallFields on EstimatedCall {
-        quay {
-            id
-            name
-            description
-            publicCode
-            stopPlace {
-                description
-            }
-        }
-        realtime
-        cancellation
-        predictionInaccurate
-        expectedArrivalTime
-        expectedDepartureTime
-        aimedArrivalTime
-        aimedDepartureTime
-        actualArrivalTime
-        actualDepartureTime
-        notices {
-            id
-        }
-    }
-`
