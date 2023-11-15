@@ -27,6 +27,6 @@
   </PreFlow>
   <HTTPTargetConnection>
     <Properties/>
-    <URL>https://search-dot-entur-ENVIRONMENT.appspot.com/otp1/v1</URL>
+    <URL>https://search-dot-PROJECT.appspot.com/otp1/v1</URL>
   </HTTPTargetConnection>
 </TargetEndpoint>
