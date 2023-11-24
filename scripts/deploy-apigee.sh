@@ -7,6 +7,7 @@ function deploy {
 
     if ! [[ "$ENV" =~ ^(dev|staging|prod)$ ]]; then
         echo -e " 🙈 Invalid ENV: $ENV\n"
+        echo -e " Were you trying to deploy to beta? Beta is automatically deployed together with prod\n"
         exit 1
     fi
 
