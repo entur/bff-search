@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <ProxyEndpoint name="client-search-beta-v1">
-  <Description></Description>
+  <Description/>
   <FaultRules/>
   <Flows/>
   <PostFlow name="PostFlow">
