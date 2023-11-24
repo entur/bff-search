@@ -2,14 +2,6 @@
 
 set -e
 
-# Install
-# curl -L https://raw.githubusercontent.com/apigee/apigeecli/main/downloadLatest.sh | sh -
-# Download existing
-# /Users/joakim/.apigeecli/bin/apigeecli apis fetch --name client-search --rev 3 --org ent-apigee-shr-001 --default-token
-# Upload new revision
-# /Users/joakim/.apigeecli/bin/apigeecli apis create bundle --name client-search --proxy-folder ./apiproxy --org ent-apigee-shr-001 --default-token
-
-
 function deploy {
     ENV="${1:-dev}"
 
@@ -33,12 +25,26 @@ function deploy {
         echo " 📝 Uploading new revision to Apigee dev ..."
         APIGEEREVISION=$($APIGEECLI apis create bundle --name client-search --proxy-folder api/client-search/apiproxy --org ent-apigee-shr-001 --default-token | jq '.revision | tonumber')
 
-        echo "Deploying revision $APIGEEREVISION to dev"
+        echo "Deploying revision $APIGEEREVISION to dev ..."
         $APIGEECLI apis deploy --name client-search --env env-dev --rev $APIGEEREVISION --ovr --org ent-apigee-shr-001 --default-token
 
     else
-        echo " SETTING APIGEE REVISION"
-        APIGEEREVISION=$(/Users/joakim/.apigeecli/bin/apigeecli apis listdeploy --name client-search --org ent-apigee-shr-001 --default-token | jq '.deployments[] | select(.environment |contains("dev")) |.revision | tonumber')
+        echo
+        echo "Looking up revision that is currently deployed to dev. To deploy a different version deploy it to dev first"
+        APIGEEREVISION=$($APIGEECLI apis listdeploy --name client-search --org ent-apigee-shr-001 --default-token | jq '.deployments[] | select(.environment |contains("dev")) |.revision | tonumber')
+
+        echo
+        echo "The current revision in dev is $APIGEEREVISION, are you sure you want to deploy it to $ENV?"
+        echo
+        read -rp "Type 'yes' to confirm: " SHOULD_DEPLOY
+        if [[ "$SHOULD_DEPLOY" == "yes" ]]; then
+            echo
+            echo "You're brave! Deploy will go ahead"
+            echo
+        else
+            echo "Deploy aborted"
+            exit
+        fi
 
         if [[ "$ENV" == "staging" ]]; then
             echo " 📝 Deploying revision $APIGEEREVISION to Apigee stage ..."
