@@ -11,7 +11,7 @@ var pathSuffix = context.getVariable('proxy.pathsuffix')
 
 var project = context
     .getVariable('config.namespace')
-    .replace('production', 'ent-enturapp-prd')
+    .replace('production', 'entur-prod')
     .replace('dev', 'ent-enturapp-dev')
     .replace('staging', 'ent-enturapp-tst')
 
