@@ -2,6 +2,14 @@
 
 set -e
 
+# Install
+# curl -L https://raw.githubusercontent.com/apigee/apigeecli/main/downloadLatest.sh | sh -
+# Download existing
+# /Users/joakim/.apigeecli/bin/apigeecli apis fetch --name client-search --rev 3 --org ent-apigee-shr-001 --default-token
+# Upload new revision
+# /Users/joakim/.apigeecli/bin/apigeecli apis create bundle --name client-search --proxy-folder ./apiproxy --org ent-apigee-shr-001 --default-token
+
+
 function deploy {
     ENV="${1:-dev}"
 
@@ -10,31 +18,35 @@ function deploy {
         exit 1
     fi
 
-    read -rp " 😺 Apigee user: " APIGEEUSER
-    echo "🔑 Get Temporary Apigee password from url https://entur-norway.login.apigee.com/passcode  - Log in with SSO"
-    read -rsp " 🔑 Apigee password: " APIGEEPASSWORD
+    APIGEECLI=$HOME/.apigeecli/bin/apigeecli
+    if ! command_exists $APIGEECLI; then
+        echo "Installing apigeecli...\n"
+        curl -L https://raw.githubusercontent.com/apigee/apigeecli/main/downloadLatest.sh | sh -
+    fi
 
-    APIGEETOKEN=$(curl -H "Content-Type: application/x-www-form-urlencoded;charset=utf-8" -H "accept: application/json;charset=utf-8" -H "Authorization: Basic ZWRnZWNsaTplZGdlY2xpc2VjcmV0" -X POST https://entur-norway.login.apigee.com/oauth/token -s -d "grant_type=password&response_type=token&passcode=${APIGEEPASSWORD}" | jq -r '.access_token')
-    
     if ! command_exists jq; then
         echo "Brew installing jq..."
         brew install jq
     fi
 
     if [[ "$ENV" == "dev" ]]; then
-        echo " 📝 Deploying new revision to Apigee dev ..."
-        apigeetool deployproxy -V -o entur -e dev -n client-search -d api/client-search -t $APIGEETOKEN
-    fi
+        echo " 📝 Uploading new revision to Apigee dev ..."
+        APIGEEREVISION=$($APIGEECLI apis create bundle --name client-search --proxy-folder api/client-search/apiproxy --org ent-apigee-shr-001 --default-token | jq '.revision | tonumber')
 
-    echo " SETTING APIGEE REVISION"
-    APIGEEREVISION=$(apigeetool listdeployments -V -u $APIGEEUSER -t $APIGEETOKEN -o entur -n client-search -j | jq '.deployments[] | select(.environment |contains("dev")) |.revision')
+        echo "Deploying revision $APIGEEREVISION to dev"
+        $APIGEECLI apis deploy --name client-search --env env-dev --rev $APIGEEREVISION --ovr --org ent-apigee-shr-001 --default-token
 
-    if [[ "$ENV" == "staging" ]]; then
-        echo " 📝 Deploying revision $APIGEEREVISION to Apigee stage ..."
-        apigeetool deployExistingRevision -V -t $APIGEETOKEN -o entur -e stage -n client-search -r $APIGEEREVISION 
-    elif [[ "$ENV" == "prod" ]]; then
-        echo " 📝 Deploying revision $APIGEEREVISION to Apigee prod ..."
-        apigeetool deployExistingRevision -V -t $APIGEETOKEN -o entur -e prod -n client-search -r $APIGEEREVISION
+    else
+        echo " SETTING APIGEE REVISION"
+        APIGEEREVISION=$(/Users/joakim/.apigeecli/bin/apigeecli apis listdeploy --name client-search --org ent-apigee-shr-001 --default-token | jq '.deployments[] | select(.environment |contains("dev")) |.revision | tonumber')
+
+        if [[ "$ENV" == "staging" ]]; then
+            echo " 📝 Deploying revision $APIGEEREVISION to Apigee stage ..."
+            $APIGEECLI apis deploy --name client-search --env env-prd --rev $APIGEEREVISION --ovr --org ent-apigee-shr-001 --default-token
+        elif [[ "$ENV" == "prod" ]]; then
+            echo " 📝 Deploying revision $APIGEEREVISION to Apigee prod ..."
+            $APIGEECLI apis deploy --name client-search --env env-prd --rev $APIGEEREVISION --ovr --org ent-apigee-shr-001 --default-token
+        fi
     fi
 
     echo -e "\n 🎉 Revision $APIGEEREVISION successfully deployed to $ENV!"
