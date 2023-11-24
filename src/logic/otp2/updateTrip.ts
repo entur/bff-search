@@ -62,12 +62,18 @@ export async function updateTripPattern(
     const updatedTransitLegs: LegFieldsFragment[] = await Promise.all(
         legs.map((oldLeg) =>
             oldLeg.id
-                ? getLeg(oldLeg.id, extraHeaders, getLegComment).catch(
-                      (error) => {
+                ? getLeg(oldLeg.id, extraHeaders, getLegComment)
+                      .then((newLeg) => ({
+                          ...newLeg,
+                          interchangeTo:
+                              newLeg.interchangeTo || oldLeg.interchangeTo,
+                          interchangeFrom:
+                              newLeg.interchangeFrom || oldLeg.interchangeFrom,
+                      }))
+                      .catch((error) => {
                           logger.warning('Failed to update leg', error)
                           return oldLeg
-                      },
-                  )
+                      })
                 : Promise.resolve(oldLeg),
         ),
     )
