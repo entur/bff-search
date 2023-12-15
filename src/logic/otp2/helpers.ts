@@ -13,7 +13,10 @@ import {
     TripPattern,
     TripPatternParsed,
 } from '../../types'
-import { GetTripPatternsQueryVariables } from '../../generated/graphql'
+import {
+    GetTripPatternsQueryVariables,
+    ItineraryFilterDebugProfile,
+} from '../../generated/graphql'
 import { parseLeg } from '../../utils/leg'
 import { isNotNullOrUndefined } from '../../utils/misc'
 
@@ -60,7 +63,10 @@ export function getQueryVariables({
         searchWindow: searchWindow || undefined,
         relaxTransitSearchGeneralizedCostAtDestination:
             debugRelaxTransitSearchGeneralizedCostAtDestination || undefined,
-        debugItineraryFilter,
+        debugItineraryFilter:
+            debugItineraryFilter === true
+                ? ItineraryFilterDebugProfile.LimitToSearchWindow
+                : ItineraryFilterDebugProfile.Off,
         pageCursor,
     }
 }

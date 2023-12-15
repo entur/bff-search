@@ -154,6 +154,11 @@ export const quayFields = gql`
         }
     }
 `
+
+/* @deprecated
+ * Will be removed from TripPattern, legs, serviceJourney etc.
+ * Use new situation endpoint.
+ */
 export const situationsFields = gql`
     fragment situationFields on PtSituationElement {
         situationNumber
@@ -189,6 +194,80 @@ export const situationsFields = gql`
                     name
                 }
                 stopConditions
+            }
+        }
+    }
+`
+
+export const situationsFieldsNew = gql`
+    fragment situationsFieldsNew on PtSituationElement {
+        situationNumber
+        summary {
+            language
+            value
+        }
+        description {
+            language
+            value
+        }
+        advice {
+            language
+            value
+        }
+        validityPeriod {
+            startTime
+            endTime
+        }
+        reportType
+        infoLinks {
+            uri
+            label
+        }
+        stopPlaces {
+            id
+            name
+        }
+        affects {
+            __typename
+            ... on AffectedLine {
+                line {
+                    id
+                }
+            }
+            ... on AffectedStopPlace {
+                stopPlace {
+                    id
+                    name
+                }
+                quay {
+                    id
+                    name
+                }
+            }
+            ... on AffectedServiceJourney {
+                serviceJourney {
+                    id
+                }
+            }
+            ... on AffectedStopPlaceOnServiceJourney {
+                stopPlace {
+                    id
+                    name
+                }
+                quay {
+                    id
+                    name
+                }
+            }
+            ... on AffectedStopPlaceOnLine {
+                stopPlace {
+                    id
+                    name
+                }
+                quay {
+                    id
+                    name
+                }
             }
         }
     }
@@ -302,32 +381,6 @@ export const estimatedCallFields = gql`
         requestStop
         serviceJourney {
             ...serviceJourneyFields
-        }
-    }
-`
-
-export const updatedEstimatedCallFields = gql`
-    fragment updatedEstimatedCallFields on EstimatedCall {
-        quay {
-            id
-            name
-            description
-            publicCode
-            stopPlace {
-                description
-            }
-        }
-        realtime
-        cancellation
-        predictionInaccurate
-        expectedArrivalTime
-        expectedDepartureTime
-        aimedArrivalTime
-        aimedDepartureTime
-        actualArrivalTime
-        actualDepartureTime
-        notices {
-            id
         }
     }
 `

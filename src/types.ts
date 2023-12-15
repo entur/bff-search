@@ -6,6 +6,10 @@ import {
     AuthorityFieldsFragment,
     PlaceFieldsFragment,
     LegFieldsFragment,
+    ReportType,
+    MultilingualString,
+    ValidityPeriod,
+    InfoLink,
 } from './generated/graphql'
 
 import { GetTripPatternsQuery } from './generated/graphql'
@@ -97,3 +101,21 @@ export enum SearchPreset {
     AVOID_TRANSFERS = 'AVOID_TRANSFERS',
     AVOID_WALKING = 'AVOID_WALKING',
 }
+
+export interface SituationResponse {
+    situationNumber: string
+    reportType: ReportType
+    summary: MultilingualString[]
+    description: MultilingualString[]
+    advice: MultilingualString[]
+    validityPeriod: ValidityPeriod | undefined
+    infoLinks: InfoLink[] | undefined
+    affects: Affected[]
+}
+
+export type Affected =
+    | { __type: 'AffectedLine'; line: { id: string } }
+    | { __type: 'AffectedServiceJourney'; serviceJourney: { id: string } }
+    | { __type: 'AffectedStopPlace'; stopPlace: { id: string; name: string } }
+    | { __type: 'AffectedQuay'; quay: { id: string; name: string } }
+    | { __type: 'AffectedUnknown' }

@@ -304,7 +304,9 @@ async function getTripPatterns(
 > {
     let res: GetTripPatternsQuery
 
-    console.log('Vanlig søk ', params)
+    console.log('Vanlig søk 2', params)
+    console.log('Loggerurl ', TRANSIT_HOST_OTP2)
+
     try {
         res = await graphqlRequest<
             GetTripPatternsQuery,

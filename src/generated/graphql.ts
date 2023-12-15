@@ -696,18 +696,57 @@ export type Notice = {
     text: Maybe<Scalars['String']>
 }
 
+/** OccupancyStatus to be exposed in the API. The values are based on GTFS-RT */
 export enum OccupancyStatus {
-    /** The vehicle or carriage has a few seats available. */
+    /**
+     * The vehicle or carriage can currently accommodate only standing passengers and has limited
+     * space for them. There isn't a big difference between this and `full` so it's possible to
+     * handle them as the same value, if one wants to limit the number of different values.
+     * SIRI nordic profile: merge into `standingRoomOnly`.
+     *
+     */
+    CrushedStandingRoomOnly = 'crushedStandingRoomOnly',
+    /**
+     * The vehicle is considered empty by most measures, and has few or no passengers onboard, but is
+     * still accepting passengers. There isn't a big difference between this and `manySeatsAvailable`
+     * so it's possible to handle them as the same value, if one wants to limit the number of different
+     * values.
+     * SIRI nordic profile: merge these into `manySeatsAvailable`.
+     *
+     */
+    Empty = 'empty',
+    /**
+     * The vehicle or carriage has a few seats available.
+     * SIRI nordic profile: less than ~50% of seats available.
+     *
+     */
     FewSeatsAvailable = 'fewSeatsAvailable',
-    /** The vehicle or carriage is considered full by most measures, but may still be allowing passengers to board. */
+    /**
+     * The vehicle or carriage is considered full by most measures, but may still be allowing
+     * passengers to board.
+     *
+     */
     Full = 'full',
-    /** The vehicle or carriage has a large number of seats available. */
+    /**
+     * The vehicle or carriage has a large number of seats available.
+     * SIRI nordic profile: more than ~50% of seats available.
+     *
+     */
     ManySeatsAvailable = 'manySeatsAvailable',
     /** The vehicle or carriage doesn't have any occupancy data available. */
     NoData = 'noData',
-    /** The vehicle or carriage has no seats or standing room available. */
+    /**
+     * The vehicle or carriage has no seats or standing room available.
+     * SIRI nordic profile: if vehicle/carriage is not in use / unavailable, or passengers are only
+     * allowed to alight due to e.g. crowding.
+     *
+     */
     NotAcceptingPassengers = 'notAcceptingPassengers',
-    /** The vehicle or carriage only has standing room available. */
+    /**
+     * The vehicle or carriage only has standing room available.
+     * SIRI nordic profile: less than ~10% of seats available.
+     *
+     */
     StandingRoomOnly = 'standingRoomOnly',
 }
 
@@ -733,6 +772,18 @@ export type PageInfo = {
     hasPreviousPage: Scalars['Boolean']
     /** When paginating backwards, the cursor to continue. */
     startCursor: Maybe<Scalars['String']>
+}
+
+/** Defines one point which the journey must pass through. */
+export type PassThroughPoint = {
+    /** Optional name of the pass-through point for debugging and logging. It is not used in routing. */
+    name: InputMaybe<Scalars['String']>
+    /**
+     * The list of *stop location ids* which define the pass-through point. At least one id is required.
+     * Quay, StopPlace, multimodal StopPlace, and GroupOfStopPlaces are supported location types.
+     * The journey must pass through at least one of these entities - not all of them.
+     */
+    placeIds: InputMaybe<Array<Scalars['String']>>
 }
 
 /** A series of turn by turn instructions used for walking, biking and driving. */
@@ -1180,7 +1231,6 @@ export type QueryTypeTripArgs = {
     boardSlackDefault?: InputMaybe<Scalars['Int']>
     boardSlackList?: InputMaybe<Array<InputMaybe<TransportModeSlack>>>
     dateTime?: InputMaybe<Scalars['DateTime']>
-    debugItineraryFilter?: InputMaybe<Scalars['Boolean']>
     extraSearchCoachReluctance?: InputMaybe<Scalars['Float']>
     filters?: InputMaybe<Array<TripFilterInput>>
     from: Location
@@ -1196,6 +1246,7 @@ export type QueryTypeTripArgs = {
     modes?: InputMaybe<Modes>
     numTripPatterns?: InputMaybe<Scalars['Int']>
     pageCursor?: InputMaybe<Scalars['String']>
+    passThroughPoints?: InputMaybe<Array<PassThroughPoint>>
     relaxTransitSearchGeneralizedCostAtDestination?: InputMaybe<
         Scalars['Float']
     >
@@ -2013,7 +2064,7 @@ export type ViaLocationInput = {
     maxSlack: InputMaybe<Scalars['Duration']>
     /** The minimum time the user wants to stay in the via location before continuing his journey */
     minSlack: InputMaybe<Scalars['Duration']>
-    /** The name of the location. This is pass-through informationand is not used in routing. */
+    /** The name of the location. This is pass-through information and is not used in routing. */
     name: InputMaybe<Scalars['String']>
     /** The id of an element in the OTP model. Currently supports Quay, StopPlace, multimodal StopPlace, and GroupOfStopPlaces. */
     place: InputMaybe<Scalars['String']>
@@ -3051,6 +3102,79 @@ export type SituationFieldsFragment = {
     >
 }
 
+export type SituationsFieldsNewFragment = {
+    __typename?: 'PtSituationElement'
+    situationNumber: string | null
+    reportType: ReportType | null
+    summary: Array<{
+        __typename?: 'MultilingualString'
+        language: string | null
+        value: string
+    }>
+    description: Array<{
+        __typename?: 'MultilingualString'
+        language: string | null
+        value: string
+    }>
+    advice: Array<{
+        __typename?: 'MultilingualString'
+        language: string | null
+        value: string
+    }>
+    validityPeriod: {
+        __typename?: 'ValidityPeriod'
+        startTime: string | null
+        endTime: string | null
+    } | null
+    infoLinks: Array<{
+        __typename?: 'infoLink'
+        uri: string
+        label: string | null
+    }> | null
+    stopPlaces: Array<{ __typename?: 'StopPlace'; id: string; name: string }>
+    affects: Array<
+        | {
+              __typename: 'AffectedLine'
+              line: { __typename?: 'Line'; id: string } | null
+          }
+        | {
+              __typename: 'AffectedServiceJourney'
+              serviceJourney: {
+                  __typename?: 'ServiceJourney'
+                  id: string
+              } | null
+          }
+        | {
+              __typename: 'AffectedStopPlace'
+              stopPlace: {
+                  __typename?: 'StopPlace'
+                  id: string
+                  name: string
+              } | null
+              quay: { __typename?: 'Quay'; id: string; name: string } | null
+          }
+        | {
+              __typename: 'AffectedStopPlaceOnLine'
+              stopPlace: {
+                  __typename?: 'StopPlace'
+                  id: string
+                  name: string
+              } | null
+              quay: { __typename?: 'Quay'; id: string; name: string } | null
+          }
+        | {
+              __typename: 'AffectedStopPlaceOnServiceJourney'
+              stopPlace: {
+                  __typename?: 'StopPlace'
+                  id: string
+                  name: string
+              } | null
+              quay: { __typename?: 'Quay'; id: string; name: string } | null
+          }
+        | { __typename: 'AffectedUnknown' }
+    >
+}
+
 export type StopPlaceFieldsFragment = {
     __typename?: 'StopPlace'
     id: string
@@ -3234,31 +3358,6 @@ export type EstimatedCallFieldsFragment = {
         } | null
         notices: Array<{ __typename?: 'Notice'; text: string | null }>
     }
-}
-
-export type UpdatedEstimatedCallFieldsFragment = {
-    __typename?: 'EstimatedCall'
-    realtime: boolean
-    cancellation: boolean
-    predictionInaccurate: boolean
-    expectedArrivalTime: string
-    expectedDepartureTime: string
-    aimedArrivalTime: string
-    aimedDepartureTime: string
-    actualArrivalTime: string | null
-    actualDepartureTime: string | null
-    quay: {
-        __typename?: 'Quay'
-        id: string
-        name: string
-        description: string | null
-        publicCode: string | null
-        stopPlace: {
-            __typename?: 'StopPlace'
-            description: string | null
-        } | null
-    }
-    notices: Array<{ __typename?: 'Notice'; id: string }>
 }
 
 export type GetLegQueryVariables = Exact<{
@@ -4007,7 +4106,7 @@ export type GetTripPatternsQueryVariables = Exact<{
     transferPenalty?: InputMaybe<Scalars['Int']>
     banned?: InputMaybe<InputBanned>
     whiteListed?: InputMaybe<InputWhiteListed>
-    debugItineraryFilter?: InputMaybe<Scalars['Boolean']>
+    debugItineraryFilter?: InputMaybe<ItineraryFilterDebugProfile>
     searchWindow?: InputMaybe<Scalars['Int']>
     walkReluctance?: InputMaybe<Scalars['Float']>
     waitReluctance?: InputMaybe<Scalars['Float']>
@@ -4866,38 +4965,86 @@ export type ReplaceLegQuery = {
     } | null
 }
 
-export type UpdateTripQueryVariables = Exact<{
-    id: Scalars['String']
-    date: Scalars['Date']
+export type SituationQueryVariables = Exact<{
+    situationNumber: Scalars['String']
 }>
 
-export type UpdateTripQuery = {
+export type SituationQuery = {
     __typename?: 'QueryType'
-    serviceJourney: {
-        __typename?: 'ServiceJourney'
-        estimatedCalls: Array<{
-            __typename?: 'EstimatedCall'
-            realtime: boolean
-            cancellation: boolean
-            predictionInaccurate: boolean
-            expectedArrivalTime: string
-            expectedDepartureTime: string
-            aimedArrivalTime: string
-            aimedDepartureTime: string
-            actualArrivalTime: string | null
-            actualDepartureTime: string | null
-            quay: {
-                __typename?: 'Quay'
-                id: string
-                name: string
-                description: string | null
-                publicCode: string | null
-                stopPlace: {
-                    __typename?: 'StopPlace'
-                    description: string | null
-                } | null
-            }
-            notices: Array<{ __typename?: 'Notice'; id: string }>
-        } | null> | null
+    situation: {
+        __typename?: 'PtSituationElement'
+        situationNumber: string | null
+        reportType: ReportType | null
+        summary: Array<{
+            __typename?: 'MultilingualString'
+            language: string | null
+            value: string
+        }>
+        description: Array<{
+            __typename?: 'MultilingualString'
+            language: string | null
+            value: string
+        }>
+        advice: Array<{
+            __typename?: 'MultilingualString'
+            language: string | null
+            value: string
+        }>
+        validityPeriod: {
+            __typename?: 'ValidityPeriod'
+            startTime: string | null
+            endTime: string | null
+        } | null
+        infoLinks: Array<{
+            __typename?: 'infoLink'
+            uri: string
+            label: string | null
+        }> | null
+        stopPlaces: Array<{
+            __typename?: 'StopPlace'
+            id: string
+            name: string
+        }>
+        affects: Array<
+            | {
+                  __typename: 'AffectedLine'
+                  line: { __typename?: 'Line'; id: string } | null
+              }
+            | {
+                  __typename: 'AffectedServiceJourney'
+                  serviceJourney: {
+                      __typename?: 'ServiceJourney'
+                      id: string
+                  } | null
+              }
+            | {
+                  __typename: 'AffectedStopPlace'
+                  stopPlace: {
+                      __typename?: 'StopPlace'
+                      id: string
+                      name: string
+                  } | null
+                  quay: { __typename?: 'Quay'; id: string; name: string } | null
+              }
+            | {
+                  __typename: 'AffectedStopPlaceOnLine'
+                  stopPlace: {
+                      __typename?: 'StopPlace'
+                      id: string
+                      name: string
+                  } | null
+                  quay: { __typename?: 'Quay'; id: string; name: string } | null
+              }
+            | {
+                  __typename: 'AffectedStopPlaceOnServiceJourney'
+                  stopPlace: {
+                      __typename?: 'StopPlace'
+                      id: string
+                      name: string
+                  } | null
+                  quay: { __typename?: 'Quay'; id: string; name: string } | null
+              }
+            | { __typename: 'AffectedUnknown' }
+        >
     } | null
 }
