@@ -76,8 +76,6 @@ export async function searchTransit(
         getTripPatternsQuery(getTripPatternsParams, comment),
     ]
 
-    console.log('flexibleEgressResults ', flexibleEgressResults.tripPatterns)
-
     // If the normal search failed with a hopeless error, indicating we shouldn't
     // continue with normal searches, we may still have a flexible result.
     // If so, return that instead of aborting by throwing an exception
@@ -100,7 +98,6 @@ export async function searchTransit(
     // If we have any noStopsInRange or noTransitConnection errors, we couldn't find a means of
     // transport from where the traveler wants to start or end the trip. Try to
     // find an option using taxi for those parts instead.
-
     const noStopsInRangeErrorsOrNoTransitConnectionErrors =
         routingErrors.filter(
             ({ code }) =>
@@ -134,7 +131,6 @@ export async function searchTransit(
 
     // To find these we do a new search if we found no regular trip patterns
     // within the original search window.
-
     const flexibleTripPattern = flexibleResults?.tripPatterns[0]
     const hasFlexibleResultsOnly =
         flexibleTripPattern && !regularTripPatterns.length
@@ -164,7 +160,6 @@ export async function searchTransit(
 
     // Searching for normal transport options again will not suddenly make new
     // stops magically appear, so we abort further searching.
-
     if (!hasStopsInRange) {
         return {
             tripPatterns: [],
@@ -303,9 +298,6 @@ async function getTripPatterns(
     [TripPatternParsed[], RoutingError[], string | null, string | null]
 > {
     let res: GetTripPatternsQuery
-
-    console.log('Vanlig søk 2', params)
-    console.log('Loggerurl ', TRANSIT_HOST_OTP2)
 
     try {
         res = await graphqlRequest<
