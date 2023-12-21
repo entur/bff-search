@@ -77,9 +77,13 @@ function reqResLoggerMiddleware(
     })
 
     const originalResEnd = res.end
-    res.end = (chunk: any, ...rest: any[]) => {
-        // @ts-ignore
-        originalResEnd.call(res, chunk, ...rest)
+    // @ts-ignore
+    res.end = (
+        chunk: any,
+        encoding: BufferEncoding,
+        cb?: (() => void) | undefined,
+    ) => {
+        originalResEnd.call(res, chunk, encoding, cb)
         res.end = originalResEnd
 
         const responseTime = new Date().getTime() - startTime.getTime()
