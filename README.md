@@ -51,9 +51,9 @@ After this, you can start a Redis server with `redis-server`, and use `redis-cli
 Run `npm run <env>` to run the server locally.
 
 ```
-npm run dev
-npm run staging
-npm run prod
+npm run debug dev
+npm run debug staging
+npm run debug prod
 ```
 
 The default port is **9000**. You can override it with the `PORT` environment variable.
