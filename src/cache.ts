@@ -1,14 +1,8 @@
-import redis from 'redis'
-import { promisify } from 'util'
+import { createClient } from 'redis'
 import { Storage } from '@google-cloud/storage'
 
 import logger from './logger'
 import { getProjectId } from './utils/project'
-
-// Redis ip and port are stored in a cloud storage bucket when
-// environment is terraformed (or set manually if terraform is not used)
-const storage = new Storage()
-const bucketUrl = `gs://${getProjectId()}-bff-search-config`
 
 const PROD = process.env.NODE_ENV === 'production'
 
@@ -20,63 +14,73 @@ let getCache:
     | (<T>(key: string, expireInSeconds: number) => Promise<T | null>)
     | undefined
 
-try {
-    const bucket = storage.bucket(bucketUrl)
-    const file = bucket.file('config.json')
-    let contents = ''
+interface Config {
+    redisHost: string
+    redisPort: number
+}
 
-    file.createReadStream()
-        .on('error', (err) => {
-            logger.error('Error reading Redis config file', { err })
-        })
-        .on('data', (chunk) => {
-            contents += chunk
-        })
-        .on('end', () => {
-            const config = JSON.parse(contents)
-            logger.info('Loaded redis config from file', {
-                config,
-            })
+async function getRedisConfig(): Promise<Config> {
+    // Redis ip and port are stored in a cloud storage bucket when
+    // environment is terraformed (or set manually if terraform is not used)
+    const storage = new Storage()
+    const bucket = storage.bucket(`gs://${getProjectId()}-bff-search-config`)
 
-            const host = PROD ? config.redisHost : 'localhost'
-            const port = PROD ? Number(config.redisPort) : 6379
+    const file = await bucket.file('config.json').download()
+    const content = file[0].toString()
 
-            const client = redis.createClient(port, host)
+    const parsed = JSON.parse(content) as Config
+    if (!parsed.redisPort || !parsed.redisHost) {
+        throw new Error('Error reading Redis config file')
+    }
 
-            client.on('error', (err) => logger.error('Redis error caught', err))
+    return parsed
+}
 
-            const hgetall = promisify(client.hgetall).bind(client)
-            const hset = promisify(client.hset).bind(client)
-            const expire = promisify(client.expire).bind(client)
+async function setupCache(): Promise<void> {
+    const config = PROD
+        ? await getRedisConfig()
+        : { redisHost: 'localhost', redisPort: 6379 }
 
-            setCache = async (
-                key: string,
-                value: any,
-                expireInSeconds: number = DEFAULT_EXPIRE,
-            ): Promise<void> => {
-                await hset([key, 'data', JSON.stringify(value)])
-                await expire(key, expireInSeconds)
-            }
+    logger.info('Loaded redis config', { config })
 
-            getCache = async (key: string, expireInSeconds: number) => {
-                const entry = await hgetall(key)
-                if (entry === null || entry.data === undefined) {
-                    return null
-                }
-                await expire(key, expireInSeconds)
+    const url = `redis://${config.redisHost}:${config.redisPort}`
 
-                return JSON.parse(entry.data)
-            }
-        })
-} catch (err) {
-    logger.error('Could not initialize Redis cache properly', err)
+    const client = createClient({ url })
+
+    client.on('error', (err) => logger.error('Redis error caught', err))
+
+    await client.connect().then(() => logger.info('Redis client connected'))
+
+    setCache = async (
+        key: string,
+        value: any,
+        expireInSeconds: number = DEFAULT_EXPIRE,
+    ): Promise<void> => {
+        void client.setEx(key, expireInSeconds, JSON.stringify(value))
+    }
+
+    getCache = async (key: string, expireInSeconds: number) => {
+        const entry = await client.getEx(key, { EX: expireInSeconds })
+        if (entry === null) return null
+
+        const parsed = JSON.parse(entry)
+
+        // TODO: remove after being deployed for some hours
+        // Only used for migrating from HGET/HSET to GET/SET
+        if (parsed.data) {
+            if (setCache) await setCache(key, parsed.data, expireInSeconds)
+            return parsed.data
+        }
+
+        return parsed
+    }
 }
 
 const DEFAULT_EXPIRE = 45 * 60 // 45 minutes
 
-export async function set(
+export async function set<T>(
     key: string,
-    value: any,
+    value: T,
     expireInSeconds: number = DEFAULT_EXPIRE,
 ): Promise<void> {
     if (setCache) await setCache(key, value, expireInSeconds)
@@ -91,3 +95,7 @@ export async function get<T>(
     }
     return null
 }
+
+setupCache().catch((err) =>
+    logger.error('Could not initialize Redis cache properly', err),
+)
