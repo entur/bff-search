@@ -4,16 +4,16 @@ import logger from '../logger'
 let lastLoggedTimestamp = 0
 const logInterval = 60 * 1000 * 2
 
-export const graphqlRequest = async <T = any, V = Variables>(
+export const graphqlRequest = async <T = any, V extends Variables = Variables>(
     url: string,
     query: any,
-    variables: any,
+    variables: V,
     extraHeaders: Record<string, string>,
     comment: string,
 ): Promise<T> => {
     const currentTimestamp = Date.now()
 
-    const { data, headers } = await rawRequest<T, V>(
+    const { data, headers } = await rawRequest<T>(
         url,
         query,
         variables,
