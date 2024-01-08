@@ -12,18 +12,22 @@ if [[ $ENV == '' ]]; then
  exit 1
 fi
 
+if ! command -v yq &> /dev/null
+then
+    echo "Remember to have 'yq' installed."
+    echo
+    echo "install with brew: 'brew install yq'"
+    exit 1
+fi
+
 TRANSPILE_PID=$! 
 
 # Run transpile in a forked process
 npm run transpile -- --watch &
 
-if ! command -v yq &> /dev/null
-then
-    echo "Remember to have 'yq' installed."
-    exit
-fi
+
 while read variable ; do
-     export $(sed 's/ = /=/' <<< $variable)
+     export "$(sed 's/ = /=/' <<< $variable)"
 done < <(yq -o=props '.env_variables' ./app-${ENV}.yaml)
 
 echo $ENVIRONMENT
