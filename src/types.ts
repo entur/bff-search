@@ -49,7 +49,6 @@ interface DevParams {
     waitReluctance?: number
     transferPenalty?: number
     searchWindow?: number
-    relaxTransitSearchGeneralizedCostAtDestination?: number
 }
 
 /**

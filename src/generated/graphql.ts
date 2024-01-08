@@ -9,21 +9,35 @@ export type MakeOptional<T, K extends keyof T> = Omit<T, K> & {
 export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & {
     [SubKey in K]: Maybe<T[SubKey]>
 }
+export type MakeEmpty<
+    T extends { [key: string]: unknown },
+    K extends keyof T,
+> = { [_ in K]?: never }
+export type Incremental<T> =
+    | T
+    | {
+          [P in keyof T]?: P extends ' $fragmentName' | '__typename'
+              ? T[P]
+              : never
+      }
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
-    ID: string
-    String: string
-    Boolean: boolean
-    Int: number
-    Float: number
-    Coordinates: Array<[lat: number, lon: number]>
-    Date: string
-    DateTime: string
-    DoubleFunction: string
-    Duration: number
-    LocalTime: string
-    Long: number
-    Time: string
+    ID: { input: string; output: string }
+    String: { input: string; output: string }
+    Boolean: { input: boolean; output: boolean }
+    Int: { input: number; output: number }
+    Float: { input: number; output: number }
+    Coordinates: {
+        input: Array<[lat: number, lon: number]>
+        output: Array<[lat: number, lon: number]>
+    }
+    Date: { input: string; output: string }
+    DateTime: { input: string; output: string }
+    DoubleFunction: { input: string; output: string }
+    Duration: { input: number; output: number }
+    LocalTime: { input: string; output: string }
+    Long: { input: number; output: number }
+    Time: { input: string; output: string }
 }
 
 export enum AbsoluteDirection {
@@ -45,7 +59,7 @@ export type AffectedLine = {
 export type AffectedServiceJourney = {
     __typename?: 'AffectedServiceJourney'
     datedServiceJourney: Maybe<DatedServiceJourney>
-    operatingDay: Maybe<Scalars['Date']>
+    operatingDay: Maybe<Scalars['Date']['output']>
     serviceJourney: Maybe<ServiceJourney>
 }
 
@@ -67,7 +81,7 @@ export type AffectedStopPlaceOnLine = {
 export type AffectedStopPlaceOnServiceJourney = {
     __typename?: 'AffectedStopPlaceOnServiceJourney'
     datedServiceJourney: Maybe<DatedServiceJourney>
-    operatingDay: Maybe<Scalars['Date']>
+    operatingDay: Maybe<Scalars['Date']['output']>
     quay: Maybe<Quay>
     serviceJourney: Maybe<ServiceJourney>
     stopConditions: Array<StopCondition>
@@ -76,7 +90,7 @@ export type AffectedStopPlaceOnServiceJourney = {
 
 export type AffectedUnknown = {
     __typename?: 'AffectedUnknown'
-    description: Maybe<Scalars['String']>
+    description: Maybe<Scalars['String']['output']>
 }
 
 export type Affects =
@@ -106,16 +120,16 @@ export enum ArrivalDeparture {
 /** Authority involved in public transportation. An organisation under which the responsibility of organising the transport service in a certain area is placed. */
 export type Authority = {
     __typename?: 'Authority'
-    fareUrl: Maybe<Scalars['String']>
-    id: Scalars['ID']
-    lang: Maybe<Scalars['String']>
+    fareUrl: Maybe<Scalars['String']['output']>
+    id: Scalars['ID']['output']
+    lang: Maybe<Scalars['String']['output']>
     lines: Array<Maybe<Line>>
-    name: Scalars['String']
-    phone: Maybe<Scalars['String']>
+    name: Scalars['String']['output']
+    phone: Maybe<Scalars['String']['output']>
     /** Get all situations active for the authority. */
     situations: Array<PtSituationElement>
-    timezone: Scalars['String']
-    url: Maybe<Scalars['String']>
+    timezone: Scalars['String']['output']
+    url: Maybe<Scalars['String']['output']>
 }
 
 export enum BicycleOptimisationMethod {
@@ -128,25 +142,25 @@ export enum BicycleOptimisationMethod {
 
 export type BikePark = PlaceInterface & {
     __typename?: 'BikePark'
-    id: Scalars['ID']
-    latitude: Maybe<Scalars['Float']>
-    longitude: Maybe<Scalars['Float']>
-    name: Scalars['String']
-    realtime: Maybe<Scalars['Boolean']>
-    spacesAvailable: Maybe<Scalars['Int']>
+    id: Scalars['ID']['output']
+    latitude: Maybe<Scalars['Float']['output']>
+    longitude: Maybe<Scalars['Float']['output']>
+    name: Scalars['String']['output']
+    realtime: Maybe<Scalars['Boolean']['output']>
+    spacesAvailable: Maybe<Scalars['Int']['output']>
 }
 
 export type BikeRentalStation = PlaceInterface & {
     __typename?: 'BikeRentalStation'
-    allowDropoff: Maybe<Scalars['Boolean']>
-    bikesAvailable: Maybe<Scalars['Int']>
-    id: Scalars['ID']
-    latitude: Maybe<Scalars['Float']>
-    longitude: Maybe<Scalars['Float']>
-    name: Scalars['String']
-    networks: Array<Maybe<Scalars['String']>>
-    realtimeOccupancyAvailable: Maybe<Scalars['Boolean']>
-    spacesAvailable: Maybe<Scalars['Int']>
+    allowDropoff: Maybe<Scalars['Boolean']['output']>
+    bikesAvailable: Maybe<Scalars['Int']['output']>
+    id: Scalars['ID']['output']
+    latitude: Maybe<Scalars['Float']['output']>
+    longitude: Maybe<Scalars['Float']['output']>
+    name: Scalars['String']['output']
+    networks: Array<Maybe<Scalars['String']['output']>>
+    realtimeOccupancyAvailable: Maybe<Scalars['Boolean']['output']>
+    spacesAvailable: Maybe<Scalars['Int']['output']>
 }
 
 export enum BikesAllowed {
@@ -167,13 +181,13 @@ export type BookingArrangement = {
     /** How should service be booked? */
     bookingMethods: Maybe<Array<Maybe<BookingMethod>>>
     /** Textual description of booking arrangement for service */
-    bookingNote: Maybe<Scalars['String']>
+    bookingNote: Maybe<Scalars['String']['output']>
     /** How many days prior to the travel the service needs to be booked */
-    latestBookingDay: Maybe<Scalars['Int']>
+    latestBookingDay: Maybe<Scalars['Int']['output']>
     /** Latest time the service can be booked. ISO 8601 timestamp */
-    latestBookingTime: Maybe<Scalars['LocalTime']>
+    latestBookingTime: Maybe<Scalars['LocalTime']['output']>
     /** Minimum period in advance service can be booked as a ISO 8601 duration */
-    minimumBookingPeriod: Maybe<Scalars['String']>
+    minimumBookingPeriod: Maybe<Scalars['String']['output']>
 }
 
 export enum BookingMethod {
@@ -187,42 +201,42 @@ export enum BookingMethod {
 export type Branding = {
     __typename?: 'Branding'
     /** Description of branding. */
-    description: Maybe<Scalars['String']>
-    id: Maybe<Scalars['ID']>
+    description: Maybe<Scalars['String']['output']>
+    id: Maybe<Scalars['ID']['output']>
     /** URL to an image be used for branding */
-    image: Maybe<Scalars['String']>
+    image: Maybe<Scalars['String']['output']>
     /** Full name to be used for branding. */
-    name: Maybe<Scalars['String']>
+    name: Maybe<Scalars['String']['output']>
     /** Short name to be used for branding. */
-    shortName: Maybe<Scalars['String']>
+    shortName: Maybe<Scalars['String']['output']>
     /** URL to be used for branding */
-    url: Maybe<Scalars['String']>
+    url: Maybe<Scalars['String']['output']>
 }
 
 export type Contact = {
     __typename?: 'Contact'
     /** Name of person to contact */
-    contactPerson: Maybe<Scalars['String']>
+    contactPerson: Maybe<Scalars['String']['output']>
     /** Email adress for contact */
-    email: Maybe<Scalars['String']>
+    email: Maybe<Scalars['String']['output']>
     /** Textual description of how to get in contact */
-    furtherDetails: Maybe<Scalars['String']>
+    furtherDetails: Maybe<Scalars['String']['output']>
     /** Phone number for contact */
-    phone: Maybe<Scalars['String']>
+    phone: Maybe<Scalars['String']['output']>
     /** Url for contact */
-    url: Maybe<Scalars['String']>
+    url: Maybe<Scalars['String']['output']>
 }
 
 /** A planned journey on a specific day */
 export type DatedServiceJourney = {
     __typename?: 'DatedServiceJourney'
-    /** Returns scheduled passingTimes for this dated service journey, updated with realtime-updates (if available).  */
+    /** Returns scheduled passingTimes for this dated service journey, updated with real-time-updates (if available).  */
     estimatedCalls: Maybe<Array<Maybe<EstimatedCall>>>
-    id: Scalars['ID']
+    id: Scalars['ID']['output']
     /** JourneyPattern for the dated service journey. */
     journeyPattern: Maybe<JourneyPattern>
     /** The date this service runs. The date used is based on the service date as opposed to calendar date. */
-    operatingDay: Maybe<Scalars['Date']>
+    operatingDay: Maybe<Scalars['Date']['output']>
     /** Quays visited by the dated service journey. */
     quays: Array<Quay>
     /** List of the dated service journeys this dated service journeys replaces */
@@ -235,17 +249,17 @@ export type DatedServiceJourney = {
 
 /** A planned journey on a specific day */
 export type DatedServiceJourneyQuaysArgs = {
-    first?: InputMaybe<Scalars['Int']>
-    last?: InputMaybe<Scalars['Int']>
+    first?: InputMaybe<Scalars['Int']['input']>
+    last?: InputMaybe<Scalars['Int']['input']>
 }
 
 /** An advertised destination of a specific journey pattern, usually displayed on a head sign or at other on-board locations. */
 export type DestinationDisplay = {
     __typename?: 'DestinationDisplay'
     /** Name of destination to show on front of vehicle. */
-    frontText: Maybe<Scalars['String']>
+    frontText: Maybe<Scalars['String']['output']>
     /** Intermediary destinations which the vehicle will pass before reaching its final destination. */
-    via: Maybe<Array<Maybe<Scalars['String']>>>
+    via: Maybe<Array<Maybe<Scalars['String']['output']>>>
 }
 
 export enum DirectionType {
@@ -260,58 +274,58 @@ export enum DirectionType {
 export type ElevationProfileStep = {
     __typename?: 'ElevationProfileStep'
     /** The horizontal distance from the start of the step, in meters. */
-    distance: Maybe<Scalars['Float']>
+    distance: Maybe<Scalars['Float']['output']>
     /**
      * The elevation at this distance, in meters above sea level. It is negative if the
      * location is below sea level.
      *
      */
-    elevation: Maybe<Scalars['Float']>
+    elevation: Maybe<Scalars['Float']['output']>
 }
 
 /** List of visits to quays as part of vehicle journeys. Updated with real time information where available */
 export type EstimatedCall = {
     __typename?: 'EstimatedCall'
     /** Actual time of arrival at quay. Updated from real time information if available. */
-    actualArrivalTime: Maybe<Scalars['DateTime']>
+    actualArrivalTime: Maybe<Scalars['DateTime']['output']>
     /** Actual time of departure from quay. Updated with real time information if available. */
-    actualDepartureTime: Maybe<Scalars['DateTime']>
+    actualDepartureTime: Maybe<Scalars['DateTime']['output']>
     /** Scheduled time of arrival at quay. Not affected by read time updated */
-    aimedArrivalTime: Scalars['DateTime']
+    aimedArrivalTime: Scalars['DateTime']['output']
     /** Scheduled time of departure from quay. Not affected by read time updated */
-    aimedDepartureTime: Scalars['DateTime']
+    aimedDepartureTime: Scalars['DateTime']['output']
     /** Booking arrangements for this EstimatedCall. */
     bookingArrangements: Maybe<BookingArrangement>
-    /** Whether stop is cancelled. This means that either the ServiceJourney has a planned cancellation, the ServiceJourney has been cancelled by realtime data, or this particular StopPoint has been cancelled. This also means that both boarding and alighting has been cancelled. */
-    cancellation: Scalars['Boolean']
+    /** Whether stop is cancelled. This means that either the ServiceJourney has a planned cancellation, the ServiceJourney has been cancelled by real-time data, or this particular StopPoint has been cancelled. This also means that both boarding and alighting has been cancelled. */
+    cancellation: Scalars['Boolean']['output']
     /** The date the estimated call is valid for. */
-    date: Scalars['Date']
+    date: Scalars['Date']['output']
     datedServiceJourney: Maybe<DatedServiceJourney>
     destinationDisplay: Maybe<DestinationDisplay>
     /** Expected time of arrival at quay. Updated with real time information if available. Will be null if an actualArrivalTime exists */
-    expectedArrivalTime: Scalars['DateTime']
+    expectedArrivalTime: Scalars['DateTime']['output']
     /** Expected time of departure from quay. Updated with real time information if available. Will be null if an actualDepartureTime exists */
-    expectedDepartureTime: Scalars['DateTime']
+    expectedDepartureTime: Scalars['DateTime']['output']
     /** Whether vehicle may be alighted at quay. */
-    forAlighting: Scalars['Boolean']
+    forAlighting: Scalars['Boolean']['output']
     /** Whether vehicle may be boarded at quay. */
-    forBoarding: Scalars['Boolean']
+    forBoarding: Scalars['Boolean']['output']
     notices: Array<Notice>
     occupancyStatus: OccupancyStatus
     /** Whether the updated estimates are expected to be inaccurate. */
-    predictionInaccurate: Scalars['Boolean']
+    predictionInaccurate: Scalars['Boolean']['output']
     quay: Quay
     /** Whether this call has been updated with real time information. */
-    realtime: Scalars['Boolean']
+    realtime: Scalars['Boolean']['output']
     realtimeState: RealtimeState
     /** Whether vehicle will only stop on request. */
-    requestStop: Scalars['Boolean']
+    requestStop: Scalars['Boolean']['output']
     serviceJourney: ServiceJourney
     /** Get all relevant situations for this EstimatedCall. */
     situations: Array<PtSituationElement>
-    stopPositionInPattern: Scalars['Int']
+    stopPositionInPattern: Scalars['Int']['output']
     /** Whether this is a timing point or not. Boarding and alighting is not allowed at timing points. */
-    timingPoint: Scalars['Boolean']
+    timingPoint: Scalars['Boolean']['output']
 }
 
 export enum FilterPlaceType {
@@ -331,40 +345,40 @@ export enum FilterPlaceType {
 export type GroupOfLines = {
     __typename?: 'GroupOfLines'
     /** Description of group of lines */
-    description: Maybe<Scalars['String']>
-    id: Scalars['ID']
+    description: Maybe<Scalars['String']['output']>
+    id: Scalars['ID']['output']
     /** All lines part of this group of lines */
     lines: Array<Line>
     /** Full name for group of lines. */
-    name: Maybe<Scalars['String']>
+    name: Maybe<Scalars['String']['output']>
     /** For internal use by operator/authority. */
-    privateCode: Maybe<Scalars['String']>
+    privateCode: Maybe<Scalars['String']['output']>
     /** Short name for group of lines. */
-    shortName: Maybe<Scalars['String']>
+    shortName: Maybe<Scalars['String']['output']>
 }
 
 /** Filter trips by disallowing lines involving certain elements. If both lines and authorities are specified, only one must be valid for each line to be banned. If a line is both banned and whitelisted, it will be counted as banned. */
 export type InputBanned = {
     /** Set of ids for authorities that should not be used */
-    authorities: InputMaybe<Array<InputMaybe<Scalars['ID']>>>
+    authorities: InputMaybe<Array<InputMaybe<Scalars['ID']['input']>>>
     /** Set of ids for lines that should not be used */
-    lines: InputMaybe<Array<InputMaybe<Scalars['ID']>>>
+    lines: InputMaybe<Array<InputMaybe<Scalars['ID']['input']>>>
     /** NOT IMPLEMENTED. Set of ids of quays that should not be allowed for boarding or alighting. Trip patterns that travel through the quay will still be permitted. */
-    quays: InputMaybe<Array<InputMaybe<Scalars['ID']>>>
+    quays: InputMaybe<Array<InputMaybe<Scalars['ID']['input']>>>
     /** NOT IMPLEMENTED. Set of ids of quays that should not be allowed for boarding, alighting or traveling thorugh. */
-    quaysHard: InputMaybe<Array<InputMaybe<Scalars['ID']>>>
+    quaysHard: InputMaybe<Array<InputMaybe<Scalars['ID']['input']>>>
     /** Set of ids of rental networks that should not be allowed for renting vehicles. */
-    rentalNetworks: InputMaybe<Array<InputMaybe<Scalars['ID']>>>
+    rentalNetworks: InputMaybe<Array<InputMaybe<Scalars['ID']['input']>>>
     /** Set of ids of service journeys that should not be used. */
-    serviceJourneys: InputMaybe<Array<InputMaybe<Scalars['ID']>>>
+    serviceJourneys: InputMaybe<Array<InputMaybe<Scalars['ID']['input']>>>
 }
 
 /** Input type for coordinates in the WGS84 system */
 export type InputCoordinates = {
     /** The latitude of the place. */
-    latitude: Scalars['Float']
+    latitude: Scalars['Float']['input']
     /** The longitude of the place. */
-    longitude: Scalars['Float']
+    longitude: Scalars['Float']['input']
 }
 
 export enum InputField {
@@ -376,25 +390,27 @@ export enum InputField {
 
 export type InputPlaceIds = {
     /** Bike parks to include by id. */
-    bikeParks: InputMaybe<Array<InputMaybe<Scalars['String']>>>
+    bikeParks: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>
     /** Bike rentals to include by id. */
-    bikeRentalStations: InputMaybe<Array<InputMaybe<Scalars['String']>>>
+    bikeRentalStations: InputMaybe<
+        Array<InputMaybe<Scalars['String']['input']>>
+    >
     /** Car parks to include by id. */
-    carParks: InputMaybe<Array<InputMaybe<Scalars['String']>>>
+    carParks: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>
     /** Lines to include by id. */
-    lines: InputMaybe<Array<InputMaybe<Scalars['String']>>>
+    lines: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>
     /** Quays to include by id. */
-    quays: InputMaybe<Array<InputMaybe<Scalars['String']>>>
+    quays: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>
 }
 
 /** Filter trips by only allowing lines involving certain elements. If both lines and authorities are specified, only one must be valid for each line to be used. If a line is both banned and whitelisted, it will be counted as banned. */
 export type InputWhiteListed = {
     /** Set of ids for authorities that should be used */
-    authorities: InputMaybe<Array<InputMaybe<Scalars['ID']>>>
+    authorities: InputMaybe<Array<InputMaybe<Scalars['ID']['input']>>>
     /** Set of ids for lines that should be used */
-    lines: InputMaybe<Array<InputMaybe<Scalars['ID']>>>
+    lines: InputMaybe<Array<InputMaybe<Scalars['ID']['input']>>>
     /** Set of ids of rental networks that should be used for renting vehicles. */
-    rentalNetworks: InputMaybe<Array<InputMaybe<Scalars['ID']>>>
+    rentalNetworks: InputMaybe<Array<InputMaybe<Scalars['ID']['input']>>>
 }
 
 export type Interchange = {
@@ -408,12 +424,12 @@ export type Interchange = {
     /** @deprecated Use toServiceJourney instead */
     ToServiceJourney: Maybe<ServiceJourney>
     fromServiceJourney: Maybe<ServiceJourney>
-    guaranteed: Maybe<Scalars['Boolean']>
+    guaranteed: Maybe<Scalars['Boolean']['output']>
     /** Maximum time after scheduled departure time the connecting transport is guaranteed to wait for the delayed trip. [NOT RESPECTED DURING ROUTING, JUST PASSED THROUGH] */
-    maximumWaitTime: Maybe<Scalars['Int']>
+    maximumWaitTime: Maybe<Scalars['Int']['output']>
     /** The transfer priority is used to decide where a transfer should happen, at the highest prioritized location. If the guaranteed flag is set it take precedence priority. A guaranteed ALLOWED transfer is preferred over a PREFERRED none-guaranteed transfer. */
     priority: Maybe<InterchangePriority>
-    staySeated: Maybe<Scalars['Boolean']>
+    staySeated: Maybe<Scalars['Boolean']['output']>
     toServiceJourney: Maybe<ServiceJourney>
 }
 
@@ -467,11 +483,13 @@ export type ItineraryFilters = {
      */
     debug: InputMaybe<ItineraryFilterDebugProfile>
     /** Pick ONE itinerary from each group after putting itineraries that is 85% similar together. */
-    groupSimilarityKeepOne: InputMaybe<Scalars['Float']>
+    groupSimilarityKeepOne: InputMaybe<Scalars['Float']['input']>
     /** Reduce the number of itineraries in each group to to maximum 3 itineraries. The itineraries are grouped by similar legs (on board same journey). So, if  68% of the distance is traveled by similar legs, then two itineraries are in the same group. Default value is 68%, must be at least 50%. */
-    groupSimilarityKeepThree: InputMaybe<Scalars['Float']>
+    groupSimilarityKeepThree: InputMaybe<Scalars['Float']['input']>
     /** Of the itineraries grouped to maximum of three itineraries, how much worse can the non-grouped legs be compared to the lowest cost. 2.0 means that they can be double the cost, and any itineraries having a higher cost will be filtered. Default value is 2.0, use a value lower than 1.0 to turn off */
-    groupedOtherThanSameLegsMaxCostMultiplier: InputMaybe<Scalars['Float']>
+    groupedOtherThanSameLegsMaxCostMultiplier: InputMaybe<
+        Scalars['Float']['input']
+    >
     /** Set a relative limit for all transit itineraries. The limit is calculated based on the transit itinerary generalized-cost and the time between itineraries Itineraries without transit legs are excluded from this filter. Example: costLimitFunction(x) = 3600 + 2.0 x and intervalRelaxFactor = 0.5. If the lowest cost returned is 10 000, then the limit is set to: 3 600 + 2 * 10 000 = 26 600 plus half of the time between either departure or arrival times of the itinerary. Default: {"costLimitFunction": 15m + 1.50 t, "intervalRelaxFactor": 0.75} */
     transitGeneralizedCostLimit: InputMaybe<TransitGeneralizedCostFilterParams>
 }
@@ -479,9 +497,9 @@ export type ItineraryFilters = {
 export type JourneyPattern = {
     __typename?: 'JourneyPattern'
     directionType: Maybe<DirectionType>
-    id: Scalars['ID']
+    id: Scalars['ID']['output']
     line: Line
-    name: Maybe<Scalars['String']>
+    name: Maybe<Scalars['String']['output']>
     notices: Array<Notice>
     pointsOnLink: Maybe<PointsOnLink>
     /** Quays visited by service journeys for this journey patterns */
@@ -496,28 +514,28 @@ export type JourneyPattern = {
 }
 
 export type JourneyPatternServiceJourneysForDateArgs = {
-    date?: InputMaybe<Scalars['Date']>
+    date?: InputMaybe<Scalars['Date']['input']>
 }
 
 /** Part of a trip pattern. Either a ride on a public transport vehicle or access or path link to/from/between places */
 export type Leg = {
     __typename?: 'Leg'
     /** The aimed date and time this leg ends. */
-    aimedEndTime: Scalars['DateTime']
+    aimedEndTime: Scalars['DateTime']['output']
     /** The aimed date and time this leg starts. */
-    aimedStartTime: Scalars['DateTime']
+    aimedStartTime: Scalars['DateTime']['output']
     /** For ride legs, the service authority used for this legs. For non-ride legs, null. */
     authority: Maybe<Authority>
-    bikeRentalNetworks: Array<Maybe<Scalars['String']>>
+    bikeRentalNetworks: Array<Maybe<Scalars['String']['output']>>
     bookingArrangements: Maybe<BookingArrangement>
     /** The dated service journey used for this leg. */
     datedServiceJourney: Maybe<DatedServiceJourney>
     /** NOT IMPLEMENTED */
-    directDuration: Scalars['Long']
+    directDuration: Scalars['Long']['output']
     /** The distance traveled while traversing the leg in meters. */
-    distance: Scalars['Float']
+    distance: Scalars['Float']['output']
     /** The leg's duration in seconds */
-    duration: Scalars['Long']
+    duration: Scalars['Long']['output']
     /**
      * The leg's elevation profile. All elevation values, including the first one, are in meters
      * above sea level. The elevation is negative for places below sea level. The profile
@@ -525,18 +543,18 @@ export type Leg = {
      *
      */
     elevationProfile: Array<Maybe<ElevationProfileStep>>
-    /** The expected, realtime adjusted date and time this leg ends. */
-    expectedEndTime: Scalars['DateTime']
-    /** The expected, realtime adjusted date and time this leg starts. */
-    expectedStartTime: Scalars['DateTime']
+    /** The expected, real-time adjusted date and time this leg ends. */
+    expectedEndTime: Scalars['DateTime']['output']
+    /** The expected, real-time adjusted date and time this leg starts. */
+    expectedStartTime: Scalars['DateTime']['output']
     /** EstimatedCall for the quay where the leg originates. */
     fromEstimatedCall: Maybe<EstimatedCall>
     /** The Place where the leg originates. */
     fromPlace: Place
     /** Generalized cost or weight of the leg. Used for debugging. */
-    generalizedCost: Maybe<Scalars['Int']>
+    generalizedCost: Maybe<Scalars['Int']['output']>
     /** An identifier for the leg, which can be used to re-fetch the information. */
-    id: Maybe<Scalars['ID']>
+    id: Maybe<Scalars['ID']['output']>
     interchangeFrom: Maybe<Interchange>
     interchangeTo: Maybe<Interchange>
     /** For ride legs, estimated calls for quays between the Place where the leg originates and the Place where the leg ends. For non-ride legs, empty list. */
@@ -556,13 +574,13 @@ export type Leg = {
     /** Fetch the previous legs, which can be used to replace this leg. The replacement legs do arrive/depart from/to the same stop places. It might be necessary to change other legs in an itinerary in order to be able to ride the returned legs. */
     previousLegs: Maybe<Array<Leg>>
     /** Whether there is real-time data about this leg */
-    realtime: Scalars['Boolean']
+    realtime: Scalars['Boolean']['output']
     /** Whether this leg is with a rented bike. */
-    rentedBike: Maybe<Scalars['Boolean']>
+    rentedBike: Maybe<Scalars['Boolean']['output']>
     /** Whether this leg is a ride leg or not. */
-    ride: Scalars['Boolean']
+    ride: Scalars['Boolean']['output']
     /** For transit legs, the service date of the trip. For non-transit legs, null. */
-    serviceDate: Maybe<Scalars['Date']>
+    serviceDate: Maybe<Scalars['Date']['output']>
     /** For ride legs, the service journey. For non-ride legs, null. */
     serviceJourney: Maybe<ServiceJourney>
     /** For ride legs, all estimated calls for the service journey. For non-ride legs, empty list. */
@@ -578,19 +596,19 @@ export type Leg = {
     /** The transport sub mode (e.g., localBus or expressBus) used when traversing this leg. Null if leg is not a ride */
     transportSubmode: Maybe<TransportSubmode>
     /** Whether this leg is walking with a bike. */
-    walkingBike: Maybe<Scalars['Boolean']>
+    walkingBike: Maybe<Scalars['Boolean']['output']>
 }
 
 /** Part of a trip pattern. Either a ride on a public transport vehicle or access or path link to/from/between places */
 export type LegNextLegsArgs = {
     filter?: InputMaybe<AlternativeLegsFilter>
-    next?: InputMaybe<Scalars['Int']>
+    next?: InputMaybe<Scalars['Int']['input']>
 }
 
 /** Part of a trip pattern. Either a ride on a public transport vehicle or access or path link to/from/between places */
 export type LegPreviousLegsArgs = {
     filter?: InputMaybe<AlternativeLegsFilter>
-    previous?: InputMaybe<Scalars['Int']>
+    previous?: InputMaybe<Scalars['Int']['input']>
 }
 
 /** A group of routes which is generally known to the public by a similar name or number */
@@ -604,26 +622,26 @@ export type Line = {
      */
     bookingArrangements: Maybe<BookingArrangement>
     branding: Maybe<Branding>
-    description: Maybe<Scalars['String']>
+    description: Maybe<Scalars['String']['output']>
     /** Type of flexible line, or null if line is not flexible. */
-    flexibleLineType: Maybe<Scalars['String']>
+    flexibleLineType: Maybe<Scalars['String']['output']>
     /** Groups of lines that line is a part of. */
     groupOfLines: Array<Maybe<GroupOfLines>>
-    id: Scalars['ID']
+    id: Scalars['ID']['output']
     journeyPatterns: Maybe<Array<Maybe<JourneyPattern>>>
-    name: Maybe<Scalars['String']>
+    name: Maybe<Scalars['String']['output']>
     notices: Array<Notice>
     operator: Maybe<Operator>
     presentation: Maybe<Presentation>
     /** Publicly announced code for line, differentiating it from other lines for the same operator. */
-    publicCode: Maybe<Scalars['String']>
+    publicCode: Maybe<Scalars['String']['output']>
     quays: Array<Maybe<Quay>>
     serviceJourneys: Array<Maybe<ServiceJourney>>
     /** Get all situations active for the line. */
     situations: Array<PtSituationElement>
     transportMode: Maybe<TransportMode>
     transportSubmode: Maybe<TransportSubmode>
-    url: Maybe<Scalars['String']>
+    url: Maybe<Scalars['String']['output']>
 }
 
 export enum Locale {
@@ -636,9 +654,9 @@ export type Location = {
     /** Coordinates for the location. This can be used alone or as fallback if the place id is not found. */
     coordinates: InputMaybe<InputCoordinates>
     /** The name of the location. This is pass-through informationand is not used in routing. */
-    name: InputMaybe<Scalars['String']>
+    name: InputMaybe<Scalars['String']['input']>
     /** The id of an element in the OTP model. Currently supports Quay, StopPlace, multimodal StopPlace, and GroupOfStopPlaces. */
-    place: InputMaybe<Scalars['String']>
+    place: InputMaybe<Scalars['String']['input']>
 }
 
 export enum Mode {
@@ -685,15 +703,15 @@ export enum MultiModalMode {
 /** Text with language */
 export type MultilingualString = {
     __typename?: 'MultilingualString'
-    language: Maybe<Scalars['String']>
-    value: Scalars['String']
+    language: Maybe<Scalars['String']['output']>
+    value: Scalars['String']['output']
 }
 
 export type Notice = {
     __typename?: 'Notice'
-    id: Scalars['ID']
-    publicCode: Maybe<Scalars['String']>
-    text: Maybe<Scalars['String']>
+    id: Scalars['ID']['output']
+    publicCode: Maybe<Scalars['String']['output']>
+    text: Maybe<Scalars['String']['output']>
 }
 
 /** OccupancyStatus to be exposed in the API. The values are based on GTFS-RT */
@@ -753,48 +771,48 @@ export enum OccupancyStatus {
 /** Organisation providing public transport services. */
 export type Operator = {
     __typename?: 'Operator'
-    id: Scalars['ID']
+    id: Scalars['ID']['output']
     lines: Array<Maybe<Line>>
-    name: Scalars['String']
-    phone: Maybe<Scalars['String']>
+    name: Scalars['String']['output']
+    phone: Maybe<Scalars['String']['output']>
     serviceJourney: Array<Maybe<ServiceJourney>>
-    url: Maybe<Scalars['String']>
+    url: Maybe<Scalars['String']['output']>
 }
 
 /** Information about pagination in a connection. */
 export type PageInfo = {
     __typename?: 'PageInfo'
     /** When paginating forwards, the cursor to continue. */
-    endCursor: Maybe<Scalars['String']>
+    endCursor: Maybe<Scalars['String']['output']>
     /** When paginating forwards, are there more items? */
-    hasNextPage: Scalars['Boolean']
+    hasNextPage: Scalars['Boolean']['output']
     /** When paginating backwards, are there more items? */
-    hasPreviousPage: Scalars['Boolean']
+    hasPreviousPage: Scalars['Boolean']['output']
     /** When paginating backwards, the cursor to continue. */
-    startCursor: Maybe<Scalars['String']>
+    startCursor: Maybe<Scalars['String']['output']>
 }
 
 /** Defines one point which the journey must pass through. */
 export type PassThroughPoint = {
     /** Optional name of the pass-through point for debugging and logging. It is not used in routing. */
-    name: InputMaybe<Scalars['String']>
+    name: InputMaybe<Scalars['String']['input']>
     /**
      * The list of *stop location ids* which define the pass-through point. At least one id is required.
      * Quay, StopPlace, multimodal StopPlace, and GroupOfStopPlaces are supported location types.
      * The journey must pass through at least one of these entities - not all of them.
      */
-    placeIds: InputMaybe<Array<Scalars['String']>>
+    placeIds: InputMaybe<Array<Scalars['String']['input']>>
 }
 
 /** A series of turn by turn instructions used for walking, biking and driving. */
 export type PathGuidance = {
     __typename?: 'PathGuidance'
     /** This step is on an open area, such as a plaza or train platform, and thus the directions should say something like "cross" */
-    area: Maybe<Scalars['Boolean']>
+    area: Maybe<Scalars['Boolean']['output']>
     /** The name of this street was generated by the system, so we should only display it once, and generally just display right/left directions */
-    bogusName: Maybe<Scalars['Boolean']>
+    bogusName: Maybe<Scalars['Boolean']['output']>
     /** The distance in meters that this step takes. */
-    distance: Maybe<Scalars['Float']>
+    distance: Maybe<Scalars['Float']['output']>
     /**
      * The step's elevation profile. All elevation values, including the first one, are in meters
      * above sea level. The elevation is negative for places below sea level. The profile
@@ -803,19 +821,19 @@ export type PathGuidance = {
      */
     elevationProfile: Array<Maybe<ElevationProfileStep>>
     /** When exiting a highway or traffic circle, the exit name/number. */
-    exit: Maybe<Scalars['String']>
+    exit: Maybe<Scalars['String']['output']>
     /** The absolute direction of this step. */
     heading: Maybe<AbsoluteDirection>
     /** The latitude of the step. */
-    latitude: Maybe<Scalars['Float']>
+    latitude: Maybe<Scalars['Float']['output']>
     /** The longitude of the step. */
-    longitude: Maybe<Scalars['Float']>
+    longitude: Maybe<Scalars['Float']['output']>
     /** The relative direction of this step. */
     relativeDirection: Maybe<RelativeDirection>
     /** Indicates whether or not a street changes direction at an intersection. */
-    stayOn: Maybe<Scalars['Boolean']>
+    stayOn: Maybe<Scalars['Boolean']['output']>
     /** The name of the street. */
-    streetName: Maybe<Scalars['String']>
+    streetName: Maybe<Scalars['String']['output']>
 }
 
 /** A combination of street mode and penalty for time and cost. */
@@ -825,7 +843,7 @@ export type PenaltyForStreetMode = {
      *     The result is added to the generalized-cost.
      *
      */
-    costFactor: InputMaybe<Scalars['Float']>
+    costFactor: InputMaybe<Scalars['Float']['input']>
     /**
      * List of modes with the given penalty is applied to. A street-mode should not be listed
      * in more than one element. If empty or null the penalty is applied to all unlisted modes,
@@ -837,7 +855,7 @@ export type PenaltyForStreetMode = {
      * Penalty applied to the time for the given list of modes.
      *
      */
-    timePenalty: Scalars['DoubleFunction']
+    timePenalty: Scalars['DoubleFunction']['input']
 }
 
 /** Common super class for all places (stop places, quays, car parks, bike parks and bike rental stations ) */
@@ -846,13 +864,13 @@ export type Place = {
     /** The bike rental station related to the place */
     bikeRentalStation: Maybe<BikeRentalStation>
     /** The flexible area related to the place. */
-    flexibleArea: Maybe<Scalars['Coordinates']>
+    flexibleArea: Maybe<Scalars['Coordinates']['output']>
     /** The latitude of the place. */
-    latitude: Scalars['Float']
+    latitude: Scalars['Float']['output']
     /** The longitude of the place. */
-    longitude: Scalars['Float']
+    longitude: Scalars['Float']['output']
     /** For transit quays, the name of the quay. For points of interest, the name of the POI. */
-    name: Maybe<Scalars['String']>
+    name: Maybe<Scalars['String']['output']>
     /** The quay related to the place. */
     quay: Maybe<Quay>
     /** The rental vehicle related to the place */
@@ -863,33 +881,33 @@ export type Place = {
 
 export type PlaceAtDistance = {
     __typename?: 'PlaceAtDistance'
-    distance: Maybe<Scalars['Float']>
+    distance: Maybe<Scalars['Float']['output']>
     /** @deprecated Id is not referable or meaningful and will be removed */
-    id: Scalars['ID']
+    id: Scalars['ID']['output']
     place: Maybe<PlaceInterface>
 }
 
 /** Interface for places, i.e. quays, stop places, parks */
 export type PlaceInterface = {
-    id: Scalars['ID']
-    latitude: Maybe<Scalars['Float']>
-    longitude: Maybe<Scalars['Float']>
+    id: Scalars['ID']['output']
+    latitude: Maybe<Scalars['Float']['output']>
+    longitude: Maybe<Scalars['Float']['output']>
 }
 
 /** A list of coordinates encoded as a polyline string (see http://code.google.com/apis/maps/documentation/polylinealgorithm.html) */
 export type PointsOnLink = {
     __typename?: 'PointsOnLink'
     /** The number of points in the string */
-    length: Maybe<Scalars['Int']>
+    length: Maybe<Scalars['Int']['output']>
     /** The encoded points of the polyline. Be aware that the string could contain escape characters that need to be accounted for. (https://www.freeformatter.com/javascript-escape.html) */
-    points: Maybe<Scalars['String']>
+    points: Maybe<Scalars['String']['output']>
 }
 
 /** Types describing common presentation properties */
 export type Presentation = {
     __typename?: 'Presentation'
-    colour: Maybe<Scalars['String']>
-    textColour: Maybe<Scalars['String']>
+    colour: Maybe<Scalars['String']['output']>
+    textColour: Maybe<Scalars['String']['output']>
 }
 
 /** Simple public transport situation element */
@@ -905,18 +923,18 @@ export type PtSituationElement = {
      */
     authority: Maybe<Authority>
     /** Timestamp for when the situation was created. */
-    creationTime: Maybe<Scalars['DateTime']>
+    creationTime: Maybe<Scalars['DateTime']['output']>
     /** Description of situation in all different translations available */
     description: Array<MultilingualString>
-    id: Scalars['ID']
+    id: Scalars['ID']['output']
     /** Optional links to more information. */
     infoLinks: Maybe<Array<InfoLink>>
     /** @deprecated Use affects instead */
     lines: Array<Maybe<Line>>
     /** Codespace of the data source. */
-    participant: Maybe<Scalars['String']>
+    participant: Maybe<Scalars['String']['output']>
     /** Priority of this situation  */
-    priority: Maybe<Scalars['Int']>
+    priority: Maybe<Scalars['Int']['output']>
     /** @deprecated Use affects instead */
     quays: Array<Quay>
     /**
@@ -931,7 +949,7 @@ export type PtSituationElement = {
     /** Severity of this situation  */
     severity: Maybe<Severity>
     /** Operator's internal id for this situation */
-    situationNumber: Maybe<Scalars['String']>
+    situationNumber: Maybe<Scalars['String']['output']>
     /** @deprecated Use affects instead */
     stopPlaces: Array<StopPlace>
     /** Summary of situation in all different translations available */
@@ -939,7 +957,7 @@ export type PtSituationElement = {
     /** Period this situation is in effect */
     validityPeriod: Maybe<ValidityPeriod>
     /** Timestamp when the situation element was updated. */
-    versionedAtTime: Maybe<Scalars['DateTime']>
+    versionedAtTime: Maybe<Scalars['DateTime']['output']>
 }
 
 export enum PurchaseWhen {
@@ -953,30 +971,30 @@ export enum PurchaseWhen {
 /** A place such as platform, stance, or quayside where passengers have access to PT vehicles. */
 export type Quay = PlaceInterface & {
     __typename?: 'Quay'
-    description: Maybe<Scalars['String']>
+    description: Maybe<Scalars['String']['output']>
     /** List of visits to this quay as part of vehicle journeys. */
     estimatedCalls: Array<EstimatedCall>
     /** Geometry for flexible area. */
-    flexibleArea: Maybe<Scalars['Coordinates']>
+    flexibleArea: Maybe<Scalars['Coordinates']['output']>
     /** the Quays part of an flexible group. */
     flexibleGroup: Maybe<Array<Maybe<Quay>>>
-    id: Scalars['ID']
+    id: Scalars['ID']['output']
     /** List of journey patterns servicing this quay */
     journeyPatterns: Array<Maybe<JourneyPattern>>
-    latitude: Maybe<Scalars['Float']>
+    latitude: Maybe<Scalars['Float']['output']>
     /** List of lines servicing this quay */
     lines: Array<Line>
-    longitude: Maybe<Scalars['Float']>
-    name: Scalars['String']
+    longitude: Maybe<Scalars['Float']['output']>
+    name: Scalars['String']['output']
     /** Public code used to identify this quay within the stop place. For instance a platform code. */
-    publicCode: Maybe<Scalars['String']>
+    publicCode: Maybe<Scalars['String']['output']>
     /** Get all situations active for the quay. */
     situations: Array<PtSituationElement>
     /** The stop place to which this quay belongs to. */
     stopPlace: Maybe<StopPlace>
-    stopType: Maybe<Scalars['String']>
+    stopType: Maybe<Scalars['String']['output']>
     tariffZones: Array<Maybe<TariffZone>>
-    timeZone: Maybe<Scalars['String']>
+    timeZone: Maybe<Scalars['String']['output']>
     /** Whether this quay is suitable for wheelchair boarding. */
     wheelchairAccessible: Maybe<WheelchairBoarding>
 }
@@ -984,25 +1002,27 @@ export type Quay = PlaceInterface & {
 /** A place such as platform, stance, or quayside where passengers have access to PT vehicles. */
 export type QuayEstimatedCallsArgs = {
     arrivalDeparture?: InputMaybe<ArrivalDeparture>
-    includeCancelledTrips?: InputMaybe<Scalars['Boolean']>
-    numberOfDepartures?: InputMaybe<Scalars['Int']>
-    numberOfDeparturesPerLineAndDestinationDisplay?: InputMaybe<Scalars['Int']>
-    startTime?: InputMaybe<Scalars['DateTime']>
-    timeRange?: InputMaybe<Scalars['Int']>
+    includeCancelledTrips?: InputMaybe<Scalars['Boolean']['input']>
+    numberOfDepartures?: InputMaybe<Scalars['Int']['input']>
+    numberOfDeparturesPerLineAndDestinationDisplay?: InputMaybe<
+        Scalars['Int']['input']
+    >
+    startTime?: InputMaybe<Scalars['DateTime']['input']>
+    timeRange?: InputMaybe<Scalars['Int']['input']>
     whiteListed?: InputMaybe<InputWhiteListed>
     whiteListedModes?: InputMaybe<Array<InputMaybe<TransportMode>>>
 }
 
 /** A place such as platform, stance, or quayside where passengers have access to PT vehicles. */
 export type QuayNameArgs = {
-    language?: InputMaybe<Scalars['String']>
+    language?: InputMaybe<Scalars['String']['input']>
 }
 
 export type QuayAtDistance = {
     __typename?: 'QuayAtDistance'
     /** The distance in meters to the given quay. */
-    distance: Maybe<Scalars['Float']>
-    id: Scalars['ID']
+    distance: Maybe<Scalars['Float']['output']>
+    id: Scalars['ID']['output']
     quay: Maybe<Quay>
 }
 
@@ -1075,206 +1095,206 @@ export type QueryType = {
 }
 
 export type QueryTypeAuthorityArgs = {
-    id: Scalars['String']
+    id: Scalars['String']['input']
 }
 
 export type QueryTypeBikeParkArgs = {
-    id: Scalars['String']
+    id: Scalars['String']['input']
 }
 
 export type QueryTypeBikeRentalStationArgs = {
-    id: Scalars['String']
+    id: Scalars['String']['input']
 }
 
 export type QueryTypeBikeRentalStationsArgs = {
-    ids?: InputMaybe<Array<InputMaybe<Scalars['String']>>>
+    ids?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>
 }
 
 export type QueryTypeBikeRentalStationsByBboxArgs = {
-    maximumLatitude?: InputMaybe<Scalars['Float']>
-    maximumLongitude?: InputMaybe<Scalars['Float']>
-    minimumLatitude?: InputMaybe<Scalars['Float']>
-    minimumLongitude?: InputMaybe<Scalars['Float']>
+    maximumLatitude?: InputMaybe<Scalars['Float']['input']>
+    maximumLongitude?: InputMaybe<Scalars['Float']['input']>
+    minimumLatitude?: InputMaybe<Scalars['Float']['input']>
+    minimumLongitude?: InputMaybe<Scalars['Float']['input']>
 }
 
 export type QueryTypeDatedServiceJourneyArgs = {
-    id?: InputMaybe<Scalars['String']>
+    id?: InputMaybe<Scalars['String']['input']>
 }
 
 export type QueryTypeDatedServiceJourneysArgs = {
     alterations?: InputMaybe<Array<ServiceAlteration>>
-    authorities?: InputMaybe<Array<Scalars['String']>>
-    lines?: InputMaybe<Array<Scalars['String']>>
-    operatingDays: Array<Scalars['Date']>
-    privateCodes?: InputMaybe<Array<Scalars['String']>>
-    replacementFor?: InputMaybe<Array<Scalars['String']>>
-    serviceJourneys?: InputMaybe<Array<Scalars['String']>>
+    authorities?: InputMaybe<Array<Scalars['String']['input']>>
+    lines?: InputMaybe<Array<Scalars['String']['input']>>
+    operatingDays: Array<Scalars['Date']['input']>
+    privateCodes?: InputMaybe<Array<Scalars['String']['input']>>
+    replacementFor?: InputMaybe<Array<Scalars['String']['input']>>
+    serviceJourneys?: InputMaybe<Array<Scalars['String']['input']>>
 }
 
 export type QueryTypeGroupOfLinesArgs = {
-    id: Scalars['String']
+    id: Scalars['String']['input']
 }
 
 export type QueryTypeLegArgs = {
-    id: Scalars['ID']
+    id: Scalars['ID']['input']
 }
 
 export type QueryTypeLineArgs = {
-    id: Scalars['ID']
+    id: Scalars['ID']['input']
 }
 
 export type QueryTypeLinesArgs = {
-    authorities?: InputMaybe<Array<InputMaybe<Scalars['String']>>>
-    flexibleOnly?: InputMaybe<Scalars['Boolean']>
-    ids?: InputMaybe<Array<InputMaybe<Scalars['ID']>>>
-    name?: InputMaybe<Scalars['String']>
-    publicCode?: InputMaybe<Scalars['String']>
-    publicCodes?: InputMaybe<Array<InputMaybe<Scalars['String']>>>
+    authorities?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>
+    flexibleOnly?: InputMaybe<Scalars['Boolean']['input']>
+    ids?: InputMaybe<Array<InputMaybe<Scalars['ID']['input']>>>
+    name?: InputMaybe<Scalars['String']['input']>
+    publicCode?: InputMaybe<Scalars['String']['input']>
+    publicCodes?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>
     transportModes?: InputMaybe<Array<InputMaybe<TransportMode>>>
 }
 
 export type QueryTypeNearestArgs = {
-    after?: InputMaybe<Scalars['String']>
-    before?: InputMaybe<Scalars['String']>
+    after?: InputMaybe<Scalars['String']['input']>
+    before?: InputMaybe<Scalars['String']['input']>
     filterByIds?: InputMaybe<InputPlaceIds>
-    filterByInUse?: InputMaybe<Scalars['Boolean']>
+    filterByInUse?: InputMaybe<Scalars['Boolean']['input']>
     filterByModes?: InputMaybe<Array<InputMaybe<TransportMode>>>
     filterByPlaceTypes?: InputMaybe<Array<InputMaybe<FilterPlaceType>>>
-    first?: InputMaybe<Scalars['Int']>
-    last?: InputMaybe<Scalars['Int']>
-    latitude: Scalars['Float']
-    longitude: Scalars['Float']
-    maximumDistance?: Scalars['Float']
-    maximumResults?: InputMaybe<Scalars['Int']>
+    first?: InputMaybe<Scalars['Int']['input']>
+    last?: InputMaybe<Scalars['Int']['input']>
+    latitude: Scalars['Float']['input']
+    longitude: Scalars['Float']['input']
+    maximumDistance?: Scalars['Float']['input']
+    maximumResults?: InputMaybe<Scalars['Int']['input']>
     multiModalMode?: InputMaybe<MultiModalMode>
 }
 
 export type QueryTypeOperatorArgs = {
-    id: Scalars['String']
+    id: Scalars['String']['input']
 }
 
 export type QueryTypeQuayArgs = {
-    id: Scalars['String']
+    id: Scalars['String']['input']
 }
 
 export type QueryTypeQuaysArgs = {
-    ids?: InputMaybe<Array<InputMaybe<Scalars['String']>>>
-    name?: InputMaybe<Scalars['String']>
+    ids?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>
+    name?: InputMaybe<Scalars['String']['input']>
 }
 
 export type QueryTypeQuaysByBboxArgs = {
-    authority?: InputMaybe<Scalars['String']>
-    filterByInUse?: InputMaybe<Scalars['Boolean']>
-    maximumLatitude: Scalars['Float']
-    maximumLongitude: Scalars['Float']
-    minimumLatitude: Scalars['Float']
-    minimumLongitude: Scalars['Float']
+    authority?: InputMaybe<Scalars['String']['input']>
+    filterByInUse?: InputMaybe<Scalars['Boolean']['input']>
+    maximumLatitude: Scalars['Float']['input']
+    maximumLongitude: Scalars['Float']['input']
+    minimumLatitude: Scalars['Float']['input']
+    minimumLongitude: Scalars['Float']['input']
 }
 
 export type QueryTypeQuaysByRadiusArgs = {
-    after?: InputMaybe<Scalars['String']>
-    authority?: InputMaybe<Scalars['String']>
-    before?: InputMaybe<Scalars['String']>
-    first?: InputMaybe<Scalars['Int']>
-    last?: InputMaybe<Scalars['Int']>
-    latitude: Scalars['Float']
-    longitude: Scalars['Float']
-    radius: Scalars['Float']
+    after?: InputMaybe<Scalars['String']['input']>
+    authority?: InputMaybe<Scalars['String']['input']>
+    before?: InputMaybe<Scalars['String']['input']>
+    first?: InputMaybe<Scalars['Int']['input']>
+    last?: InputMaybe<Scalars['Int']['input']>
+    latitude: Scalars['Float']['input']
+    longitude: Scalars['Float']['input']
+    radius: Scalars['Float']['input']
 }
 
 export type QueryTypeServiceJourneyArgs = {
-    id: Scalars['String']
+    id: Scalars['String']['input']
 }
 
 export type QueryTypeServiceJourneysArgs = {
-    activeDates?: InputMaybe<Array<InputMaybe<Scalars['Date']>>>
-    authorities?: InputMaybe<Array<InputMaybe<Scalars['String']>>>
-    lines?: InputMaybe<Array<InputMaybe<Scalars['ID']>>>
-    privateCodes?: InputMaybe<Array<InputMaybe<Scalars['String']>>>
+    activeDates?: InputMaybe<Array<InputMaybe<Scalars['Date']['input']>>>
+    authorities?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>
+    lines?: InputMaybe<Array<InputMaybe<Scalars['ID']['input']>>>
+    privateCodes?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>
 }
 
 export type QueryTypeSituationArgs = {
-    situationNumber: Scalars['String']
+    situationNumber: Scalars['String']['input']
 }
 
 export type QueryTypeSituationsArgs = {
-    codespaces?: InputMaybe<Array<InputMaybe<Scalars['String']>>>
+    codespaces?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>
     severities?: InputMaybe<Array<InputMaybe<Severity>>>
 }
 
 export type QueryTypeStopPlaceArgs = {
-    id: Scalars['String']
+    id: Scalars['String']['input']
 }
 
 export type QueryTypeStopPlacesArgs = {
-    ids?: InputMaybe<Array<InputMaybe<Scalars['String']>>>
+    ids?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>
 }
 
 export type QueryTypeStopPlacesByBboxArgs = {
-    authority?: InputMaybe<Scalars['String']>
-    filterByInUse?: InputMaybe<Scalars['Boolean']>
-    maximumLatitude: Scalars['Float']
-    maximumLongitude: Scalars['Float']
-    minimumLatitude: Scalars['Float']
-    minimumLongitude: Scalars['Float']
+    authority?: InputMaybe<Scalars['String']['input']>
+    filterByInUse?: InputMaybe<Scalars['Boolean']['input']>
+    maximumLatitude: Scalars['Float']['input']
+    maximumLongitude: Scalars['Float']['input']
+    minimumLatitude: Scalars['Float']['input']
+    minimumLongitude: Scalars['Float']['input']
     multiModalMode?: InputMaybe<MultiModalMode>
 }
 
 export type QueryTypeTripArgs = {
     accessEgressPenalty?: InputMaybe<Array<PenaltyForStreetMode>>
-    alightSlackDefault?: InputMaybe<Scalars['Int']>
+    alightSlackDefault?: InputMaybe<Scalars['Int']['input']>
     alightSlackList?: InputMaybe<Array<InputMaybe<TransportModeSlack>>>
-    arriveBy?: InputMaybe<Scalars['Boolean']>
+    arriveBy?: InputMaybe<Scalars['Boolean']['input']>
     banned?: InputMaybe<InputBanned>
     bicycleOptimisationMethod?: InputMaybe<BicycleOptimisationMethod>
-    bikeSpeed?: InputMaybe<Scalars['Float']>
-    boardSlackDefault?: InputMaybe<Scalars['Int']>
+    bikeSpeed?: InputMaybe<Scalars['Float']['input']>
+    boardSlackDefault?: InputMaybe<Scalars['Int']['input']>
     boardSlackList?: InputMaybe<Array<InputMaybe<TransportModeSlack>>>
-    dateTime?: InputMaybe<Scalars['DateTime']>
-    extraSearchCoachReluctance?: InputMaybe<Scalars['Float']>
+    dateTime?: InputMaybe<Scalars['DateTime']['input']>
+    extraSearchCoachReluctance?: InputMaybe<Scalars['Float']['input']>
     filters?: InputMaybe<Array<TripFilterInput>>
     from: Location
-    ignoreRealtimeUpdates?: InputMaybe<Scalars['Boolean']>
-    includePlannedCancellations?: InputMaybe<Scalars['Boolean']>
-    includeRealtimeCancellations?: InputMaybe<Scalars['Boolean']>
+    ignoreRealtimeUpdates?: InputMaybe<Scalars['Boolean']['input']>
+    includePlannedCancellations?: InputMaybe<Scalars['Boolean']['input']>
+    includeRealtimeCancellations?: InputMaybe<Scalars['Boolean']['input']>
     itineraryFilters?: InputMaybe<ItineraryFilters>
     locale?: InputMaybe<Locale>
     maxAccessEgressDurationForMode?: InputMaybe<Array<StreetModeDurationInput>>
     maxDirectDurationForMode?: InputMaybe<Array<StreetModeDurationInput>>
-    maximumAdditionalTransfers?: InputMaybe<Scalars['Int']>
-    maximumTransfers?: InputMaybe<Scalars['Int']>
+    maximumAdditionalTransfers?: InputMaybe<Scalars['Int']['input']>
+    maximumTransfers?: InputMaybe<Scalars['Int']['input']>
     modes?: InputMaybe<Modes>
-    numTripPatterns?: InputMaybe<Scalars['Int']>
-    pageCursor?: InputMaybe<Scalars['String']>
+    numTripPatterns?: InputMaybe<Scalars['Int']['input']>
+    pageCursor?: InputMaybe<Scalars['String']['input']>
     passThroughPoints?: InputMaybe<Array<PassThroughPoint>>
-    relaxTransitSearchGeneralizedCostAtDestination?: InputMaybe<
-        Scalars['Float']
-    >
-    searchWindow?: InputMaybe<Scalars['Int']>
-    timetableView?: InputMaybe<Scalars['Boolean']>
+    relaxTransitPriorityGroup?: InputMaybe<RelaxCostInput>
+    searchWindow?: InputMaybe<Scalars['Int']['input']>
+    timetableView?: InputMaybe<Scalars['Boolean']['input']>
     to: Location
-    transferPenalty?: InputMaybe<Scalars['Int']>
-    transferSlack?: InputMaybe<Scalars['Int']>
+    transferPenalty?: InputMaybe<Scalars['Int']['input']>
+    transferSlack?: InputMaybe<Scalars['Int']['input']>
     triangleFactors?: InputMaybe<TriangleFactors>
-    useBikeRentalAvailabilityInformation?: InputMaybe<Scalars['Boolean']>
-    waitReluctance?: InputMaybe<Scalars['Float']>
-    walkReluctance?: InputMaybe<Scalars['Float']>
-    walkSpeed?: InputMaybe<Scalars['Float']>
-    wheelchairAccessible?: InputMaybe<Scalars['Boolean']>
+    useBikeRentalAvailabilityInformation?: InputMaybe<
+        Scalars['Boolean']['input']
+    >
+    waitReluctance?: InputMaybe<Scalars['Float']['input']>
+    walkReluctance?: InputMaybe<Scalars['Float']['input']>
+    walkSpeed?: InputMaybe<Scalars['Float']['input']>
+    wheelchairAccessible?: InputMaybe<Scalars['Boolean']['input']>
     whiteListed?: InputMaybe<InputWhiteListed>
 }
 
 export type QueryTypeViaTripArgs = {
-    dateTime?: InputMaybe<Scalars['DateTime']>
+    dateTime?: InputMaybe<Scalars['DateTime']['input']>
     from: Location
     locale?: InputMaybe<Locale>
-    numTripPatterns?: InputMaybe<Scalars['Int']>
-    pageCursor?: InputMaybe<Scalars['String']>
-    searchWindow: Scalars['Duration']
+    numTripPatterns?: InputMaybe<Scalars['Int']['input']>
+    pageCursor?: InputMaybe<Scalars['String']['input']>
+    searchWindow: Scalars['Duration']['input']
     segments?: InputMaybe<Array<ViaSegmentInput>>
     to: Location
     via: Array<ViaLocationInput>
-    wheelchairAccessible?: InputMaybe<Scalars['Boolean']>
+    wheelchairAccessible?: InputMaybe<Scalars['Boolean']['input']>
 }
 
 export enum RealtimeState {
@@ -1306,23 +1326,40 @@ export enum RelativeDirection {
     UturnRight = 'uturnRight',
 }
 
+/**
+ * A relax-cost is used to increase the limit when comparing one cost to another cost.
+ * This is used to include more results into the result. A `ratio=2.0` means a path(itinerary)
+ * with twice as high cost as another one, is accepted. A `constant=$300` means a "fixed"
+ * constant is added to the limit. A `{ratio=1.0, constant=0}` is said to be the NORMAL relaxed
+ * cost - the limit is the same as the cost used to calculate the limit. The NORMAL is usually
+ * the default. We can express the RelaxCost as a function `f(x) = constant + ratio * x`.
+ * `f(x)=x` is the NORMAL function.
+ *
+ */
+export type RelaxCostInput = {
+    /** The constant value to add to the limit. Must be a positive number. The unit is cost-seconds. */
+    constant: InputMaybe<Array<Scalars['ID']['input']>>
+    /** The factor to multiply with the 'other cost'. Minimum value is 1.0. */
+    ratio: InputMaybe<Scalars['Float']['input']>
+}
+
 export type RentalVehicle = PlaceInterface & {
     __typename?: 'RentalVehicle'
-    currentRangeMeters: Maybe<Scalars['Float']>
-    id: Scalars['ID']
-    latitude: Scalars['Float']
-    longitude: Scalars['Float']
-    network: Scalars['String']
+    currentRangeMeters: Maybe<Scalars['Float']['output']>
+    id: Scalars['ID']['output']
+    latitude: Scalars['Float']['output']
+    longitude: Scalars['Float']['output']
+    network: Scalars['String']['output']
     vehicleType: RentalVehicleType
 }
 
 export type RentalVehicleType = {
     __typename?: 'RentalVehicleType'
-    formFactor: Scalars['String']
-    maxRangeMeters: Maybe<Scalars['Float']>
-    name: Maybe<Scalars['String']>
-    propulsionType: Scalars['String']
-    vehicleTypeId: Scalars['String']
+    formFactor: Scalars['String']['output']
+    maxRangeMeters: Maybe<Scalars['Float']['output']>
+    name: Maybe<Scalars['String']['output']>
+    propulsionType: Scalars['String']['output']
+    vehicleTypeId: Scalars['String']['output']
 }
 
 export enum ReportType {
@@ -1338,7 +1375,7 @@ export type RoutingError = {
     /** An enum describing the reason */
     code: RoutingErrorCode
     /** A textual description of why the search failed. The clients are expected to have their own translations based on the code, for user visible error messages. */
-    description: Scalars['String']
+    description: Scalars['String']['output']
     /** An enum describing the field which should be changed, in order for the search to succeed */
     inputField: Maybe<InputField>
 }
@@ -1364,129 +1401,129 @@ export enum RoutingErrorCode {
 export type RoutingParameters = {
     __typename?: 'RoutingParameters'
     /** The alightSlack is the minimum extra time after exiting a public transport vehicle. This is the default value used, if not overridden by the 'alightSlackList'. */
-    alightSlackDefault: Maybe<Scalars['Int']>
+    alightSlackDefault: Maybe<Scalars['Int']['output']>
     /** List of alightSlack for a given set of modes. */
     alightSlackList: Maybe<Array<Maybe<TransportModeSlackType>>>
     /** @deprecated Rental is specified by modes */
-    allowBikeRental: Maybe<Scalars['Boolean']>
+    allowBikeRental: Maybe<Scalars['Boolean']['output']>
     /** Separate cost for boarding a vehicle with a bicycle, which is more difficult than on foot. */
-    bikeBoardCost: Maybe<Scalars['Int']>
+    bikeBoardCost: Maybe<Scalars['Int']['output']>
     /** Cost to park a bike. */
-    bikeParkCost: Maybe<Scalars['Int']>
+    bikeParkCost: Maybe<Scalars['Int']['output']>
     /** Time to park a bike. */
-    bikeParkTime: Maybe<Scalars['Int']>
+    bikeParkTime: Maybe<Scalars['Int']['output']>
     /** Cost to drop-off a rented bike. */
-    bikeRentalDropOffCost: Maybe<Scalars['Int']>
+    bikeRentalDropOffCost: Maybe<Scalars['Int']['output']>
     /** Time to drop-off a rented bike. */
-    bikeRentalDropOffTime: Maybe<Scalars['Int']>
+    bikeRentalDropOffTime: Maybe<Scalars['Int']['output']>
     /** Cost to rent a bike. */
-    bikeRentalPickupCost: Maybe<Scalars['Int']>
+    bikeRentalPickupCost: Maybe<Scalars['Int']['output']>
     /** Time to rent a bike. */
-    bikeRentalPickupTime: Maybe<Scalars['Int']>
+    bikeRentalPickupTime: Maybe<Scalars['Int']['output']>
     /** Max bike speed along streets, in meters per second */
-    bikeSpeed: Maybe<Scalars['Float']>
+    bikeSpeed: Maybe<Scalars['Float']['output']>
     /** The boardSlack is the minimum extra time to board a public transport vehicle. This is the same as the 'minimumTransferTime', except that this also apply to to the first transit leg in the trip. This is the default value used, if not overridden by the 'boardSlackList'. */
-    boardSlackDefault: Maybe<Scalars['Int']>
+    boardSlackDefault: Maybe<Scalars['Int']['output']>
     /** List of boardSlack for a given set of modes. */
     boardSlackList: Maybe<Array<Maybe<TransportModeSlackType>>>
     /** The acceleration speed of an automobile, in meters per second per second. */
-    carAccelerationSpeed: Maybe<Scalars['Float']>
+    carAccelerationSpeed: Maybe<Scalars['Float']['output']>
     /** The deceleration speed of an automobile, in meters per second per second. */
-    carDecelerationSpeed: Maybe<Scalars['Float']>
+    carDecelerationSpeed: Maybe<Scalars['Float']['output']>
     /** Time to park a car in a park and ride, w/o taking into account driving and walking cost. */
-    carDropOffTime: Maybe<Scalars['Int']>
+    carDropOffTime: Maybe<Scalars['Int']['output']>
     /** Max car speed along streets, in meters per second */
-    carSpeed: Maybe<Scalars['Float']>
+    carSpeed: Maybe<Scalars['Float']['output']>
     /** @deprecated NOT IN USE IN OTP2. */
-    compactLegsByReversedSearch: Maybe<Scalars['Boolean']>
+    compactLegsByReversedSearch: Maybe<Scalars['Boolean']['output']>
     /** @deprecated Use `itineraryFilter.debug` instead. */
-    debugItineraryFilter: Maybe<Scalars['Boolean']>
+    debugItineraryFilter: Maybe<Scalars['Boolean']['output']>
     /**
      * Option to disable the default filtering of GTFS-RT alerts by time.
      * @deprecated This is not supported!
      */
-    disableAlertFiltering: Maybe<Scalars['Boolean']>
+    disableAlertFiltering: Maybe<Scalars['Boolean']['output']>
     /** If true, the remaining weight heuristic is disabled. */
-    disableRemainingWeightHeuristic: Maybe<Scalars['Boolean']>
+    disableRemainingWeightHeuristic: Maybe<Scalars['Boolean']['output']>
     /** What is the cost of boarding a elevator? */
-    elevatorBoardCost: Maybe<Scalars['Int']>
+    elevatorBoardCost: Maybe<Scalars['Int']['output']>
     /** How long does it take to get on an elevator, on average. */
-    elevatorBoardTime: Maybe<Scalars['Int']>
+    elevatorBoardTime: Maybe<Scalars['Int']['output']>
     /** What is the cost of travelling one floor on an elevator? */
-    elevatorHopCost: Maybe<Scalars['Int']>
+    elevatorHopCost: Maybe<Scalars['Int']['output']>
     /** How long does it take to advance one floor on an elevator? */
-    elevatorHopTime: Maybe<Scalars['Int']>
+    elevatorHopTime: Maybe<Scalars['Int']['output']>
     /** Whether to apply the ellipsoid->geoid offset to all elevations in the response. */
-    geoIdElevation: Maybe<Scalars['Boolean']>
-    /** When true, realtime updates are ignored during this search. */
-    ignoreRealTimeUpdates: Maybe<Scalars['Boolean']>
+    geoIdElevation: Maybe<Scalars['Boolean']['output']>
+    /** When true, real-time updates are ignored during this search. */
+    ignoreRealTimeUpdates: Maybe<Scalars['Boolean']['output']>
     /** When true, service journeys cancelled in scheduled route data will be included during this search. */
-    includedPlannedCancellations: Maybe<Scalars['Boolean']>
+    includedPlannedCancellations: Maybe<Scalars['Boolean']['output']>
     /** @deprecated Parking is specified by modes */
-    kissAndRide: Maybe<Scalars['Boolean']>
+    kissAndRide: Maybe<Scalars['Boolean']['output']>
     /** Maximum number of transfers allowed in addition to the result with least number of transfers */
-    maxAdditionalTransfers: Maybe<Scalars['Int']>
+    maxAdditionalTransfers: Maybe<Scalars['Int']['output']>
     /** This is the maximum duration in seconds for a direct street search. This is a performance limit and should therefore be set high. Use filters to limit what is presented to the client. */
-    maxDirectStreetDuration: Maybe<Scalars['Int']>
+    maxDirectStreetDuration: Maybe<Scalars['Int']['output']>
     /** The maximum slope of streets for wheelchair trips. */
-    maxSlope: Maybe<Scalars['Float']>
+    maxSlope: Maybe<Scalars['Float']['output']>
     /** Maximum number of transfers returned in a trip plan. */
-    maxTransfers: Maybe<Scalars['Int']>
+    maxTransfers: Maybe<Scalars['Int']['output']>
     /** The maximum number of itineraries to return. */
-    numItineraries: Maybe<Scalars['Int']>
+    numItineraries: Maybe<Scalars['Int']['output']>
     /**
      * Accept only paths that use transit (no street-only paths).
      * @deprecated This is replaced by modes input object
      */
-    onlyTransitTrips: Maybe<Scalars['Boolean']>
+    onlyTransitTrips: Maybe<Scalars['Boolean']['output']>
     /** Penalty added for using every route that is not preferred if user set any route as preferred. We return number of seconds that we are willing to wait for preferred route. */
-    otherThanPreferredRoutesPenalty: Maybe<Scalars['Int']>
+    otherThanPreferredRoutesPenalty: Maybe<Scalars['Int']['output']>
     /** @deprecated Parking is specified by modes */
-    parkAndRide: Maybe<Scalars['Boolean']>
+    parkAndRide: Maybe<Scalars['Boolean']['output']>
     /** @deprecated NOT IN USE IN OTP2. */
-    reverseOptimizeOnTheFly: Maybe<Scalars['Boolean']>
+    reverseOptimizeOnTheFly: Maybe<Scalars['Boolean']['output']>
     /**
      * Whether the planner should return intermediate stops lists for transit legs.
      * @deprecated This parameter is always enabled
      */
-    showIntermediateStops: Maybe<Scalars['Boolean']>
+    showIntermediateStops: Maybe<Scalars['Boolean']['output']>
     /** Used instead of walkReluctance for stairs. */
-    stairsReluctance: Maybe<Scalars['Float']>
+    stairsReluctance: Maybe<Scalars['Float']['output']>
     /** An extra penalty added on transfers (i.e. all boardings except the first one). */
-    transferPenalty: Maybe<Scalars['Int']>
+    transferPenalty: Maybe<Scalars['Int']['output']>
     /** A global minimum transfer time (in seconds) that specifies the minimum amount of time that must pass between exiting one transit vehicle and boarding another. */
-    transferSlack: Maybe<Scalars['Int']>
+    transferSlack: Maybe<Scalars['Int']['output']>
     /** Multiplicative factor on expected turning time. */
-    turnReluctance: Maybe<Scalars['Float']>
+    turnReluctance: Maybe<Scalars['Float']['output']>
     /** How much worse is waiting for a transit vehicle than being on a transit vehicle, as a multiplier. */
-    waitReluctance: Maybe<Scalars['Float']>
+    waitReluctance: Maybe<Scalars['Float']['output']>
     /** This prevents unnecessary transfers by adding a cost for boarding a vehicle. */
-    walkBoardCost: Maybe<Scalars['Int']>
+    walkBoardCost: Maybe<Scalars['Int']['output']>
     /** A multiplier for how bad walking is, compared to being in transit for equal lengths of time. */
-    walkReluctance: Maybe<Scalars['Float']>
+    walkReluctance: Maybe<Scalars['Float']['output']>
     /** Max walk speed along streets, in meters per second */
-    walkSpeed: Maybe<Scalars['Float']>
+    walkSpeed: Maybe<Scalars['Float']['output']>
     /** Whether the trip must be wheelchair accessible. */
-    wheelChairAccessible: Maybe<Scalars['Boolean']>
+    wheelChairAccessible: Maybe<Scalars['Boolean']['output']>
 }
 
 export type ServerInfo = {
     __typename?: 'ServerInfo'
     /** The 'configVersion' of the build-config.json file. */
-    buildConfigVersion: Maybe<Scalars['String']>
+    buildConfigVersion: Maybe<Scalars['String']['output']>
     /** OTP Build timestamp */
-    buildTime: Maybe<Scalars['String']>
-    gitBranch: Maybe<Scalars['String']>
-    gitCommit: Maybe<Scalars['String']>
-    gitCommitTime: Maybe<Scalars['String']>
+    buildTime: Maybe<Scalars['String']['output']>
+    gitBranch: Maybe<Scalars['String']['output']>
+    gitCommit: Maybe<Scalars['String']['output']>
+    gitCommitTime: Maybe<Scalars['String']['output']>
     /** The 'configVersion' of the otp-config.json file. */
-    otpConfigVersion: Maybe<Scalars['String']>
+    otpConfigVersion: Maybe<Scalars['String']['output']>
     /** The otp-serialization-version-id used to check graphs for compatibility with current version of OTP. */
-    otpSerializationVersionId: Maybe<Scalars['String']>
+    otpSerializationVersionId: Maybe<Scalars['String']['output']>
     /** The 'configVersion' of the router-config.json file. */
-    routerConfigVersion: Maybe<Scalars['String']>
+    routerConfigVersion: Maybe<Scalars['String']['output']>
     /** Maven version */
-    version: Maybe<Scalars['String']>
+    version: Maybe<Scalars['String']['output']>
 }
 
 export enum ServiceAlteration {
@@ -1499,7 +1536,7 @@ export enum ServiceAlteration {
 /** A planned vehicle journey with passengers. */
 export type ServiceJourney = {
     __typename?: 'ServiceJourney'
-    activeDates: Array<Maybe<Scalars['Date']>>
+    activeDates: Array<Maybe<Scalars['Date']['output']>>
     /** Whether bikes are allowed on service journey. */
     bikesAllowed: Maybe<BikesAllowed>
     /**
@@ -1508,22 +1545,22 @@ export type ServiceJourney = {
      */
     bookingArrangements: Maybe<BookingArrangement>
     directionType: Maybe<DirectionType>
-    /** Returns scheduled passingTimes for this ServiceJourney for a given date, updated with realtime-updates (if available). NB! This takes a date as argument (default=today) and returns estimatedCalls for that date and should only be used if the date is known when creating the request. For fetching estimatedCalls for a given trip.leg, use leg.serviceJourneyEstimatedCalls instead. */
+    /** Returns scheduled passingTimes for this ServiceJourney for a given date, updated with real-time-updates (if available). NB! This takes a date as argument (default=today) and returns estimatedCalls for that date and should only be used if the date is known when creating the request. For fetching estimatedCalls for a given trip.leg, use leg.serviceJourneyEstimatedCalls instead. */
     estimatedCalls: Maybe<Array<Maybe<EstimatedCall>>>
-    id: Scalars['ID']
+    id: Scalars['ID']['output']
     /** JourneyPattern for the service journey, according to scheduled data. If the ServiceJourney is not included in the scheduled data, null is returned. */
     journeyPattern: Maybe<JourneyPattern>
     line: Line
     notices: Array<Notice>
     operator: Maybe<Operator>
-    /** Returns scheduled passing times only - without realtime-updates, for realtime-data use 'estimatedCalls' */
+    /** Returns scheduled passing times only - without real-time-updates, for realtime-data use 'estimatedCalls' */
     passingTimes: Array<Maybe<TimetabledPassingTime>>
     /** Detailed path travelled by service journey. Not available for flexible trips. */
     pointsOnLink: Maybe<PointsOnLink>
     /** For internal use by operators. */
-    privateCode: Maybe<Scalars['String']>
+    privateCode: Maybe<Scalars['String']['output']>
     /** Publicly announced code for service journey, differentiating it from other service journeys for the same line. */
-    publicCode: Maybe<Scalars['String']>
+    publicCode: Maybe<Scalars['String']['output']>
     /** Quays visited by service journey, according to scheduled data. If the ServiceJourney is not included in the scheduled data, an empty list is returned. */
     quays: Array<Quay>
     /** @deprecated The service journey alteration will be moved out of SJ and grouped together with the SJ and date. In Netex this new type is called DatedServiceJourney. We will create artificial DSJs for the old SJs. */
@@ -1538,13 +1575,13 @@ export type ServiceJourney = {
 
 /** A planned vehicle journey with passengers. */
 export type ServiceJourneyEstimatedCallsArgs = {
-    date?: InputMaybe<Scalars['Date']>
+    date?: InputMaybe<Scalars['Date']['input']>
 }
 
 /** A planned vehicle journey with passengers. */
 export type ServiceJourneyQuaysArgs = {
-    first?: InputMaybe<Scalars['Int']>
-    last?: InputMaybe<Scalars['Int']>
+    first?: InputMaybe<Scalars['Int']['input']>
+    last?: InputMaybe<Scalars['Int']['input']>
 }
 
 export enum Severity {
@@ -1582,13 +1619,13 @@ export enum StopCondition {
 /** Named place where public transport may be accessed. May be a building complex (e.g. a station) or an on-street location. */
 export type StopPlace = PlaceInterface & {
     __typename?: 'StopPlace'
-    description: Maybe<Scalars['String']>
+    description: Maybe<Scalars['String']['output']>
     /** List of visits to this stop place as part of vehicle journeys. */
     estimatedCalls: Array<EstimatedCall>
-    id: Scalars['ID']
-    latitude: Maybe<Scalars['Float']>
-    longitude: Maybe<Scalars['Float']>
-    name: Scalars['String']
+    id: Scalars['ID']['output']
+    latitude: Maybe<Scalars['Float']['output']>
+    longitude: Maybe<Scalars['Float']['output']>
+    name: Scalars['String']['output']
     /** Returns parent stop for this stop */
     parent: Maybe<StopPlace>
     /** Returns all quays that are children of this stop place */
@@ -1596,7 +1633,7 @@ export type StopPlace = PlaceInterface & {
     /** Get all situations active for the stop place. Situations affecting individual quays are not returned, and should be fetched directly from the quay. */
     situations: Array<PtSituationElement>
     tariffZones: Array<Maybe<TariffZone>>
-    timeZone: Maybe<Scalars['String']>
+    timeZone: Maybe<Scalars['String']['output']>
     /** The transport modes of quays under this stop place. */
     transportMode: Maybe<Array<Maybe<TransportMode>>>
     /** The transport submode serviced by this stop place. */
@@ -1608,23 +1645,25 @@ export type StopPlace = PlaceInterface & {
 /** Named place where public transport may be accessed. May be a building complex (e.g. a station) or an on-street location. */
 export type StopPlaceEstimatedCallsArgs = {
     arrivalDeparture?: InputMaybe<ArrivalDeparture>
-    includeCancelledTrips?: InputMaybe<Scalars['Boolean']>
-    numberOfDepartures?: InputMaybe<Scalars['Int']>
-    numberOfDeparturesPerLineAndDestinationDisplay?: InputMaybe<Scalars['Int']>
-    startTime?: InputMaybe<Scalars['DateTime']>
-    timeRange?: InputMaybe<Scalars['Int']>
+    includeCancelledTrips?: InputMaybe<Scalars['Boolean']['input']>
+    numberOfDepartures?: InputMaybe<Scalars['Int']['input']>
+    numberOfDeparturesPerLineAndDestinationDisplay?: InputMaybe<
+        Scalars['Int']['input']
+    >
+    startTime?: InputMaybe<Scalars['DateTime']['input']>
+    timeRange?: InputMaybe<Scalars['Int']['input']>
     whiteListed?: InputMaybe<InputWhiteListed>
     whiteListedModes?: InputMaybe<Array<InputMaybe<TransportMode>>>
 }
 
 /** Named place where public transport may be accessed. May be a building complex (e.g. a station) or an on-street location. */
 export type StopPlaceNameArgs = {
-    language?: InputMaybe<Scalars['String']>
+    language?: InputMaybe<Scalars['String']['input']>
 }
 
 /** Named place where public transport may be accessed. May be a building complex (e.g. a station) or an on-street location. */
 export type StopPlaceQuaysArgs = {
-    filterByInUse?: InputMaybe<Scalars['Boolean']>
+    filterByInUse?: InputMaybe<Scalars['Boolean']['input']>
 }
 
 /** List of coordinates between two stops as a polyline */
@@ -1661,7 +1700,7 @@ export enum StreetMode {
 
 /** A combination of street mode and corresponding duration */
 export type StreetModeDurationInput = {
-    duration: Scalars['Duration']
+    duration: Scalars['Duration']['input']
     streetMode: StreetMode
 }
 
@@ -1688,22 +1727,22 @@ export type StreetModes = {
  */
 export type SystemNotice = {
     __typename?: 'SystemNotice'
-    tag: Maybe<Scalars['String']>
-    text: Maybe<Scalars['String']>
+    tag: Maybe<Scalars['String']['output']>
+    text: Maybe<Scalars['String']['output']>
 }
 
 export type TariffZone = {
     __typename?: 'TariffZone'
-    id: Scalars['ID']
-    name: Maybe<Scalars['String']>
+    id: Scalars['ID']['output']
+    name: Maybe<Scalars['String']['output']>
 }
 
 export type TimeAndDayOffset = {
     __typename?: 'TimeAndDayOffset'
     /** Number of days offset from base line time */
-    dayOffset: Maybe<Scalars['Int']>
+    dayOffset: Maybe<Scalars['Int']['output']>
     /** Local time */
-    time: Maybe<Scalars['Time']>
+    time: Maybe<Scalars['Time']['output']>
 }
 
 /** Scheduled passing times. These are not affected by real time updates. */
@@ -1719,23 +1758,23 @@ export type TimetabledPassingTime = {
     /** Earliest possible departure time for a service journey with a service window. */
     earliestDepartureTime: Maybe<TimeAndDayOffset>
     /** Whether vehicle may be alighted at quay. */
-    forAlighting: Scalars['Boolean']
+    forAlighting: Scalars['Boolean']['output']
     /** Whether vehicle may be boarded at quay. */
-    forBoarding: Scalars['Boolean']
+    forBoarding: Scalars['Boolean']['output']
     /** Latest possible (planned) arrival time for a service journey with a service window. */
     latestArrivalTime: Maybe<TimeAndDayOffset>
     notices: Array<Notice>
     quay: Quay
     /** Whether vehicle will only stop on request. */
-    requestStop: Scalars['Boolean']
+    requestStop: Scalars['Boolean']['output']
     serviceJourney: ServiceJourney
     /** Whether this is a timing point or not. Boarding and alighting is not allowed at timing points. */
-    timingPoint: Scalars['Boolean']
+    timingPoint: Scalars['Boolean']['output']
 }
 
 export type TransitGeneralizedCostFilterParams = {
-    costLimitFunction: Scalars['DoubleFunction']
-    intervalRelaxFactor: Scalars['Float']
+    costLimitFunction: Scalars['DoubleFunction']['input']
+    intervalRelaxFactor: Scalars['Float']['input']
 }
 
 export enum TransportMode {
@@ -1760,14 +1799,14 @@ export type TransportModeSlack = {
     /** List of modes for which the given slack apply. */
     modes: Array<TransportMode>
     /** The slack used for all given modes. */
-    slack: Scalars['Int']
+    slack: Scalars['Int']['input']
 }
 
 /** Used to specify board and alight slack for a given modes. */
 export type TransportModeSlackType = {
     __typename?: 'TransportModeSlackType'
     modes: Array<TransportMode>
-    slack: Scalars['Int']
+    slack: Scalars['Int']['output']
 }
 
 export type TransportModes = {
@@ -1895,18 +1934,18 @@ export enum TransportSubmode {
 /** How much the factors safety, slope and distance are weighted relative to each other when routing bicycle legs. In total all three values need to add up to 1. */
 export type TriangleFactors = {
     /** How important is bicycle safety expressed as a fraction of 1. */
-    safety: Scalars['Float']
+    safety: Scalars['Float']['input']
     /** How important is slope/elevation expressed as a fraction of 1. */
-    slope: Scalars['Float']
+    slope: Scalars['Float']['input']
     /** How important is time expressed as a fraction of 1. Note that what this really optimises for is distance (even if that means going over terrible surfaces, so I might be slower than the safe route). */
-    time: Scalars['Float']
+    time: Scalars['Float']['input']
 }
 
 /** Description of a travel between two places. */
 export type Trip = {
     __typename?: 'Trip'
     /** The time and date of travel */
-    dateTime: Maybe<Scalars['DateTime']>
+    dateTime: Maybe<Scalars['DateTime']['output']>
     /** Information about the timings for the trip generation */
     debugOutput: DebugOutput
     /** The origin */
@@ -1915,24 +1954,24 @@ export type Trip = {
      * A list of possible error messages as enum
      * @deprecated Use routingErrors instead
      */
-    messageEnums: Array<Maybe<Scalars['String']>>
+    messageEnums: Array<Maybe<Scalars['String']['output']>>
     /**
      * A list of possible error messages in cleartext
      * @deprecated Use routingErrors instead
      */
-    messageStrings: Array<Maybe<Scalars['String']>>
+    messageStrings: Array<Maybe<Scalars['String']['output']>>
     /** The trip request metadata. */
     metadata: Maybe<TripSearchData>
     /**
      * Use the cursor to get the next page of results. Use this cursor for the pageCursor parameter in the trip query in order to get the next page.
      * The next page is a set of itineraries departing AFTER the last itinerary in this result.
      */
-    nextPageCursor: Maybe<Scalars['String']>
+    nextPageCursor: Maybe<Scalars['String']['output']>
     /**
      * Use the cursor to get the previous page of results. Use this cursor for the pageCursor parameter in the trip query in order to get the previous page.
      * The previous page is a set of itineraries departing BEFORE the first itinerary in this result.
      */
-    previousPageCursor: Maybe<Scalars['String']>
+    previousPageCursor: Maybe<Scalars['String']['output']>
     /** A list of routing errors, and fields which caused them */
     routingErrors: Array<RoutingError>
     /** The destination */
@@ -1943,7 +1982,7 @@ export type Trip = {
 
 /** Description of a travel between two places. */
 export type TripMessageStringsArgs = {
-    language?: InputMaybe<Scalars['String']>
+    language?: InputMaybe<Scalars['String']['input']>
 }
 
 /** A collection of selectors for what lines/trips should be included in / excluded from search */
@@ -1957,13 +1996,13 @@ export type TripFilterInput = {
 /** A list of selectors for filter allow-list / exclude-list. An empty list means that everything is allowed. A trip/line will match with selectors if it matches with all non-empty lists. The `select` is always applied first, then `not`. If only `not` not is present, the exclude is applied to the existing set of lines.  */
 export type TripFilterSelectInput = {
     /** Set of ids for authorities that should be included in/excluded from search */
-    authorities: InputMaybe<Array<Scalars['ID']>>
+    authorities: InputMaybe<Array<Scalars['ID']['input']>>
     /** Set of ids for group of lines that should be included in/excluded from the search */
-    groupOfLines: InputMaybe<Array<Scalars['ID']>>
+    groupOfLines: InputMaybe<Array<Scalars['ID']['input']>>
     /** Set of ids for lines that should be included in/excluded from search */
-    lines: InputMaybe<Array<Scalars['ID']>>
+    lines: InputMaybe<Array<Scalars['ID']['input']>>
     /** Set of ids for service journeys that should be included in/excluded from search */
-    serviceJourneys: InputMaybe<Array<Scalars['ID']>>
+    serviceJourneys: InputMaybe<Array<Scalars['ID']['input']>>
     /** The allowed modes for the transit part of the trip. Use an empty list to disallow transit for this search. If the element is not present or null, it will default to all transport modes. */
     transportModes: InputMaybe<Array<TransportModes>>
 }
@@ -1972,47 +2011,47 @@ export type TripFilterSelectInput = {
 export type TripPattern = {
     __typename?: 'TripPattern'
     /** The aimed date and time the trip ends. */
-    aimedEndTime: Scalars['DateTime']
+    aimedEndTime: Scalars['DateTime']['output']
     /** The aimed date and time the trip starts. */
-    aimedStartTime: Scalars['DateTime']
+    aimedStartTime: Scalars['DateTime']['output']
     /** NOT IMPLEMENTED. */
-    directDuration: Maybe<Scalars['Long']>
+    directDuration: Maybe<Scalars['Long']['output']>
     /** Total distance for the trip, in meters. NOT IMPLEMENTED */
-    distance: Maybe<Scalars['Float']>
+    distance: Maybe<Scalars['Float']['output']>
     /** Duration of the trip, in seconds. */
-    duration: Maybe<Scalars['Long']>
+    duration: Maybe<Scalars['Long']['output']>
     /**
      * Time that the trip arrives.
      * @deprecated Replaced with expectedEndTime
      */
-    endTime: Maybe<Scalars['DateTime']>
-    /** The expected, realtime adjusted date and time the trip ends. */
-    expectedEndTime: Scalars['DateTime']
-    /** The expected, realtime adjusted date and time the trip starts. */
-    expectedStartTime: Scalars['DateTime']
+    endTime: Maybe<Scalars['DateTime']['output']>
+    /** The expected, real-time adjusted date and time the trip ends. */
+    expectedEndTime: Scalars['DateTime']['output']
+    /** The expected, real-time adjusted date and time the trip starts. */
+    expectedStartTime: Scalars['DateTime']['output']
     /** Generalized cost or weight of the itinerary. Used for debugging. */
-    generalizedCost: Maybe<Scalars['Int']>
+    generalizedCost: Maybe<Scalars['Int']['output']>
     /** A list of legs. Each leg is either a walking (cycling, car) portion of the trip, or a ride leg on a particular vehicle. So a trip where the use walks to the Q train, transfers to the 6, then walks to their destination, has four legs. */
     legs: Array<Leg>
     /**
      * Time that the trip departs.
      * @deprecated Replaced with expectedStartTime
      */
-    startTime: Maybe<Scalars['DateTime']>
+    startTime: Maybe<Scalars['DateTime']['output']>
     /** How far the user has to walk, bike and/or drive in meters. It includes all street(none transit) modes. */
-    streetDistance: Maybe<Scalars['Float']>
+    streetDistance: Maybe<Scalars['Float']['output']>
     /** Get all system notices. */
     systemNotices: Array<SystemNotice>
     /** A cost calculated to favor transfer with higher priority. This field is meant for debugging only. */
-    transferPriorityCost: Maybe<Scalars['Int']>
+    transferPriorityCost: Maybe<Scalars['Int']['output']>
     /** A cost calculated to distribute wait-time and avoid very short transfers. This field is meant for debugging only. */
-    waitTimeOptimizedCost: Maybe<Scalars['Int']>
+    waitTimeOptimizedCost: Maybe<Scalars['Int']['output']>
     /** How much time is spent waiting for transit to arrive, in seconds. */
-    waitingTime: Maybe<Scalars['Long']>
+    waitingTime: Maybe<Scalars['Long']['output']>
     /** @deprecated Replaced by `streetDistance`. */
-    walkDistance: Maybe<Scalars['Float']>
+    walkDistance: Maybe<Scalars['Float']['output']>
     /** How much time is spent walking, in seconds. */
-    walkTime: Maybe<Scalars['Long']>
+    walkTime: Maybe<Scalars['Long']['output']>
 }
 
 /** Trips search metadata. */
@@ -2022,22 +2061,22 @@ export type TripSearchData = {
      * This is the suggested search time for the "next page" or time window. Insert it together with the 'searchWindowUsed' in the request to get a new set of trips following in the time-window AFTER the current search.
      * @deprecated Use pageCursor instead
      */
-    nextDateTime: Maybe<Scalars['DateTime']>
+    nextDateTime: Maybe<Scalars['DateTime']['output']>
     /**
      * This is the suggested search time for the "previous page" or time-window. Insert it together with the 'searchWindowUsed' in the request to get a new set of trips preceding in the time-window BEFORE the current search.
      * @deprecated Use pageCursor instead
      */
-    prevDateTime: Maybe<Scalars['DateTime']>
+    prevDateTime: Maybe<Scalars['DateTime']['output']>
     /** This is the time window used by the raptor search. The input searchWindow is an optional parameter and is dynamically assigned if not set. OTP might override the value if it is too small or too large. When paging OTP adjusts it to the appropriate size, depending on the number of itineraries found in the current search window. The scaling of the search window ensures faster paging and limits resource usage. The unit is seconds. */
-    searchWindowUsed: Scalars['Int']
+    searchWindowUsed: Scalars['Int']['output']
 }
 
 export type ValidityPeriod = {
     __typename?: 'ValidityPeriod'
     /** End of validity period. Will return 'null' if validity is open-ended. */
-    endTime: Maybe<Scalars['DateTime']>
+    endTime: Maybe<Scalars['DateTime']['output']>
     /** Start of validity period */
-    startTime: Maybe<Scalars['DateTime']>
+    startTime: Maybe<Scalars['DateTime']['output']>
 }
 
 export enum VertexType {
@@ -2051,9 +2090,9 @@ export enum VertexType {
 export type ViaConnection = {
     __typename?: 'ViaConnection'
     /** The index of the trip pattern in the segment before the via point */
-    from: Maybe<Scalars['Int']>
+    from: Maybe<Scalars['Int']['output']>
     /** The index of the trip pattern in the segment after the via point */
-    to: Maybe<Scalars['Int']>
+    to: Maybe<Scalars['Int']['output']>
 }
 
 /** Input format for specifying a location through either a place reference (id), coordinates or both. If both place and coordinates are provided the place ref will be used if found, coordinates will only be used if place is not known. The location also contain information about the minimum and maximum time the user is willing to stay at the via location. */
@@ -2061,13 +2100,13 @@ export type ViaLocationInput = {
     /** Coordinates for the location. This can be used alone or as fallback if the place id is not found. */
     coordinates: InputMaybe<InputCoordinates>
     /** The maximum time the user wants to stay in the via location before continuing his journey */
-    maxSlack: InputMaybe<Scalars['Duration']>
+    maxSlack: InputMaybe<Scalars['Duration']['input']>
     /** The minimum time the user wants to stay in the via location before continuing his journey */
-    minSlack: InputMaybe<Scalars['Duration']>
+    minSlack: InputMaybe<Scalars['Duration']['input']>
     /** The name of the location. This is pass-through information and is not used in routing. */
-    name: InputMaybe<Scalars['String']>
+    name: InputMaybe<Scalars['String']['input']>
     /** The id of an element in the OTP model. Currently supports Quay, StopPlace, multimodal StopPlace, and GroupOfStopPlaces. */
-    place: InputMaybe<Scalars['String']>
+    place: InputMaybe<Scalars['String']['input']>
 }
 
 export type ViaSegmentInput = {
@@ -2106,15 +2145,15 @@ export enum WheelchairBoarding {
 
 export type DebugOutput = {
     __typename?: 'debugOutput'
-    totalTime: Maybe<Scalars['Long']>
+    totalTime: Maybe<Scalars['Long']['output']>
 }
 
 export type InfoLink = {
     __typename?: 'infoLink'
     /** Label */
-    label: Maybe<Scalars['String']>
+    label: Maybe<Scalars['String']['output']>
     /** URI */
-    uri: Scalars['String']
+    uri: Scalars['String']['output']
 }
 
 /** A connection to a list of items. */
@@ -2130,7 +2169,7 @@ export type PlaceAtDistanceConnection = {
 export type PlaceAtDistanceEdge = {
     __typename?: 'placeAtDistanceEdge'
     /** cursor marks a unique position or index into the connection */
-    cursor: Scalars['String']
+    cursor: Scalars['String']['output']
     /** The item at the end of the edge */
     node: Maybe<PlaceAtDistance>
 }
@@ -2148,7 +2187,7 @@ export type QuayAtDistanceConnection = {
 export type QuayAtDistanceEdge = {
     __typename?: 'quayAtDistanceEdge'
     /** cursor marks a unique position or index into the connection */
-    cursor: Scalars['String']
+    cursor: Scalars['String']['output']
     /** The item at the end of the edge */
     node: Maybe<QuayAtDistance>
 }
@@ -3361,7 +3400,7 @@ export type EstimatedCallFieldsFragment = {
 }
 
 export type GetLegQueryVariables = Exact<{
-    id: Scalars['ID']
+    id: Scalars['ID']['input']
 }>
 
 export type GetLegQuery = {
@@ -4094,26 +4133,23 @@ export type GetLegQuery = {
 }
 
 export type GetTripPatternsQueryVariables = Exact<{
-    numTripPatterns?: InputMaybe<Scalars['Int']>
+    numTripPatterns?: InputMaybe<Scalars['Int']['input']>
     from: Location
     to: Location
-    dateTime: Scalars['DateTime']
-    arriveBy: Scalars['Boolean']
-    wheelchairAccessible: Scalars['Boolean']
+    dateTime: Scalars['DateTime']['input']
+    arriveBy: Scalars['Boolean']['input']
+    wheelchairAccessible: Scalars['Boolean']['input']
     modes: Modes
-    walkSpeed?: InputMaybe<Scalars['Float']>
-    transferSlack?: InputMaybe<Scalars['Int']>
-    transferPenalty?: InputMaybe<Scalars['Int']>
+    walkSpeed?: InputMaybe<Scalars['Float']['input']>
+    transferSlack?: InputMaybe<Scalars['Int']['input']>
+    transferPenalty?: InputMaybe<Scalars['Int']['input']>
     banned?: InputMaybe<InputBanned>
     whiteListed?: InputMaybe<InputWhiteListed>
     debugItineraryFilter?: InputMaybe<ItineraryFilterDebugProfile>
-    searchWindow?: InputMaybe<Scalars['Int']>
-    walkReluctance?: InputMaybe<Scalars['Float']>
-    waitReluctance?: InputMaybe<Scalars['Float']>
-    relaxTransitSearchGeneralizedCostAtDestination?: InputMaybe<
-        Scalars['Float']
-    >
-    pageCursor?: InputMaybe<Scalars['String']>
+    searchWindow?: InputMaybe<Scalars['Int']['input']>
+    walkReluctance?: InputMaybe<Scalars['Float']['input']>
+    waitReluctance?: InputMaybe<Scalars['Float']['input']>
+    pageCursor?: InputMaybe<Scalars['String']['input']>
 }>
 
 export type GetTripPatternsQuery = {
@@ -4921,9 +4957,9 @@ export type GetTripPatternsQuery = {
 }
 
 export type ReplaceLegQueryVariables = Exact<{
-    id: Scalars['ID']
-    numberOfNext: Scalars['Int']
-    numberOfPrevious: Scalars['Int']
+    id: Scalars['ID']['input']
+    numberOfNext: Scalars['Int']['input']
+    numberOfPrevious: Scalars['Int']['input']
 }>
 
 export type ReplaceLegQuery = {
@@ -4966,7 +5002,7 @@ export type ReplaceLegQuery = {
 }
 
 export type SituationQueryVariables = Exact<{
-    situationNumber: Scalars['String']
+    situationNumber: Scalars['String']['input']
 }>
 
 export type SituationQuery = {
