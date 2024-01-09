@@ -3,6 +3,7 @@ import { Storage } from '@google-cloud/storage'
 
 import logger from './logger'
 import { getProjectId } from './utils/project'
+import semver from 'semver/preload'
 
 const PROD = process.env.NODE_ENV === 'production'
 
@@ -36,6 +37,21 @@ async function getRedisConfig(): Promise<Config> {
     return parsed
 }
 
+// TODO: remove after upgrading redis in all environments
+// GETEX requires redis version 6.2.0
+function useLegacyOperations(response: string): boolean {
+    const info = response
+        .split('\n')
+        .reduce<Record<string, string>>((acc, line) => {
+            const [key, value] = line.trim().split(':') || []
+            return key && value ? { ...acc, [key]: value } : acc
+        }, {})
+    const version = info['redis_version']
+    logger.info(`Redis server version: ${version}`)
+
+    return version ? semver.lt(version, '6.2.0') : true
+}
+
 async function setupCache(): Promise<void> {
     const config = PROD
         ? await getRedisConfig()
@@ -51,6 +67,8 @@ async function setupCache(): Promise<void> {
 
     await client.connect().then(() => logger.info('Redis client connected'))
 
+    const useLegacy = useLegacyOperations(await client.info())
+
     setCache = async (
         key: string,
         value: any,
@@ -60,7 +78,13 @@ async function setupCache(): Promise<void> {
     }
 
     getCache = async (key: string, expireInSeconds: number) => {
-        const entry = await client.getEx(key, { EX: expireInSeconds })
+        const entry = useLegacy
+            ? await client.get(key).then(async (value) => {
+                  if (value) await client.expire(key, expireInSeconds)
+                  return value
+              })
+            : await client.getEx(key, { EX: expireInSeconds })
+
         if (entry === null) return null
 
         const parsed = JSON.parse(entry)
