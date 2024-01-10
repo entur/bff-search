@@ -1,0 +1,2 @@
+schema: 'https://api.entur.io/journey-planner/v3/graphql'
+documents: 'src/logic/otp2/queries/*.ts'

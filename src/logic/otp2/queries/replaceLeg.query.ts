@@ -6,10 +6,10 @@ export default gql`
         leg(id: $id) {
             id
             aimedStartTime
-            nextLegs(next: $numberOfNext, filter: sameAuthority) {
+            nextLegs(next: $numberOfNext, filter: sameMode) {
                 ...replaceLegFields
             }
-            previousLegs(previous: $numberOfPrevious, filter: sameAuthority) {
+            previousLegs(previous: $numberOfPrevious, filter: sameMode) {
                 ...replaceLegFields
             }
         }
