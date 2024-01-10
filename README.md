@@ -83,7 +83,7 @@ https://app.circleci.com/pipelines/github/entur/bff-search
 Nope, not possible at the moment. Everything apigee related in this
 repo works with Apigee Egde, but we're currently using Apigee X. Clickops is the way at the moment.
 
-See targets in client-search-xxxx to see what mappings are needed. 
+See targets in client-search-xxxx to see what mappings are needed.
 
 ```
 npm run apigee // dev is the default
@@ -99,20 +99,21 @@ This will deploy the app to **Apigee**.
 ### But I thought we had a separate beta environment as well?
 
 Haha, yeah, you would, wouldn't you? And we do - but Apigee does NOT have a separate beta environment, so we need
-to have a separate config for it, and that config is included in all deploys (or so it seems?). 
+to have a separate config for it, and that config is included in all deploys (or so it seems?).
 
-The URL in every case is  
+The URL in every case is
 
 ```
 https://api.<dev.|staging.|''>entur.io/client/search/beta/v1
 ```
+
 instead of
+
 ```
 https://api.<dev.|staging.|''>entur.io/client/search/v1
 ```
 
 The entur-client beta web/app use `api.entur.io/client/search/beta/v1`
-
 
 ### Headers + CORS
 
