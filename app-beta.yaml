@@ -1,5 +1,5 @@
 runtime: nodejs18
-service: default
+service: search
 inbound_services:
     - warmup
 automatic_scaling:
