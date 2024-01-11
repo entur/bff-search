@@ -11,6 +11,7 @@ import {
     GraphqlQuery,
     RoutingError,
     TripPatternParsed,
+    RoutingErrorCode,
 } from '../../types'
 
 import {
@@ -93,6 +94,50 @@ export type PostTransitRequestBody = RawSearchParams & {
     cursor?: string
 }
 
+async function recursiveTransitSearch(
+    params: SearchParams,
+    extraHeaders: ExtraHeaders,
+    attempt = 0,
+): Promise<{
+    tripPatterns: TripPatternParsed[]
+    queries: GraphqlQuery[]
+    customCursor: string | undefined
+}> {
+    const maxAttempts = 10
+
+    const {
+        tripPatterns,
+        queries,
+        previousPageCursor,
+        nextPageCursor,
+        routingErrors,
+    } = await searchTransit(params, extraHeaders)
+
+    const hasNoTransitError = routingErrors?.some(
+        (error) =>
+            error.code === RoutingErrorCode.NoTransitConnectionInSearchWindow,
+    )
+
+    const otpCursor = params.arriveBy ? previousPageCursor : nextPageCursor
+
+    let customCursor
+    if (otpCursor) {
+        customCursor = generateCursor(params, otpCursor)
+    }
+
+    if (hasNoTransitError && attempt < maxAttempts) {
+        const updatedParams = parseCursor(customCursor)?.params || params
+
+        return await recursiveTransitSearch(
+            updatedParams,
+            extraHeaders,
+            attempt + 1,
+        )
+    } else {
+        return { tripPatterns, queries, customCursor }
+    }
+}
+
 router.post<
     '/',
     Record<string, never>,
@@ -140,21 +185,10 @@ router.post<
 
         const extraHeaders = getHeadersFromClient(req)
 
-        stopTrace = trace(
-            cursorData ? 'searchTransit' : 'searchTransitWithTaxi',
-        )
+        stopTrace = trace('searchTransit')
 
-        const { tripPatterns, queries, previousPageCursor, nextPageCursor } =
-            await searchTransit(params, extraHeaders)
-        stopTrace()
-
-        stopTrace = trace('generateCursor')
-        const otpCursor = params.arriveBy ? previousPageCursor : nextPageCursor
-
-        let customCursor
-        if (otpCursor) {
-            customCursor = generateCursor(params, otpCursor)
-        }
+        const { tripPatterns, queries, customCursor } =
+            await recursiveTransitSearch(params, extraHeaders)
 
         stopTrace()
 
