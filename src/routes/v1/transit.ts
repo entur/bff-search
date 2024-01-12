@@ -125,9 +125,8 @@ async function recursiveTransitSearch(
         customCursor = generateCursor(params, otpCursor)
     }
 
-    if (hasNoTransitError && attempt < maxAttempts) {
-        const updatedParams = parseCursor(customCursor)?.params || params
-
+    const updatedParams = parseCursor(customCursor)?.params
+    if (hasNoTransitError && attempt < maxAttempts && updatedParams) {
         return await recursiveTransitSearch(
             updatedParams,
             extraHeaders,
