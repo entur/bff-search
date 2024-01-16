@@ -4,7 +4,7 @@ import {
 } from 'lz-string'
 import { parseJSON } from 'date-fns'
 
-import { CursorData, SearchParams, Metadata } from '../../types'
+import { CursorData, SearchParams } from '../../types'
 
 export function parseCursor(cursor?: string): CursorData | undefined {
     if (!cursor?.length) return undefined
@@ -27,21 +27,14 @@ export function parseCursor(cursor?: string): CursorData | undefined {
 
 export function generateCursor(
     params: SearchParams,
-    metadata: Metadata | undefined,
+    otpCursor?: string | null,
 ): string | undefined {
-    if (!metadata) return
-
-    const { prevDateTime, nextDateTime, searchWindowUsed } = metadata
-
-    const nextDate = new Date(params.arriveBy ? prevDateTime : nextDateTime)
-
     const cursorData = {
         v: 1,
         params: {
             ...params,
-            searchDate: nextDate,
             useFlex: false,
-            searchWindow: searchWindowUsed,
+            pageCursor: otpCursor,
         },
     }
 

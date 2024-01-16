@@ -1,11 +1,4 @@
-import {
-    addDays,
-    differenceInMinutes,
-    endOfDay,
-    parseISO,
-    startOfDay,
-    subDays,
-} from 'date-fns'
+import { differenceInMinutes } from 'date-fns'
 import cleanDeep from 'clean-deep'
 import { v4 as uuid } from 'uuid'
 
@@ -14,7 +7,6 @@ import {
     EstimatedCall,
     GraphqlQuery,
     Leg,
-    Metadata,
     Notice,
     SearchParams,
     SearchPreset,
@@ -41,6 +33,7 @@ export function getQueryVariables({
     minimumTransferTime,
     searchWindow,
     searchPreset,
+    pageCursor,
     // DevParams
     debugItineraryFilter,
     walkReluctance: debugWalkReluctance,
@@ -74,6 +67,7 @@ export function getQueryVariables({
             debugItineraryFilter === true
                 ? ItineraryFilterDebugProfile.LimitToSearchWindow
                 : ItineraryFilterDebugProfile.Off,
+        pageCursor,
     }
 }
 
@@ -122,37 +116,6 @@ function getSearchPresetVariables(
     }
 }
 
-export function getNextQueryVariables(
-    searchParams: GetTripPatternsQueryVariables,
-    metaData: Metadata | undefined,
-): GetTripPatternsQueryVariables {
-    const { arriveBy, dateTime } = searchParams
-
-    const searchDate = parseISO(dateTime)
-    // Metadata will be null if routingErrors is not empty, because searchWindow
-    // cannot be calculated.
-    if (metaData) {
-        const metaDateTime = arriveBy
-            ? metaData.prevDateTime
-            : metaData.nextDateTime
-
-        return {
-            ...searchParams,
-            searchWindow: metaData.searchWindowUsed,
-            dateTime: metaDateTime,
-        }
-    } else {
-        const nextMidnight = arriveBy
-            ? endOfDay(subDays(searchDate, 1))
-            : startOfDay(addDays(searchDate, 1))
-
-        return {
-            ...searchParams,
-            dateTime: nextMidnight.toISOString(),
-        }
-    }
-}
-
 export const cleanQueryVariables = (
     variables: GetTripPatternsQueryVariables,
 ): GetTripPatternsQueryVariables =>
@@ -184,18 +147,9 @@ function sortTripPatternsByExpectedTime<T extends TripPattern>(
     })
 }
 
-export function getNextSearchDateFromMetadata(
-    metadata: Metadata,
-    arriveBy = false,
-): Date {
-    const dateTime = arriveBy ? metadata.prevDateTime : metadata.nextDateTime
-    return parseISO(dateTime)
-}
-
 export function combineAndSortFlexibleAndTransitTripPatterns(
     regularTripPatterns: TripPatternParsed[],
     flexibleTripPattern?: TripPatternParsed,
-    nextDateTime?: Date,
     arriveBy = false,
 ): TripPatternParsed[] {
     if (!flexibleTripPattern) return regularTripPatterns
@@ -204,18 +158,6 @@ export function combineAndSortFlexibleAndTransitTripPatterns(
         [flexibleTripPattern, ...regularTripPatterns],
         arriveBy,
     )
-
-    if (!nextDateTime) {
-        return sortedTripPatterns
-    }
-
-    const flexIsOutsideTransitSearchWindowUsed = arriveBy
-        ? parseISO(flexibleTripPattern.expectedEndTime) < nextDateTime
-        : parseISO(flexibleTripPattern.expectedStartTime) > nextDateTime
-
-    if (flexIsOutsideTransitSearchWindowUsed) {
-        return regularTripPatterns
-    }
 
     return sortedTripPatterns
 }

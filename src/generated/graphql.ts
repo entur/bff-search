@@ -4113,17 +4113,18 @@ export type GetTripPatternsQueryVariables = Exact<{
     relaxTransitSearchGeneralizedCostAtDestination?: InputMaybe<
         Scalars['Float']
     >
+    pageCursor?: InputMaybe<Scalars['String']>
 }>
 
 export type GetTripPatternsQuery = {
     __typename?: 'QueryType'
     trip: {
         __typename?: 'Trip'
+        nextPageCursor: string | null
+        previousPageCursor: string | null
         metadata: {
             __typename?: 'TripSearchData'
             searchWindowUsed: number
-            nextDateTime: string | null
-            prevDateTime: string | null
         } | null
         routingErrors: Array<{
             __typename?: 'RoutingError'
