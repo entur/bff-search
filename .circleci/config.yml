@@ -37,7 +37,7 @@ jobs:
                         'ent-enturapp-dev',
                         'ent-enturapp-tst',
                         'ent-enturbeta-prd',
-                        'ent-enturapp-prd',
+                        'entur-prod',
                     ]
             function:
                 type: string
@@ -123,6 +123,6 @@ workflows:
             - deploy:
                   env: 'prod'
                   name: prod
-                  project: 'ent-enturapp-prd'
+                  project: 'entur-prod'
                   requires:
                       - approval-prod

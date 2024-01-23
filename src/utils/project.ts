@@ -6,7 +6,7 @@ export const getProjectId = (): string => {
     } else if (ENVIRONMENT === 'beta') {
         return 'ent-enturbeta-prd'
     } else if (ENVIRONMENT === 'prod') {
-        return 'ent-enturapp-prd'
+        return 'entur-prod'
     } else {
         return 'ent-enturapp-dev'
     }
