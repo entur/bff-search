@@ -55,13 +55,13 @@ jobs:
                   command: |
                       case "<< parameters.env >>" in
                           dev)
-                              echo $GCLOUD_SERVICE_KEY_GCP2_dev | gcloud auth activate-service-account --key-file=-
+                              echo $GCLOUD_SERVICE_KEY_GCP2_dev | gcloud auth activate-service-account --key-file=- ;;
                           staging)
-                              echo $GCLOUD_SERVICE_KEY_GCP2_staging | gcloud auth activate-service-account --key-file=-
+                              echo $GCLOUD_SERVICE_KEY_GCP2_staging | gcloud auth activate-service-account --key-file=- ;;
                           beta)
-                              echo $GCLOUD_SERVICE_KEY_GCP2_beta | gcloud auth activate-service-account --key-file=-
+                              echo $GCLOUD_SERVICE_KEY_GCP2_beta | gcloud auth activate-service-account --key-file=- ;;
                           prod)
-                              echo $GCLOUD_SERVICE_KEY_prod | gcloud auth activate-service-account --key-file=-
+                              echo $GCLOUD_SERVICE_KEY_prod | gcloud auth activate-service-account --key-file=- ;;
                       esac
             - run:
                   name: Set gcloud project
