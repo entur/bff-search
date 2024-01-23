@@ -36,7 +36,6 @@ export default gql`
         $searchWindow: Int
         $walkReluctance: Float
         $waitReluctance: Float
-        $relaxTransitSearchGeneralizedCostAtDestination: Float
         $pageCursor: String
     ) {
         trip(
@@ -56,7 +55,6 @@ export default gql`
             searchWindow: $searchWindow
             walkReluctance: $walkReluctance
             waitReluctance: $waitReluctance
-            relaxTransitSearchGeneralizedCostAtDestination: $relaxTransitSearchGeneralizedCostAtDestination
             pageCursor: $pageCursor
         ) {
             metadata {

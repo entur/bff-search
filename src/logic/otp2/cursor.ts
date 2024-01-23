@@ -19,7 +19,6 @@ export function parseCursor(cursor?: string): CursorData | undefined {
         ...parsed,
         params: {
             ...params,
-            initialSearchDate: parseJSON(params.initialSearchDate),
             searchDate: parseJSON(params.searchDate),
         },
     }

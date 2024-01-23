@@ -39,8 +39,6 @@ export function getQueryVariables({
     walkReluctance: debugWalkReluctance,
     waitReluctance: debugWaitReluctance,
     transferPenalty: debugTransferPenalty,
-    relaxTransitSearchGeneralizedCostAtDestination:
-        debugRelaxTransitSearchGeneralizedCostAtDestination,
 }: SearchParams): GetTripPatternsQueryVariables {
     const { transferPenalty, transferSlack, walkReluctance, waitReluctance } =
         getSearchPresetVariables(searchPreset, minimumTransferTime)
@@ -61,8 +59,6 @@ export function getQueryVariables({
         waitReluctance: debugWaitReluctance || waitReluctance,
         transferPenalty: debugTransferPenalty || transferPenalty,
         searchWindow: searchWindow || undefined,
-        relaxTransitSearchGeneralizedCostAtDestination:
-            debugRelaxTransitSearchGeneralizedCostAtDestination || undefined,
         debugItineraryFilter:
             debugItineraryFilter === true
                 ? ItineraryFilterDebugProfile.LimitToSearchWindow
@@ -77,7 +73,6 @@ interface PresetValues {
     walkReluctance?: number
     waitReluctance?: number
     searchWindow?: number
-    relaxTransitSearchGeneralizedCostAtDestination?: number
 }
 
 function getSearchPresetVariables(

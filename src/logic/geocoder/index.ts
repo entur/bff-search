@@ -39,7 +39,7 @@ export const getNearestStops = async (
     })
 
     if (!response.ok) {
-        const data = await response.json()
+        const data = (await response.json()) as { message?: string }
         logger.error('Failure while fetching nearest stop', {
             lat,
             lon,
@@ -52,7 +52,7 @@ export const getNearestStops = async (
         throw new GeocoderError(data.message)
     }
 
-    const result: GeocoderResult = await response.json()
+    const result = (await response.json()) as GeocoderResult
     const features = result.features || []
     return sortBy(features, (feature) => feature.properties.distance)
 }

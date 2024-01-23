@@ -16,7 +16,7 @@ describe('parseLeg', () => {
             ({
                 fromPlace: { name: oldName, quay: { name: newName } },
                 mode,
-            } as Leg)
+            }) as Leg
         const nonTransitLeg = buildLeg(Mode.Foot)
         const transitLeg = buildLeg(Mode.Rail)
 

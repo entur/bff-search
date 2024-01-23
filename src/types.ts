@@ -35,7 +35,7 @@ export interface RawSearchParams {
     from: Location
     to: Location
     arriveBy?: boolean
-    searchDate?: Date
+    searchDate?: string
     walkSpeed?: number
     minimumTransferTime?: number
     pageCursor?: string
@@ -49,13 +49,15 @@ interface DevParams {
     waitReluctance?: number
     transferPenalty?: number
     searchWindow?: number
-    relaxTransitSearchGeneralizedCostAtDestination?: number
 }
 
 /**
  * The parsed params for use internally.
  */
-export type SearchParams = Omit<RawSearchParams, 'searchFilter'> &
+export type SearchParams = Omit<
+    RawSearchParams,
+    'searchFilter' | 'searchDate'
+> &
     DevParams & {
         searchDate: Date
         searchWindow?: number
