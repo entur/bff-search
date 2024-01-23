@@ -7,7 +7,9 @@ function deploy {
 
     if ! [[ "$ENV" =~ ^(dev|staging|prod)$ ]]; then
         echo -e " 🙈 Invalid ENV: $ENV\n"
-        echo -e " Were you trying to deploy to beta? Beta is automatically deployed together with prod\n"
+        if [[ "$ENV" == "beta" ]]; then
+            echo -e " Were you trying to deploy to beta? Beta is automatically deployed together with prod\n"
+        fi
         exit 1
     fi
 
@@ -49,7 +51,7 @@ function deploy {
 
         if [[ "$ENV" == "staging" ]]; then
             echo " 📝 Deploying revision $APIGEEREVISION to Apigee stage ..."
-            $APIGEECLI apis deploy --name client-search --env env-prd --rev $APIGEEREVISION --ovr --org ent-apigee-shr-001 --default-token
+            $APIGEECLI apis deploy --name client-search --env env-tst --rev $APIGEEREVISION --ovr --org ent-apigee-shr-001 --default-token
         elif [[ "$ENV" == "prod" ]]; then
             echo " 📝 Deploying revision $APIGEEREVISION to Apigee prod ..."
             $APIGEECLI apis deploy --name client-search --env env-prd --rev $APIGEEREVISION --ovr --org ent-apigee-shr-001 --default-token
@@ -57,7 +59,7 @@ function deploy {
     fi
 
     echo -e "\n 🎉 Revision $APIGEEREVISION successfully deployed to $ENV!"
-    echo -e "\n 📋 Status: https://apigee.com/platform/entur/proxies/client-search/overview/$APIGEEREVISION"
+    echo -e "\n 📋 Status: https://console.cloud.google.com/apigee/proxies/client-search/overview?project=ent-apigee-shr-001"
 }
 
 function command_exists {
