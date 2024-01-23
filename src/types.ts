@@ -33,6 +33,7 @@ export type Place = PlaceFieldsFragment
  */
 export interface RawSearchParams {
     from: Location
+    passThroughPoint?: PassThroughPoint
     to: Location
     arriveBy?: boolean
     searchDate?: string
@@ -121,3 +122,8 @@ export type Affected =
     | { __type: 'AffectedStopPlace'; stopPlace: { id: string; name: string } }
     | { __type: 'AffectedQuay'; quay: { id: string; name: string } }
     | { __type: 'AffectedUnknown' }
+
+interface PassThroughPoint {
+    name: string
+    place: string
+}

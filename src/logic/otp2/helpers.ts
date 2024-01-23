@@ -34,6 +34,7 @@ export function getQueryVariables({
     searchWindow,
     searchPreset,
     pageCursor,
+    passThroughPoint,
     // DevParams
     debugItineraryFilter,
     walkReluctance: debugWalkReluctance,
@@ -64,6 +65,12 @@ export function getQueryVariables({
                 ? ItineraryFilterDebugProfile.LimitToSearchWindow
                 : ItineraryFilterDebugProfile.Off,
         pageCursor,
+        passThroughPoints: passThroughPoint
+            ? {
+                  name: passThroughPoint.name,
+                  placeIds: [passThroughPoint.place],
+              }
+            : undefined,
     }
 }
 
