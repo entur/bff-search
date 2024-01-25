@@ -29,17 +29,14 @@ jobs:
         parameters:
             env:
                 type: enum
-                enum:
-                    ['terraform', 'nordicdev', 'dev', 'staging', 'beta', 'prod']
+                enum: ['dev', 'staging', 'beta', 'prod']
             project:
                 type: enum
                 enum:
                     [
-                        'ent-selvbet-terraform-dev',
-                        'ent-client-nordic-dev',
-                        'entur-dev',
-                        'entur-staging',
-                        'entur-beta',
+                        'ent-enturapp-dev',
+                        'ent-enturapp-tst',
+                        'ent-enturbeta-prd',
                         'entur-prod',
                     ]
             function:
@@ -50,10 +47,22 @@ jobs:
         steps:
             - attach_workspace:
                   at: .
+            # $GCLOUD_SERVICE_KEY_GCP2_dev etc. are found in CircleCI project settings -> environment variables
+            # The values are stored in LastPass as "App Engine Default Serviceaccount keys" and generated from the service
+            # accounts <projectId>@appspot.gserviceaccount.com
             - run:
                   name: Set gcloud Auth
                   command: |
-                      echo $GCLOUD_SERVICE_KEY_<< parameters.env >> | gcloud auth activate-service-account --key-file=-
+                      case "<< parameters.env >>" in
+                          dev)
+                              echo $GCLOUD_SERVICE_KEY_GCP2_dev | gcloud auth activate-service-account --key-file=- ;;
+                          staging)
+                              echo $GCLOUD_SERVICE_KEY_GCP2_staging | gcloud auth activate-service-account --key-file=- ;;
+                          beta)
+                              echo $GCLOUD_SERVICE_KEY_GCP2_beta | gcloud auth activate-service-account --key-file=- ;;
+                          prod)
+                              echo $GCLOUD_SERVICE_KEY_prod | gcloud auth activate-service-account --key-file=- ;;
+                      esac
             - run:
                   name: Set gcloud project
                   command: |
@@ -61,7 +70,7 @@ jobs:
             - run:
                   name: Upload type defs to GCP bucket
                   command: |
-                      gsutil cp typeDeclarations.tar.gz "gs://<< parameters.project >>-bff-search-types/"
+                      gsutil cp typeDeclarations.tar.gz "gs://<< parameters.project >>-search-types/"
             - run:
                   name: Deploy to Google App Engine
                   command: |
@@ -87,7 +96,7 @@ workflows:
             - deploy:
                   env: 'dev'
                   name: dev
-                  project: 'entur-dev'
+                  project: 'ent-enturapp-dev'
                   requires:
                       - approval-dev
 
@@ -99,7 +108,7 @@ workflows:
             - deploy:
                   env: 'staging'
                   name: staging
-                  project: 'entur-staging'
+                  project: 'ent-enturapp-tst'
                   requires:
                       - approval-staging
 
@@ -111,7 +120,7 @@ workflows:
             - deploy:
                   env: 'beta'
                   name: beta
-                  project: 'entur-beta'
+                  project: 'ent-enturbeta-prd'
                   requires:
                       - approval-beta
 
@@ -126,27 +135,3 @@ workflows:
                   project: 'entur-prod'
                   requires:
                       - approval-prod
-
-            - approval-terraform:
-                  type: approval
-                  requires:
-                      - build
-
-            - deploy:
-                  env: 'terraform'
-                  name: terraform
-                  project: 'ent-selvbet-terraform-dev'
-                  requires:
-                      - approval-terraform
-
-            - approval-nordic-dev:
-                  type: approval
-                  requires:
-                      - build
-
-            - deploy:
-                  env: 'nordicdev'
-                  name: nordic dev
-                  project: 'ent-client-nordic-dev'
-                  requires:
-                      - approval-nordic-dev

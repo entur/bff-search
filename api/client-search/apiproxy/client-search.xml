@@ -1,24 +1,25 @@
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<APIProxy name="client-search">
-  <Description>client/search</Description>
-  <DisplayName>client/search</DisplayName>
-  <Policies>
-    <Policy>assignMessage.addCors</Policy>
-    <Policy>flowCallout.getEnvironmentConfiguration</Policy>
-    <Policy>javaScript.replaceTargetUrl</Policy>
-    <Policy>spikeArrest</Policy>
-  </Policies>
-  <ProxyEndpoints>
-    <ProxyEndpoint>client-search-v1</ProxyEndpoint>
-  </ProxyEndpoints>
-  <Resources>
-    <Resource>jsc://javaScript.replaceTargetUrl.js</Resource>
-  </Resources>
-  <Spec></Spec>
-  <TargetServers/>
-  <TargetEndpoints>
-    <TargetEndpoint>client-search-v1</TargetEndpoint>
-    <TargetEndpoint>client-search-otp1-v1</TargetEndpoint>
-    <TargetEndpoint>client-search-otp2-v1</TargetEndpoint>
-  </TargetEndpoints>
+<APIProxy revision="3" name="client-search">
+    <DisplayName>client/search</DisplayName>
+    <Description>Managed-By: Team-Selvbetjent</Description>
+    <CreatedAt>1700121801152</CreatedAt>
+    <LastModifiedAt>1700121801152</LastModifiedAt>
+    <BasePaths>/client/search/beta/v1</BasePaths>
+    <BasePaths>/client/search/v1</BasePaths>
+    <Policies>
+        <Policy>flowCallout.getEnvironmentConfiguration</Policy>
+        <Policy>spikeArrest</Policy>
+        <Policy>assignMessage.addCors</Policy>
+        <Policy>javaScript.replaceTargetUrl</Policy>
+    </Policies>
+    <ProxyEndpoints>
+        <ProxyEndpoint>client-search-beta-v1</ProxyEndpoint>
+        <ProxyEndpoint>client-search-v1</ProxyEndpoint>
+    </ProxyEndpoints>
+    <Resources>
+        <Resource>jsc://replaceTargetUrl.js</Resource>
+    </Resources>
+    <TargetEndpoints>
+        <TargetEndpoint>client-search-beta-v1</TargetEndpoint>
+        <TargetEndpoint>client-search-v1</TargetEndpoint>
+    </TargetEndpoints>
 </APIProxy>

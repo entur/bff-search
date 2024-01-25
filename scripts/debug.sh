@@ -5,7 +5,7 @@ ENV=${1}
 
 if [[ $ENV == '' ]]; then
  echo
- echo "✋ Remember to specify environment to run, e.g dev, staging, beta, prod or nordicdev and terraform"
+ echo "✋ Remember to specify environment to run, e.g dev, staging, beta or prod"
  echo
  echo "ex. npm run debug staging"
  echo

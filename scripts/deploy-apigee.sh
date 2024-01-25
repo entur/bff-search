@@ -5,40 +5,61 @@ set -e
 function deploy {
     ENV="${1:-dev}"
 
-    if ! [[ "$ENV" =~ ^(dev|terraform|nordic-dev|staging|prod)$ ]]; then
+    if ! [[ "$ENV" =~ ^(dev|staging|prod)$ ]]; then
         echo -e " 🙈 Invalid ENV: $ENV\n"
+        if [[ "$ENV" == "beta" ]]; then
+            echo -e " Were you trying to deploy to beta? Beta is automatically deployed together with prod\n"
+        fi
         exit 1
     fi
 
-    read -rp " 😺 Apigee user: " APIGEEUSER
-    echo "🔑 Get Temporary Apigee password from url https://entur-norway.login.apigee.com/passcode  - Log in with SSO"
-    read -rsp " 🔑 Apigee password: " APIGEEPASSWORD
+    APIGEECLI=$HOME/.apigeecli/bin/apigeecli
+    if ! command_exists $APIGEECLI; then
+        echo "Installing apigeecli...\n"
+        curl -L https://raw.githubusercontent.com/apigee/apigeecli/main/downloadLatest.sh | sh -
+    fi
 
-    APIGEETOKEN=$(curl -H "Content-Type: application/x-www-form-urlencoded;charset=utf-8" -H "accept: application/json;charset=utf-8" -H "Authorization: Basic ZWRnZWNsaTplZGdlY2xpc2VjcmV0" -X POST https://entur-norway.login.apigee.com/oauth/token -s -d "grant_type=password&response_type=token&passcode=${APIGEEPASSWORD}" | jq -r '.access_token')
-    
     if ! command_exists jq; then
         echo "Brew installing jq..."
         brew install jq
     fi
 
     if [[ "$ENV" == "dev" ]]; then
-        echo " 📝 Deploying new revision to Apigee dev ..."
-        apigeetool deployproxy -V -o entur -e dev -n client-search -d api/client-search -t $APIGEETOKEN
-    fi
+        echo " 📝 Uploading new revision to Apigee dev ..."
+        APIGEEREVISION=$($APIGEECLI apis create bundle --name client-search --proxy-folder api/client-search/apiproxy --org ent-apigee-shr-001 --default-token | jq '.revision | tonumber')
 
-    echo " SETTING APIGEE REVISION"
-    APIGEEREVISION=$(apigeetool listdeployments -V -u $APIGEEUSER -t $APIGEETOKEN -o entur -n client-search -j | jq '.deployments[] | select(.environment |contains("dev")) |.revision')
+        echo "Deploying revision $APIGEEREVISION to dev ..."
+        $APIGEECLI apis deploy --name client-search --env env-dev --rev $APIGEEREVISION --ovr --org ent-apigee-shr-001 --default-token
 
-    if [[ "$ENV" == "staging" ]]; then
-        echo " 📝 Deploying revision $APIGEEREVISION to Apigee stage ..."
-        apigeetool deployExistingRevision -V -t $APIGEETOKEN -o entur -e stage -n client-search -r $APIGEEREVISION 
-    elif [[ "$ENV" == "prod" ]]; then
-        echo " 📝 Deploying revision $APIGEEREVISION to Apigee prod ..."
-        apigeetool deployExistingRevision -V -t $APIGEETOKEN -o entur -e prod -n client-search -r $APIGEEREVISION
+    else
+        echo
+        echo "Looking up revision that is currently deployed to dev. To deploy a different version deploy it to dev first"
+        APIGEEREVISION=$($APIGEECLI apis listdeploy --name client-search --org ent-apigee-shr-001 --default-token | jq '.deployments[] | select(.environment |contains("dev")) |.revision | tonumber')
+
+        echo
+        echo "The current revision in dev is $APIGEEREVISION, are you sure you want to deploy it to $ENV?"
+        echo
+        read -rp "Type 'yes' to confirm: " SHOULD_DEPLOY
+        if [[ "$SHOULD_DEPLOY" == "yes" ]]; then
+            echo
+            echo "You're brave! Deploy will go ahead"
+            echo
+        else
+            echo "Deploy aborted"
+            exit
+        fi
+
+        if [[ "$ENV" == "staging" ]]; then
+            echo " 📝 Deploying revision $APIGEEREVISION to Apigee stage ..."
+            $APIGEECLI apis deploy --name client-search --env env-tst --rev $APIGEEREVISION --ovr --org ent-apigee-shr-001 --default-token
+        elif [[ "$ENV" == "prod" ]]; then
+            echo " 📝 Deploying revision $APIGEEREVISION to Apigee prod ..."
+            $APIGEECLI apis deploy --name client-search --env env-prd --rev $APIGEEREVISION --ovr --org ent-apigee-shr-001 --default-token
+        fi
     fi
 
     echo -e "\n 🎉 Revision $APIGEEREVISION successfully deployed to $ENV!"
-    echo -e "\n 📋 Status: https://apigee.com/platform/entur/proxies/client-search/overview/$APIGEEREVISION"
+    echo -e "\n 📋 Status: https://console.cloud.google.com/apigee/proxies/client-search/overview?project=ent-apigee-shr-001"
 }
 
 function command_exists {

@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <TargetEndpoint name="client-search-beta-v1">
-  <Description/>
-  <FaultRules/>
-  <DefaultFaultRule name="target-fault">
+  <DefaultFaultRule name="DefaultFaultRule">
     <Step>
+      <FaultRules/>
       <Name>assignMessage.addCors</Name>
     </Step>
+    <AlwaysEnforce>false</AlwaysEnforce>
   </DefaultFaultRule>
+  <Description/>
+  <FaultRules/>
   <Flows/>
   <PostFlow name="PostFlow">
     <Request/>
@@ -15,6 +17,7 @@
   <PreFlow name="PreFlow">
     <Request>
       <Step>
+        <FaultRules/>
         <Name>javaScript.replaceTargetUrl</Name>
       </Step>
     </Request>
@@ -27,6 +30,6 @@
   </PreFlow>
   <HTTPTargetConnection>
     <Properties/>
-    <URL>https://entur-beta.uc.r.appspot.com/v1</URL>
+    <URL>https://search-dot-ent-enturbeta-prd.ew.r.appspot.com/v1</URL>
   </HTTPTargetConnection>
 </TargetEndpoint>
