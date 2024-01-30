@@ -53,7 +53,7 @@ export const legFields = gql`
             ...serviceJourneyFields
         }
         situations {
-            ...situationFields
+            ...situationRefFields
         }
         toEstimatedCall {
             ...estimatedCallFields
@@ -147,7 +147,7 @@ export const quayFields = gql`
         description
         publicCode
         situations {
-            ...situationFields
+            ...situationRefFields
         }
         stopPlace {
             ...stopPlaceFields
@@ -159,117 +159,10 @@ export const quayFields = gql`
  * Will be removed from TripPattern, legs, serviceJourney etc.
  * Use new situation endpoint.
  */
-export const situationsFields = gql`
-    fragment situationFields on PtSituationElement {
+export const situationRefFields = gql`
+    fragment situationRefFields on PtSituationElement {
         situationNumber
-        summary {
-            language
-            value
-        }
-        description {
-            language
-            value
-        }
-        advice {
-            language
-            value
-        }
-        validityPeriod {
-            startTime
-            endTime
-        }
         reportType
-        infoLinks {
-            uri
-            label
-        }
-        stopPlaces {
-            id
-            name
-        }
-        affects {
-            ... on AffectedStopPlace {
-                stopPlace {
-                    id
-                    name
-                }
-                stopConditions
-            }
-        }
-    }
-`
-
-export const situationsFieldsNew = gql`
-    fragment situationsFieldsNew on PtSituationElement {
-        situationNumber
-        summary {
-            language
-            value
-        }
-        description {
-            language
-            value
-        }
-        advice {
-            language
-            value
-        }
-        validityPeriod {
-            startTime
-            endTime
-        }
-        reportType
-        infoLinks {
-            uri
-            label
-        }
-        stopPlaces {
-            id
-            name
-        }
-        affects {
-            __typename
-            ... on AffectedLine {
-                line {
-                    id
-                }
-            }
-            ... on AffectedStopPlace {
-                stopPlace {
-                    id
-                    name
-                }
-                quay {
-                    id
-                    name
-                }
-            }
-            ... on AffectedServiceJourney {
-                serviceJourney {
-                    id
-                }
-            }
-            ... on AffectedStopPlaceOnServiceJourney {
-                stopPlace {
-                    id
-                    name
-                }
-                quay {
-                    id
-                    name
-                }
-            }
-            ... on AffectedStopPlaceOnLine {
-                stopPlace {
-                    id
-                    name
-                }
-                quay {
-                    id
-                    name
-                }
-            }
-        }
     }
 `
 

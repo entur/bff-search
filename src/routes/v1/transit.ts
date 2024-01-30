@@ -41,6 +41,7 @@ import {
 
 const SEARCH_PARAMS_EXPIRE_IN_SECONDS = 2 * 60 * 60 // two hours
 
+const MAX_RECURSIVE_ATTEMPTS = 10
 const router = Router()
 
 interface ExtraHeaders {
@@ -103,8 +104,6 @@ async function recursiveTransitSearch(
     queries: GraphqlQuery[]
     customCursor: string | undefined
 }> {
-    const maxAttempts = 10
-
     const {
         tripPatterns,
         queries,
@@ -113,20 +112,24 @@ async function recursiveTransitSearch(
         routingErrors,
     } = await searchTransit(params, extraHeaders)
 
-    const hasNoTransitError = routingErrors?.some(
-        (error) =>
-            error.code === RoutingErrorCode.NoTransitConnectionInSearchWindow,
+    const hasResultsOutsideSearchWindow = routingErrors?.some(
+        ({ code }) =>
+            code === RoutingErrorCode.NoTransitConnectionInSearchWindow,
     )
 
     const otpCursor = params.arriveBy ? previousPageCursor : nextPageCursor
 
-    let customCursor
-    if (otpCursor) {
-        customCursor = generateCursor(params, otpCursor)
-    }
+    const customCursor = otpCursor
+        ? generateCursor(params, otpCursor)
+        : undefined
 
     const updatedParams = parseCursor(customCursor)?.params
-    if (hasNoTransitError && attempt < maxAttempts && updatedParams) {
+
+    if (
+        hasResultsOutsideSearchWindow &&
+        attempt < MAX_RECURSIVE_ATTEMPTS &&
+        updatedParams
+    ) {
         return await recursiveTransitSearch(
             updatedParams,
             extraHeaders,

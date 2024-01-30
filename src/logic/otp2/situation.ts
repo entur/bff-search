@@ -4,7 +4,7 @@ import { Affected, ExtraHeaders, SituationResponse } from '../../types'
 import { TRANSIT_HOST_OTP2 } from '../../config'
 import { uniqBy } from '../../utils/array'
 import {
-    SituationsFieldsNewFragment,
+    SituationQuery,
     SituationQueryVariables,
 } from '../../generated/graphql'
 
@@ -14,10 +14,7 @@ export async function getSituation(
     situationNumber: string,
     extraHeaders: ExtraHeaders,
 ): Promise<SituationResponse | undefined> {
-    const data = await graphqlRequest<
-        { situation?: SituationsFieldsNewFragment },
-        SituationQueryVariables
-    >(
+    const data = await graphqlRequest<SituationQuery, SituationQueryVariables>(
         `${TRANSIT_HOST_OTP2}/graphql`,
         SITUATIONS_QUERY,
         {
@@ -52,7 +49,7 @@ export async function getSituation(
     }
 }
 
-type ResponseAffected = SituationsFieldsNewFragment['affects'][0]
+type ResponseAffected = NonNullable<SituationQuery['situation']>['affects'][0]
 
 function mapAffected(affected: ResponseAffected): Affected {
     if ('line' in affected && affected.line) {
