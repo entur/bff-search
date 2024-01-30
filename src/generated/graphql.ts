@@ -4150,6 +4150,7 @@ export type GetTripPatternsQueryVariables = Exact<{
     walkReluctance?: InputMaybe<Scalars['Float']['input']>
     waitReluctance?: InputMaybe<Scalars['Float']['input']>
     pageCursor?: InputMaybe<Scalars['String']['input']>
+    passThroughPoints?: InputMaybe<Array<PassThroughPoint> | PassThroughPoint>
 }>
 
 export type GetTripPatternsQuery = {
