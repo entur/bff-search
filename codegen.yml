@@ -19,6 +19,7 @@ config:
         Long: number
         Time: string
         Duration: number
+        Cost: number
 generates:
     src/generated/graphql.ts:
         documents: 'src/logic/otp2/queries/*.ts'
