@@ -11,7 +11,6 @@ import {
     GraphqlQuery,
     RoutingError,
     TripPatternParsed,
-    RoutingErrorCode,
 } from '../../types'
 
 import {
@@ -104,18 +103,8 @@ async function recursiveTransitSearch(
     queries: GraphqlQuery[]
     customCursor: string | undefined
 }> {
-    const {
-        tripPatterns,
-        queries,
-        previousPageCursor,
-        nextPageCursor,
-        routingErrors,
-    } = await searchTransit(params, extraHeaders)
-
-    const hasResultsOutsideSearchWindow = routingErrors?.some(
-        ({ code }) =>
-            code === RoutingErrorCode.NoTransitConnectionInSearchWindow,
-    )
+    const { tripPatterns, queries, previousPageCursor, nextPageCursor } =
+        await searchTransit(params, extraHeaders)
 
     const otpCursor = params.arriveBy ? previousPageCursor : nextPageCursor
 
@@ -123,21 +112,23 @@ async function recursiveTransitSearch(
         ? generateCursor(params, otpCursor)
         : undefined
 
-    const updatedParams = parseCursor(customCursor)?.params
+    if (tripPatterns.length > 0 || attempt >= MAX_RECURSIVE_ATTEMPTS) {
+        return { tripPatterns, queries, customCursor }
+    }
 
-    if (
-        hasResultsOutsideSearchWindow &&
-        attempt < MAX_RECURSIVE_ATTEMPTS &&
-        updatedParams
-    ) {
+    const updatedParams = customCursor
+        ? parseCursor(customCursor)?.params
+        : undefined
+
+    if (updatedParams) {
         return await recursiveTransitSearch(
             updatedParams,
             extraHeaders,
             attempt + 1,
         )
-    } else {
-        return { tripPatterns, queries, customCursor }
     }
+
+    return { tripPatterns, queries, customCursor }
 }
 
 router.post<
@@ -150,7 +141,6 @@ router.post<
         let stopTrace = trace('parseCursor')
         const cursorData = parseCursor(req.body?.cursor)
         stopTrace()
-
         const params = cursorData?.params || getParams(req.body)
 
         const isApp = req.header('et-client-platform') === 'APP'
@@ -215,7 +205,9 @@ router.post<
                 ),
             ),
         ])
-            .catch((error) => logger.error(error))
+            .catch((error) => {
+                logger.error(error)
+            })
             .finally(stopCacheTrace)
 
         res.json({
