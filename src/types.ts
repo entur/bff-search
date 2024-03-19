@@ -96,6 +96,7 @@ export enum SearchFilter {
     CAR_FERRY = 'car_ferry',
     FLYTOG = 'flytog',
     FLYBUSS = 'flybuss',
+    TAXI = 'taxi',
 }
 
 export enum SearchPreset {
