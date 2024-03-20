@@ -44,6 +44,7 @@ function isTransportMode(mode: string): mode is TransportMode {
         mode === 'metro' ||
         mode === 'tram' ||
         mode === 'coach' ||
+        mode === 'taxi' ||
         mode === 'unknown'
     )
 }
