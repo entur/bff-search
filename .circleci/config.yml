@@ -29,7 +29,7 @@ jobs:
         parameters:
             env:
                 type: enum
-                enum: ['dev', 'staging', 'beta', 'prod']
+                enum: ['dev', 'staging', 'beta', 'prod', 'int']
             project:
                 type: enum
                 enum:
@@ -38,6 +38,7 @@ jobs:
                         'ent-enturapp-tst',
                         'ent-enturbeta-prd',
                         'entur-prod',
+                        'ent-enturint-dev',
                     ]
             function:
                 type: string
@@ -60,6 +61,8 @@ jobs:
                               echo $GCLOUD_SERVICE_KEY_GCP2_staging | gcloud auth activate-service-account --key-file=- ;;
                           beta)
                               echo $GCLOUD_SERVICE_KEY_GCP2_beta | gcloud auth activate-service-account --key-file=- ;;
+                          int)
+                              echo $GCLOUD_SERVICE_KEY_GCP2_int | gcloud auth activate-service-account --key-file=- ;;
                           prod)
                               echo $GCLOUD_SERVICE_KEY_prod | gcloud auth activate-service-account --key-file=- ;;
                       esac
@@ -123,6 +126,18 @@ workflows:
                   project: 'ent-enturbeta-prd'
                   requires:
                       - approval-beta
+
+            - approval-int:
+                  type: approval
+                  requires:
+                      - build
+
+            - deploy:
+                  env: 'int'
+                  name: int
+                  project: 'ent-enturint-dev'
+                  requires:
+                      - approval-int
 
             - approval-prod:
                   type: approval
