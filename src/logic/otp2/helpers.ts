@@ -37,12 +37,12 @@ export function getQueryVariables({
     passThroughPoint,
     // DevParams
     debugItineraryFilter,
-    walkReluctance: debugWalkReluctance,
-    waitReluctance: debugWaitReluctance,
-    transferPenalty: debugTransferPenalty,
+    ...overrideVariables
 }: SearchParams): GetTripPatternsQueryVariables {
-    const { transferPenalty, transferSlack, walkReluctance, waitReluctance } =
-        getSearchPresetVariables(searchPreset, minimumTransferTime)
+    const presetVariables = getSearchPresetVariables(
+        searchPreset,
+        minimumTransferTime,
+    )
 
     return {
         numTripPatterns,
@@ -55,15 +55,7 @@ export function getQueryVariables({
         walkSpeed,
         banned: undefined,
         whiteListed: undefined,
-        transferSlack,
-        walkReluctance: debugWalkReluctance || walkReluctance,
-        waitReluctance: debugWaitReluctance || waitReluctance,
-        transferPenalty: debugTransferPenalty || transferPenalty,
         searchWindow: searchWindow || undefined,
-        debugItineraryFilter:
-            debugItineraryFilter === true
-                ? ItineraryFilterDebugProfile.LimitToSearchWindow
-                : ItineraryFilterDebugProfile.Off,
         pageCursor,
         passThroughPoints: passThroughPoint
             ? {
@@ -71,6 +63,12 @@ export function getQueryVariables({
                   placeIds: [passThroughPoint.place],
               }
             : undefined,
+        debugItineraryFilter:
+            debugItineraryFilter === true
+                ? ItineraryFilterDebugProfile.LimitToSearchWindow
+                : ItineraryFilterDebugProfile.Off,
+        ...presetVariables,
+        ...overrideVariables,
     }
 }
 

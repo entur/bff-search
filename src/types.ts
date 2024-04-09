@@ -46,10 +46,6 @@ export interface RawSearchParams {
 
 interface DevParams {
     debugItineraryFilter?: boolean
-    walkReluctance?: number
-    waitReluctance?: number
-    transferPenalty?: number
-    searchWindow?: number
 }
 
 /**
