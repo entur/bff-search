@@ -38,6 +38,7 @@ export default gql`
         $waitReluctance: Float
         $pageCursor: String
         $passThroughPoints: [PassThroughPoint!]
+        $relaxTransitGroupPriority: RelaxCostInput
     ) {
         trip(
             numTripPatterns: $numTripPatterns
@@ -58,6 +59,7 @@ export default gql`
             waitReluctance: $waitReluctance
             pageCursor: $pageCursor
             passThroughPoints: $passThroughPoints
+            relaxTransitGroupPriority: $relaxTransitGroupPriority
         ) {
             metadata {
                 searchWindowUsed

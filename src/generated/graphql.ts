@@ -959,6 +959,8 @@ export type PtSituationElement = {
     summary: Array<MultilingualString>
     /** Period this situation is in effect */
     validityPeriod: Maybe<ValidityPeriod>
+    /** Operator's version number for the situation element. */
+    version: Maybe<Scalars['Int']['output']>
     /** Timestamp when the situation element was updated. */
     versionedAtTime: Maybe<Scalars['DateTime']['output']>
 }
@@ -979,7 +981,7 @@ export type Quay = PlaceInterface & {
     estimatedCalls: Array<EstimatedCall>
     /** Geometry for flexible area. */
     flexibleArea: Maybe<Scalars['Coordinates']['output']>
-    /** the Quays part of an flexible group. */
+    /** the Quays part of a flexible group. */
     flexibleGroup: Maybe<Array<Maybe<Quay>>>
     id: Scalars['ID']['output']
     /** List of journey patterns servicing this quay */
@@ -1340,7 +1342,7 @@ export enum RelativeDirection {
  *
  */
 export type RelaxCostInput = {
-    /** The constant value to add to the limit. Must be a positive number. The value isequivalent to transit-cost-seconds. Integers is treated as seconds, but you may use the duration format. Example: '3665 = 'DT1h1m5s' = '1h1m5s'. */
+    /** The constant value to add to the limit. Must be a positive number. The value is equivalent to transit-cost-seconds. Integers are treated as seconds, but you may use the duration format. Example: '3665 = 'DT1h1m5s' = '1h1m5s'. */
     constant: InputMaybe<Scalars['Cost']['input']>
     /** The factor to multiply with the 'other cost'. Minimum value is 1.0. */
     ratio: InputMaybe<Scalars['Float']['input']>
@@ -1435,7 +1437,10 @@ export type RoutingParameters = {
     carDecelerationSpeed: Maybe<Scalars['Float']['output']>
     /** Time to park a car in a park and ride, w/o taking into account driving and walking cost. */
     carDropOffTime: Maybe<Scalars['Int']['output']>
-    /** Max car speed along streets, in meters per second */
+    /**
+     * Max car speed along streets, in meters per second
+     * @deprecated This parameter is no longer configurable.
+     */
     carSpeed: Maybe<Scalars['Float']['output']>
     /** @deprecated NOT IN USE IN OTP2. */
     compactLegsByReversedSearch: Maybe<Scalars['Boolean']['output']>
@@ -3351,6 +3356,7 @@ export type GetTripPatternsQueryVariables = Exact<{
     waitReluctance?: InputMaybe<Scalars['Float']['input']>
     pageCursor?: InputMaybe<Scalars['String']['input']>
     passThroughPoints?: InputMaybe<Array<PassThroughPoint> | PassThroughPoint>
+    relaxTransitGroupPriority?: InputMaybe<RelaxCostInput>
 }>
 
 export type GetTripPatternsQuery = {
