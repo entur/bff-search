@@ -107,6 +107,7 @@ export async function searchTransit(
         noStopsInRangeErrorsOrNoTransitConnectionErrors.length === 0
 
     let taxiTripPatterns: TripPatternParsed[] = []
+
     if (!hasStopsInRange) {
         const taxiResults = await searchTaxiFrontBack(
             getQueryVariables(searchParams),
@@ -156,7 +157,7 @@ export async function searchTransit(
 
     // Searching for normal transport options again will not suddenly make new
     // stops magically appear, so we abort further searching.
-    if (!hasStopsInRange) {
+    if (!hasStopsInRange && tripPatterns.length < 1) {
         return {
             tripPatterns: [],
             queries,
@@ -455,13 +456,13 @@ async function searchTaxiFrontBack(
     const getTripPatternsParams: GetTripPatternsQueryVariables = {
         ...searchParams,
         modes: {
-            ...DEFAULT_MODES,
+            transportModes: searchParams.modes.transportModes,
+            directMode: null,
             accessMode: access ? StreetMode.CarPickup : StreetMode.Foot,
             egressMode: egress ? StreetMode.CarPickup : StreetMode.Foot,
         },
         numTripPatterns: egress && access ? 2 : 1,
     }
-
     const comment = 'Search taxi front back'
 
     const [tripPatterns] = await getAndVerifyTripPatterns(
