@@ -16,7 +16,7 @@ import {
     ALL_CAR_FERRY_SUBMODES,
 } from '../../constants'
 
-export const DEFAULT_MODES: Modes = {
+const DEFAULT_MODES: Modes = {
     accessMode: StreetMode.Foot,
     directMode: null,
     egressMode: StreetMode.Foot,
