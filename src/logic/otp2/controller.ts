@@ -89,9 +89,9 @@ export async function searchTransit(
         }
     }
 
-    let regularTripPatterns = regularTripPatternsUnfiltered.filter(
-        isValidTransitAlternative,
-    )
+    let regularTripPatterns = searchParams.allowFlexible
+        ? regularTripPatternsUnfiltered
+        : regularTripPatternsUnfiltered.filter(isValidTransitAlternative)
 
     // If we have any noStopsInRange or noTransitConnection errors, we couldn't find a means of
     // transport from where the traveler wants to start or end the trip. Try to

@@ -1,19 +1,19 @@
 import {
-    StreetMode,
+    InputMaybe,
     Modes,
+    StreetMode,
     TransportMode,
     TransportModes,
     TransportSubmode,
-    InputMaybe,
 } from '../../generated/graphql'
 
 import { uniq } from '../../utils/array'
 import { SearchFilter } from '../../types'
 import {
     ALL_BUS_SUBMODES,
+    ALL_CAR_FERRY_SUBMODES,
     ALL_RAIL_SUBMODES,
     ALL_WATER_SUBMODES,
-    ALL_CAR_FERRY_SUBMODES,
 } from '../../constants'
 
 const DEFAULT_MODES: Modes = {
@@ -30,6 +30,12 @@ const DEFAULT_MODES: Modes = {
         { transportMode: TransportMode.Air, transportSubModes: null },
         { transportMode: TransportMode.Lift, transportSubModes: null },
     ],
+}
+
+const FLEXIBLE_MODES: Modes = {
+    ...DEFAULT_MODES,
+    accessMode: StreetMode.Flexible,
+    egressMode: StreetMode.Flexible,
 }
 
 function isTransportMode(mode: string): mode is TransportMode {
@@ -220,9 +226,12 @@ function exists(
     return maybe !== null
 }
 
-export function filterModesAndSubModes(filters?: SearchFilter[]): Modes {
+export function filterModesAndSubModes(
+    filters?: SearchFilter[],
+    allowFlexible = false,
+): Modes {
     if (!filters) {
-        return DEFAULT_MODES
+        return allowFlexible ? DEFAULT_MODES : FLEXIBLE_MODES
     }
 
     let filteredModes: TransportModes[] = convertSearchFiltersToMode(
@@ -269,7 +278,7 @@ export function filterModesAndSubModes(filters?: SearchFilter[]): Modes {
     }
 
     return {
-        ...DEFAULT_MODES,
+        ...(allowFlexible ? DEFAULT_MODES : FLEXIBLE_MODES),
         transportModes: filteredModes,
     }
 }

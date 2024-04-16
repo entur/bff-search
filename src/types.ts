@@ -42,6 +42,7 @@ export interface RawSearchParams {
     pageCursor?: string
     searchFilter?: SearchFilter[]
     searchPreset?: SearchPreset
+    allowFlexible?: boolean
 }
 
 interface DevParams {
