@@ -5,6 +5,9 @@
     <LastModifiedAt>1700121801152</LastModifiedAt>
     <BasePaths>/client/search/beta/v1</BasePaths>
     <BasePaths>/client/search/v1</BasePaths>
+    <BasePaths>/client/storage/v1</BasePaths>
+    <BasePaths>/client/bff/beta/v1</BasePaths>
+    <BasePaths>/client/bff/v1</BasePaths>
     <Policies>
         <Policy>flowCallout.getEnvironmentConfiguration</Policy>
         <Policy>spikeArrest</Policy>
@@ -14,6 +17,9 @@
     <ProxyEndpoints>
         <ProxyEndpoint>client-search-beta-v1</ProxyEndpoint>
         <ProxyEndpoint>client-search-v1</ProxyEndpoint>
+        <ProxyEndpoint>client-storage-v1</ProxyEndpoint>
+        <ProxyEndpoint>client-bff-beta-v1</ProxyEndpoint>
+        <ProxyEndpoint>client-bff-v1</ProxyEndpoint>
     </ProxyEndpoints>
     <Resources>
         <Resource>jsc://replaceTargetUrl.js</Resource>
@@ -21,5 +27,8 @@
     <TargetEndpoints>
         <TargetEndpoint>client-search-beta-v1</TargetEndpoint>
         <TargetEndpoint>client-search-v1</TargetEndpoint>
+        <TargetEndpoint>client-storage-v1</TargetEndpoint>
+        <TargetEndpoint>client-bff-beta-v1</TargetEndpoint>
+        <TargetEndpoint>client-bff-v1</TargetEndpoint>
     </TargetEndpoints>
 </APIProxy>
