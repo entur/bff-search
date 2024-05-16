@@ -1,3 +1,5 @@
+/* eslint-disable no-undef */
+/* eslint-disable prefer-template */
 var queryString = context.getVariable('request.querystring')
 var pathSuffix = context.getVariable('proxy.pathsuffix')
 
