@@ -80,11 +80,6 @@ https://app.circleci.com/pipelines/github/entur/bff-search
 
 ## 🛰 Apigee Deploy
 
-Nope, not possible at the moment. Everything apigee related in this
-repo works with Apigee Egde, but we're currently using Apigee X. Clickops is the way at the moment.
-
-See targets in client-search-xxxx to see what mappings are needed.
-
 ```
 npm run apigee // dev is the default
 npm run apigee dev
