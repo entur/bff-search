@@ -147,6 +147,6 @@ workflows:
             - deploy:
                   env: 'prod'
                   name: prod
-                  project: 'entur-prod'
+                  project: 'ent-enturapp-prd'
                   requires:
                       - approval-prod
