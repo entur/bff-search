@@ -64,7 +64,7 @@ jobs:
                           int)
                               echo $GCLOUD_SERVICE_KEY_GCP2_int | gcloud auth activate-service-account --key-file=- ;;
                           prod)
-                              echo $GCLOUD_SERVICE_KEY_prod | gcloud auth activate-service-account --key-file=- ;;
+                              echo $GCLOUD_SERVICE_KEY_GCP2_prod | gcloud auth activate-service-account --key-file=- ;;
                       esac
             - run:
                   name: Set gcloud project
