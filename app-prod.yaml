@@ -6,7 +6,7 @@ instance_class: F2 # https://cloud.google.com/appengine/docs/standard#instance_c
 automatic_scaling:
     min_idle_instances: 1
 vpc_access_connector:
-    name: 'projects/entur-prod/locations/europe-west1/connectors/bff-search-redis'
+    name: 'projects/ent-enturapp-prd/locations/europe-west1/connectors/bff-search-redis'
 env_variables:
     ENVIRONMENT: prod
     TRANSIT_HOST_OTP2: https://api.entur.io/journey-planner/v3
