@@ -6,10 +6,10 @@ import { set as cacheSet } from '../../cache'
 import logger from '../../logger'
 
 import {
-    RawSearchParams,
-    SearchParams,
     GraphqlQuery,
+    RawSearchParams,
     RoutingError,
+    SearchParams,
     TripPatternParsed,
 } from '../../types'
 
@@ -26,6 +26,7 @@ import {
     deriveSearchParamsId,
     filterCoordinates,
 } from '../../utils/searchParams'
+
 import { filterModesAndSubModes } from '../../logic/otp2/modes'
 
 import {
@@ -37,6 +38,7 @@ import {
     getNearestStopPlace,
     isMyLocation,
 } from '../../logic/stopPlaceMatching'
+import { Events, logEvent } from '../../analytics'
 
 const SEARCH_PARAMS_EXPIRE_IN_SECONDS = 2 * 60 * 60 // two hours
 
@@ -143,9 +145,21 @@ router.post<
         stopTrace()
         const params = cursorData?.params || getParams(req.body)
 
-        const isApp = req.header('et-client-platform') === 'APP'
+        const platform =
+            req.header('et-client-platform') === 'APP' ? 'APP' : 'WEB'
+
+        if (!cursorData?.params) {
+            logEvent(Events.InitialTravelSearch, platform, {
+                searchParams: params,
+                appVersion:
+                    platform === 'APP'
+                        ? req.header('et-client-version')
+                        : undefined,
+            })
+        }
+
         if (
-            isApp &&
+            platform === 'APP' &&
             REPLACE_MY_LOCATION_WITH_NEAREST_STOP === 'true' &&
             isMyLocation(params)
         ) {

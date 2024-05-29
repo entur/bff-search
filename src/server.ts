@@ -6,6 +6,8 @@ import cors from 'cors'
 import express from 'express'
 
 import './cache'
+import './analytics'
+
 import logger from './logger'
 import {
     NotFoundError,
