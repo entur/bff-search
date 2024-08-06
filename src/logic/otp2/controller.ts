@@ -109,14 +109,32 @@ export async function searchTransit(
     let taxiTripPatterns: TripPatternParsed[] = []
 
     if (!hasStopsInRange) {
-        const taxiResults = await searchTaxiFrontBack(
-            getQueryVariables(searchParams),
-            {
-                access: true,
-                egress: true,
-            },
-            extraHeaders,
-        )
+        const variables = getQueryVariables(searchParams)
+        const [taxiFront, taxiBack] = await Promise.all([
+            searchTaxiFrontBack(
+                variables,
+                { access: true, egress: false },
+                extraHeaders,
+            ),
+            searchTaxiFrontBack(
+                variables,
+                { access: false, egress: true },
+                extraHeaders,
+            ),
+        ])
+
+        let taxiResults: TransitTripPatterns
+
+        if (taxiFront.tripPatterns.length) taxiResults = taxiFront
+        else if (taxiBack.tripPatterns.length) taxiResults = taxiBack
+        else {
+            taxiResults = await searchTaxiFrontBack(
+                variables,
+                { access: true, egress: true },
+                extraHeaders,
+            )
+        }
+
         taxiTripPatterns = taxiResults.tripPatterns
         queries = [...queries, ...taxiResults.queries]
     }
