@@ -1,4 +1,5 @@
 import { parseISO } from 'date-fns'
+import { secondsInMinute } from 'date-fns/constants'
 
 import { graphqlRequest } from '../../utils/graphqlRequest'
 import { isValidTransitAlternative } from '../../utils/tripPattern'
@@ -34,6 +35,7 @@ import {
 } from './helpers'
 
 import { hasHopelessRoutingError, verifyRoutingErrors } from './routingErrors'
+import { first, last } from '../../utils/array'
 
 interface TransitTripPatterns {
     tripPatterns: TripPatternParsed[]
@@ -106,9 +108,16 @@ export async function searchTransit(
     const hasStopsInRange =
         noStopsInRangeErrorsOrNoTransitConnectionErrors.length === 0
 
+    const hasOnlyLongFootLeg = regularTripPatterns.every(({ legs }) => {
+        const isOver30MinWalk = (leg?: Leg) =>
+            leg && leg.mode === Mode.Foot && leg.duration > secondsInMinute * 30
+
+        return isOver30MinWalk(first(legs)) || isOver30MinWalk(last(legs))
+    })
+
     let taxiTripPatterns: TripPatternParsed[] = []
 
-    if (!hasStopsInRange) {
+    if (!hasStopsInRange || hasOnlyLongFootLeg) {
         const variables = getQueryVariables(searchParams)
         const [taxiFront, taxiBack] = await Promise.all([
             searchTaxiFrontBack(
