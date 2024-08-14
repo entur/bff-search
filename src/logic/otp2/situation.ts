@@ -57,7 +57,7 @@ function defaultMultilingualString(
 
     return multilingualStrings.map((multilingualString) => {
         return multilingualString.language === null
-            ? { ...multilingualString, language: 'nor' }
+            ? { ...multilingualString, language: 'no' }
             : multilingualString
     })
 }
