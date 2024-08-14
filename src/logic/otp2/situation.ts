@@ -4,6 +4,7 @@ import { Affected, ExtraHeaders, SituationResponse } from '../../types'
 import { TRANSIT_HOST_OTP2 } from '../../config'
 import { uniqBy } from '../../utils/array'
 import {
+    MultilingualString,
     SituationQuery,
     SituationQueryVariables,
 } from '../../generated/graphql'
@@ -40,13 +41,25 @@ export async function getSituation(
     return {
         situationNumber,
         reportType,
-        summary,
-        description,
-        advice,
+        summary: defaultMultilingualString(summary),
+        description: defaultMultilingualString(description),
+        advice: defaultMultilingualString(advice),
         validityPeriod: validityPeriod || undefined,
         infoLinks: infoLinks || undefined,
         affects: uniqBy(affects.map(mapAffected), getIdForAffected),
     }
+}
+
+function defaultMultilingualString(
+    multilingualStrings: MultilingualString[],
+): MultilingualString[] {
+    if (multilingualStrings.length > 1) return multilingualStrings
+
+    return multilingualStrings.map((multilingualString) => {
+        return multilingualString.language === null
+            ? { ...multilingualString, language: 'nor' }
+            : multilingualString
+    })
 }
 
 type ResponseAffected = NonNullable<SituationQuery['situation']>['affects'][0]
