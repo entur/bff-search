@@ -4,6 +4,7 @@ import { Storage } from '@google-cloud/storage'
 import logger from './logger'
 import { getProjectId } from './utils/project'
 import semver from 'semver/preload'
+import { getSecret } from './secrets'
 
 const PROD = process.env.NODE_ENV === 'production'
 
@@ -59,7 +60,14 @@ async function setupCache(): Promise<void> {
 
     logger.info('Loaded redis config', { config })
 
-    const url = `redis://:notarealauthentication@${config.redisHost}:${config.redisPort}`
+    const redisPassword = await getSecret('redis-password')
+    if (redisPassword) {
+        logger.info('Loaded redis password from secrets')
+    }
+
+    const url = redisPassword
+        ? `redis://:${redisPassword}@${config.redisHost}:${config.redisPort}`
+        : `redis://${config.redisHost}:${config.redisPort}`
 
     const client = createClient({ url })
 

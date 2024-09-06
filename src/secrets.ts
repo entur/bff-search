@@ -4,7 +4,9 @@ import { getProjectId } from './utils/project.js'
 
 const client = new SecretManagerServiceClient()
 
-export async function getSecret(key: 'posthog-token'): Promise<string> {
+export async function getSecret(
+    key: 'posthog-token' | 'redis-password',
+): Promise<string> {
     const projectId = getProjectId()
     const secretsPath = `projects/${projectId}/secrets/${key}/versions/latest`
     let version
