@@ -59,7 +59,7 @@ async function setupCache(): Promise<void> {
 
     logger.info('Loaded redis config', { config })
 
-    const url = `redis://${config.redisHost}:${config.redisPort}`
+    const url = `redis://:notarealauthentication@${config.redisHost}:${config.redisPort}`
 
     const client = createClient({ url })
 
