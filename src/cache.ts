@@ -19,9 +19,26 @@ let getCache:
 interface Config {
     redisHost: string
     redisPort: number
+    redisPassword?: string
 }
 
 async function getRedisConfig(): Promise<Config> {
+    try {
+        const redisPassword = await getSecret('REDIS_PASSWORD')
+        const redisHost = await getSecret('REDIS_HOST')
+        const redisPort = await getSecret('REDIS_PORT')
+        if (redisPassword && redisPassword !== '') {
+            logger.info('Loaded redis config from secrets')
+            return {
+                redisHost,
+                redisPort: Number.parseInt(redisPort),
+                redisPassword,
+            }
+        }
+    } catch {
+        // fall back to 'old' config
+    }
+
     // Redis ip and port are stored in a cloud storage bucket when
     // environment is terraformed (or set manually if terraform is not used)
     const storage = new Storage()
@@ -35,6 +52,7 @@ async function getRedisConfig(): Promise<Config> {
         throw new Error('Error reading Redis config file')
     }
 
+    logger.info('Loaded redis config from bucket')
     return parsed
 }
 
@@ -60,13 +78,8 @@ async function setupCache(): Promise<void> {
 
     logger.info('Loaded redis config', { config })
 
-    const redisPassword = await getSecret('redis-password')
-    if (redisPassword) {
-        logger.info('Loaded redis password from secrets')
-    }
-
-    const url = redisPassword
-        ? `redis://:${redisPassword}@${config.redisHost}:${config.redisPort}`
+    const url = config.redisPassword
+        ? `redis://:${config.redisPassword}@${config.redisHost}:${config.redisPort}`
         : `redis://${config.redisHost}:${config.redisPort}`
 
     const client = createClient({ url })
