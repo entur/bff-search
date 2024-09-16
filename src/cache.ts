@@ -31,7 +31,7 @@ async function getRedisConfig(): Promise<Config> {
             logger.info('Loaded redis config from secrets')
             return {
                 redisHost,
-                redisPort: Number.parseInt(redisPort),
+                redisPort: Number(redisPort),
                 redisPassword,
             }
         }
