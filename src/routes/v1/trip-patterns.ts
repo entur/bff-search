@@ -269,6 +269,8 @@ router.post<
             extraHeaders,
         )
 
+        await cacheSet(`trip-pattern:${tripPattern.id}`, updatedTripPattern)
+
         res.json({ tripPattern: { ...updatedTripPattern, id: tripPattern.id } })
     } catch (error) {
         next(error)
