@@ -43,6 +43,7 @@ export interface RawSearchParams {
     searchFilter?: SearchFilter[]
     searchPreset?: SearchPreset
     allowFlexible?: boolean
+    includeCancellations?: boolean
 }
 
 interface DevParams {

@@ -39,6 +39,7 @@ export default gql`
         $pageCursor: String
         $passThroughPoints: [PassThroughPoint!]
         $relaxTransitGroupPriority: RelaxCostInput
+        $includeCancellations: Boolean
     ) {
         trip(
             numTripPatterns: $numTripPatterns
@@ -60,6 +61,8 @@ export default gql`
             pageCursor: $pageCursor
             passThroughPoints: $passThroughPoints
             relaxTransitGroupPriority: $relaxTransitGroupPriority
+            includePlannedCancellations: $includeCancellations
+            includeRealtimeCancellations: $includeCancellations
         ) {
             metadata {
                 searchWindowUsed
