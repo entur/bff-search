@@ -34,9 +34,9 @@ Mac installation instructions:
 cd ~
 mkdir redis
 cd redis
-curl -O http://download.redis.io/releases/redis-4.0.14.tar.gz
-tar xzf redis-4.0.14.tar.gz
-cd redis-4.0.14
+curl -O http://download.redis.io/releases/redis-7.0.15.tar.gz
+tar xzf redis-7.0.15.tar.gz
+cd redis-7.0.15
 make
 make test
 make install
