@@ -1,0 +1,83 @@
+name: Deploy bff-search
+
+on:
+    workflow_dispatch:
+        inputs:
+            deployToDev:
+                type: boolean
+                description: dev
+                default: false
+            deployToStaging:
+                type: boolean
+                description: staging
+                default: true
+            deployToBeta:
+                type: boolean
+                description: beta
+                default: false
+            deployToProd:
+                type: boolean
+                description: prod
+                default: false
+            deployToInt:
+                type: boolean
+                description: int
+                default: false
+
+    workflow_call:
+        inputs:
+            environment:
+                type: string
+                description: Deployment environment
+                required: true
+jobs:
+    calculate-matrix:
+        runs-on: ubuntu-latest
+        outputs:
+            matrix: ${{steps.calculate-deploy-matrix.outputs.result}}
+        steps:
+            - uses: actions/checkout@v4
+            - name: Calculate parameters
+              uses: actions/github-script@v7
+              id: calculate-deploy-matrix
+              with:
+                  script: |
+                      const { calculateEnvironment } = await import('${{github.workspace}}/.github/workflows/utils.js');
+
+                      const inputs = ${{toJSON(inputs)}}
+                      const environment = calculateEnvironment(inputs)
+
+                      return { environment }
+
+    deploy-bff-search:
+        name: Deploy bff-search to ${{matrix.environment}}
+        runs-on: ubuntu-latest
+        needs: calculate-matrix
+        environment: ec-${{matrix.environment}}
+        strategy:
+            fail-fast: false
+            matrix: ${{ fromJSON(needs.calculate-matrix.outputs.matrix) }}
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Build and test
+              uses: ./.github/actions/build-and-test
+
+            - name: Populate Google application credentials
+              uses: google-github-actions/auth@v2
+              with:
+                  credentials_json: ${{secrets.FIREBASE_DEPLOY_CREDENTIALS}}
+
+            - name: Set gcloud project
+              run: gcloud --quiet config set project << parameters.project >>
+
+            - name: Upload type defs to GCP bucket
+              run: gsutil cp typeDeclarations.tar.gz "gs://<< parameters.project >>-search-types/"
+
+            - name: Deploy to Google App Engine
+              run: gcloud app deploy ./app-${{matrix.environment}}.yaml cron.yaml --quiet --verbosity=info
+
+            - name: Send Slack message
+              run: ./scripts/slack.sh ./app-${{matrix.environment}}
+              env:
+                  ENTUR_DEPLOY_SLACK_WEBHOOK: ${{secrets.ENTUR_DEPLOY_SLACK_WEBHOOK}}

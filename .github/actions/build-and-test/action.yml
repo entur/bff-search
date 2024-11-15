@@ -1,0 +1,19 @@
+name: 'Build and test'
+description: 'Composite action to set up Node.js and run build and test'
+runs:
+    using: 'composite'
+    steps:
+        - uses: actions/setup-node@v4
+          with:
+              node-version: 18
+              cache: npm
+
+        - name: 'Build and test'
+          shell: bash
+          run: |
+              npm ci
+              npm run ts
+              npm run lint
+              npm run build
+              npm test
+              npm run unused-exports
