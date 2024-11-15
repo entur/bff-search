@@ -2,7 +2,7 @@ name: Nightly Deploy
 
 on:
     schedule: # Times are in UTC
-#        - cron: '0 5 * * 1-5'
+        #        - cron: '0 5 * * 1-5'
         - cron: '0 15 * * 1-5'
 
 jobs:

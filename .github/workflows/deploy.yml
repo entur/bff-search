@@ -55,7 +55,7 @@ jobs:
                       })
                           .map(([env, include]) => (include ? env : undefined))
                           .filter(Boolean)
-                      
+
                       return { environment }
 
     deploy-bff-search:
