@@ -23,13 +23,13 @@ on:
                 type: boolean
                 description: int
                 default: false
-
     workflow_call:
         inputs:
             environment:
                 type: string
                 description: Deployment environment
                 required: true
+
 jobs:
     calculate-matrix:
         runs-on: ubuntu-latest
@@ -42,11 +42,20 @@ jobs:
               id: calculate-deploy-matrix
               with:
                   script: |
-                      const { calculateEnvironment } = await import('${{github.workspace}}/.github/workflows/utils.js');
-
                       const inputs = ${{toJSON(inputs)}}
-                      const environment = calculateEnvironment(inputs)
-
+                      if (inputs.environment) {
+                          return { environment: JSON.parse(inputs.environment) }  
+                      }
+                      const environment = Object.entries({
+                          dev: inputs.deployToDev,
+                          int: inputs.deployToInt,
+                          staging: inputs.deployToStaging,
+                          beta: inputs.deployToBeta,
+                          prod: inputs.deployToProd,
+                      })
+                          .map(([env, include]) => (include ? env : undefined))
+                          .filter(Boolean)
+                      
                       return { environment }
 
     deploy-bff-search:
@@ -63,16 +72,16 @@ jobs:
             - name: Build and test
               uses: ./.github/actions/build-and-test
 
-            - name: Populate Google application credentials
-              uses: google-github-actions/auth@v2
-              with:
-                  credentials_json: ${{secrets.FIREBASE_DEPLOY_CREDENTIALS}}
+            - name: Set gcloud Auth
+              run: echo $FIREBASE_DEPLOY_CREDENTIALS | gcloud auth activate-service-account --key-file=-
+              env:
+                  FIREBASE_DEPLOY_CREDENTIALS: ${{secrets.FIREBASE_DEPLOY_CREDENTIALS}}
 
             - name: Set gcloud project
-              run: gcloud --quiet config set project << parameters.project >>
+              run: gcloud --quiet config set project ${{vars.GCP_PROJECT}}
 
             - name: Upload type defs to GCP bucket
-              run: gsutil cp typeDeclarations.tar.gz "gs://<< parameters.project >>-search-types/"
+              run: gsutil cp typeDeclarations.tar.gz "gs://${{vars.GCP_PROJECT}}-search-types/"
 
             - name: Deploy to Google App Engine
               run: gcloud app deploy ./app-${{matrix.environment}}.yaml cron.yaml --quiet --verbosity=info
