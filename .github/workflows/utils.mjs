@@ -1,8 +1,17 @@
+const gcpProject = {
+    int: 'ent-enturint-dev',
+    dev: 'ent-enturapp-dev',
+    tst: 'ent-enturapp-tst',
+    beta: 'ent-enturbeta-prd',
+    prd: 'ent-enturapp-prd',
+}
+
 export function calculateEnvironment(inputs) {
     if (inputs.environment) {
         return JSON.parse(inputs.environment).map((gcp) => ({
             gcp,
             gha: getGhaEnvironment(gcp),
+            gcpProject: gcpProject[gcp],
         }))
     }
 
@@ -18,6 +27,7 @@ export function calculateEnvironment(inputs) {
         .map((gcp) => ({
             gcp,
             gha: getGhaEnvironment(gcp),
+            gcpProject: gcpProject[gcp],
         }))
 }
 

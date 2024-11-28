@@ -46,7 +46,7 @@ jobs:
                       const inputs = ${{toJSON(inputs)}}
                       const environment = calculateEnvironment(inputs)
 
-                      return { asset: [inputs.asset], environment }
+                      return { environment }
 
     deploy-bff-search:
         name: Deploy bff-search to ${{matrix.environment.gcp}}
@@ -79,10 +79,10 @@ jobs:
             #                  FIREBASE_DEPLOY_CREDENTIALS: ${{secrets.FIREBASE_DEPLOY_CREDENTIALS}}
 
             - name: Set gcloud project
-              run: gcloud --quiet config set project ${{vars.GCP_PROJECT}}
+              run: gcloud --quiet config set project ${{matrix.environment.ghaProject}}
 
             - name: Upload type defs to GCP bucket
-              run: gcloud storage cp typeDeclarations.tar.gz "gs://${{vars.GCP_PROJECT}}-search-types/"
+              run: gcloud storage cp typeDeclarations.tar.gz "gs://${{matrix.environment.ghaProject}}-search-types/"
 
             - name: Deploy to Google App Engine
               run: gcloud app deploy ./app-${{matrix.environment.gcp}}.yaml cron.yaml --quiet --verbosity=info
