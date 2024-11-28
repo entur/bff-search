@@ -42,12 +42,11 @@ jobs:
               id: calculate-deploy-matrix
               with:
                   script: |
-                      const { calculateEnvironment } = await import('${{github.workspace}}/.github/workflows/utils.js');
-
+                      const { calculateEnvironment } = await import('${{github.workspace}}/.github/workflows/utils.mjs');
                       const inputs = ${{toJSON(inputs)}}
                       const environment = calculateEnvironment(inputs)
 
-                      return { environment }
+                      return { asset: [inputs.asset], environment }
 
     deploy-bff-search:
         name: Deploy bff-search to ${{matrix.environment.gcp}}
