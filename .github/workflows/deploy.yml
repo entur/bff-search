@@ -74,8 +74,8 @@ jobs:
                   create_credentials_file: true
                   project_id: ${{matrix.environment.gcpProject}}
 
-            - name: Set gcloud project
-              run: gcloud --quiet config set project ${{matrix.environment.gcpProject}}
+            # - name: Set gcloud project
+            #  run: gcloud --quiet config set project ${{matrix.environment.gcpProject}}
 
             - name: Upload type defs to GCP bucket
               run: gcloud storage cp typeDeclarations.tar.gz "gs://${{matrix.environment.gcpProject}}-search-types/"
