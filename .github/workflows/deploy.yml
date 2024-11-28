@@ -78,7 +78,10 @@ jobs:
             #  run: gcloud --quiet config set project ${{matrix.environment.gcpProject}}
 
             - name: Upload type defs to GCP bucket
-              run: gcloud storage cp typeDeclarations.tar.gz "gs://${{matrix.environment.gcpProject}}-search-types/"
+              uses: 'google-github-actions/upload-cloud-storage@v2'
+              with:
+                  path: 'typeDeclarations.tar.gz'
+                  destination: '${{matrix.environment.gcpProject}}-search-types'
 
             - name: Deploy to Google App Engine
               run: gcloud app deploy ./app-${{matrix.environment.gcp}}.yaml cron.yaml --quiet --verbosity=info
