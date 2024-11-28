@@ -72,15 +72,10 @@ jobs:
                   workload_identity_provider: ${{ vars.WORKLOAD_IDENTITY_PROVIDER }}
                   service_account: ${{ vars.SERVICE_ACCOUNT }}
                   create_credentials_file: true
-
-            #            - name: Set gcloud Auth
-            #              run: echo $FIREBASE_DEPLOY_CREDENTIALS | gcloud auth activate-service-account --key-file=-
-            #              env:
-            #                  FIREBASE_DEPLOY_CREDENTIALS: ${{secrets.FIREBASE_DEPLOY_CREDENTIALS}}
+                  project_id: ${{matrix.environment.gcpProject}}
 
             - name: Set gcloud project
-              run: |
-                  gcloud --quiet config set project ${{matrix.environment.gcpProject}}
+              run: gcloud --quiet config set project ${{matrix.environment.gcpProject}}
 
             - name: Upload type defs to GCP bucket
               run: gcloud storage cp typeDeclarations.tar.gz "gs://${{matrix.environment.gcpProject}}-search-types/"
