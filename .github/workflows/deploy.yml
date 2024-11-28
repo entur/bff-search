@@ -89,7 +89,7 @@ jobs:
                   project_id: ${{matrix.environment.gcpProject}}
                   deliverables: |
                       ./app-${{matrix.environment.gcp}}.yaml
-                      cron.yaml
+                      ./cron.yaml
 
             #- name: Deploy to Google App Engine
             #  run: gcloud app deploy ./app-${{matrix.environment.gcp}}.yaml cron.yaml --quiet --verbosity=info
