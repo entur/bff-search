@@ -1,5 +1,5 @@
 cron:
-    - description: "Tic, toc, I'm a clock. I prevent bff-search from idle timeouts."
+    - description: "Tic, toc, I'm a clock. I prevent bff-search from idle timeouts!!."
 
       # Cron-triggered calls bypass the firewall btw.
       # path in app, mapped in server.ts
