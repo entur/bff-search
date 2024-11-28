@@ -79,7 +79,9 @@ jobs:
             #                  FIREBASE_DEPLOY_CREDENTIALS: ${{secrets.FIREBASE_DEPLOY_CREDENTIALS}}
 
             - name: Set gcloud project
-              run: gcloud --quiet config set project ${{matrix.environment.ghaProject}}
+              run: |
+                echo project_${{matrix.environment.ghaProject}}
+                gcloud --quiet config set project ${{matrix.environment.ghaProject}}
 
             - name: Upload type defs to GCP bucket
               run: gcloud storage cp typeDeclarations.tar.gz "gs://${{matrix.environment.ghaProject}}-search-types/"
