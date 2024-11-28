@@ -88,9 +88,7 @@ jobs:
               with:
                   project_id: ${{matrix.environment.gcpProject}}
                   working_directory: .
-                  deliverables: |
-                      app-${{matrix.environment.gcp}}.yaml
-                      cron.yaml
+                  deliverables: app-${{matrix.environment.gcp}}.yaml cron.yaml
                   # NB: cron.yaml cannot be deployed on its own using the deploy-appengine action, as it returns an empty versions array which in turn
                   # crashes the action!
 
