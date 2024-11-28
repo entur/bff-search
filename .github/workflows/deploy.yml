@@ -90,7 +90,7 @@ jobs:
                   working_directory: .
                   #deliverables: app-${{matrix.environment.gcp}}.yaml
                   deliverables: cron.yaml
-                  flags: --format=yaml
+                  flags: --format=none # mute output as it crashes on 'missing version'
 
             #- name: Deploy to Google App Engine
             #  run: gcloud app deploy ./app-${{matrix.environment.gcp}}.yaml cron.yaml --quiet --verbosity=info
