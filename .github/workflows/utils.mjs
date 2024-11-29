@@ -1,9 +1,9 @@
 const gcpProject = {
     int: 'ent-enturint-dev',
     dev: 'ent-enturapp-dev',
-    tst: 'ent-enturapp-tst',
+    staging: 'ent-enturapp-tst',
     beta: 'ent-enturbeta-prd',
-    prd: 'ent-enturapp-prd',
+    prod: 'ent-enturapp-prd',
 }
 
 export function calculateEnvironment(inputs) {
