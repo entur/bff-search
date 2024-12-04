@@ -132,17 +132,9 @@ export async function searchTransit(
             ),
         ])
 
-        let taxiResults: TransitTripPatterns
-
-        if (taxiFront.tripPatterns.length) taxiResults = taxiFront
-        else if (taxiBack.tripPatterns.length) taxiResults = taxiBack
-        else {
-            taxiResults = await searchTaxiFrontBack(
-                variables,
-                { access: true, egress: true },
-                extraHeaders,
-            )
-        }
+        const taxiResults: TransitTripPatterns = taxiFront.tripPatterns.length
+            ? taxiFront
+            : taxiBack
 
         taxiTripPatterns = taxiResults.tripPatterns
         queries = [...queries, ...taxiResults.queries]
