@@ -3,7 +3,7 @@ const gcpProject = {
     dev: 'ent-enturapp-dev',
     staging: 'ent-enturapp-tst',
     beta: 'ent-enturbeta-prd',
-    prod: 'ent-enturapp-prd',
+    prod: 'entur-prod', //  'ent-enturapp-prd',
 }
 
 export function calculateEnvironment(inputs) {
