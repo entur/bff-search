@@ -133,6 +133,15 @@ function filterModesForAirportLinkRail(
     return undefined
 }
 
+function addTaxiToBus(filters: SearchFilter[]): TransportModes | undefined {
+    if (filters.includes(SearchFilter.BUS)) {
+        return {
+            transportMode: TransportMode.Taxi,
+            transportSubModes: null,
+        }
+    }
+}
+
 function filterModesForCarFerry(
     filters: SearchFilter[],
 ): TransportModes | undefined {
@@ -269,6 +278,15 @@ export function filterModesAndSubModes(
     )
     if (modeForAirportLinkBus) {
         filteredModes = updateMode(filteredModes, modeForAirportLinkBus)
+    }
+
+    /**
+     * Taxi is not used with its own search filter, but is attached to the bus mode.
+     * This is to make it easier for users to filter flexible trips.
+     */
+    const modeForTaxi = addTaxiToBus(filters)
+    if (modeForTaxi) {
+        filteredModes = updateMode(filteredModes, modeForTaxi)
     }
 
     const modeForCarFerry = filterModesForCarFerry(filters)
