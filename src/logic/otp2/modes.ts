@@ -34,6 +34,7 @@ const DEFAULT_MODES: Modes = {
 
 const FLEXIBLE_MODES: Modes = {
     ...DEFAULT_MODES,
+    directMode: StreetMode.Flexible,
     accessMode: StreetMode.Flexible,
     egressMode: StreetMode.Flexible,
 }
@@ -231,7 +232,7 @@ export function filterModesAndSubModes(
     allowFlexible = false,
 ): Modes {
     if (!filters) {
-        return allowFlexible ? DEFAULT_MODES : FLEXIBLE_MODES
+        return allowFlexible ? FLEXIBLE_MODES : DEFAULT_MODES
     }
 
     let filteredModes: TransportModes[] = convertSearchFiltersToMode(
@@ -278,7 +279,7 @@ export function filterModesAndSubModes(
     }
 
     return {
-        ...(allowFlexible ? DEFAULT_MODES : FLEXIBLE_MODES),
+        ...(allowFlexible ? FLEXIBLE_MODES : DEFAULT_MODES),
         transportModes: filteredModes,
     }
 }
