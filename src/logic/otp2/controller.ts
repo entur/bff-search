@@ -1,8 +1,5 @@
-import { parseISO } from 'date-fns'
-import { secondsInMinute } from 'date-fns/constants'
-
 import { graphqlRequest } from '../../utils/graphqlRequest'
-import { isValidTransitAlternative } from '../../utils/tripPattern'
+import { isTransitAlternative } from '../../utils/tripPattern'
 import { TRANSIT_HOST_OTP2 } from '../../config'
 import { GetTripPatternError, RoutingErrorsError } from '../../errors'
 import {
@@ -11,7 +8,6 @@ import {
     RoutingError,
     RoutingErrorCode,
     SearchParams,
-    TripPattern,
     Leg,
     TripPatternParsed,
 } from '../../types'
@@ -26,16 +22,13 @@ import JOURNEY_PLANNER_QUERY from './queries/getTripPatterns.query'
 
 import {
     cleanQueryVariables,
-    combineAndSortFlexibleAndTransitTripPatterns,
     createParseTripPattern,
-    getMinutesBetweenDates,
     getQueryVariables,
     getTripPatternsQuery,
     legMapper,
 } from './helpers'
 
 import { hasHopelessRoutingError, verifyRoutingErrors } from './routingErrors'
-import { first, last } from '../../utils/array'
 
 interface TransitTripPatterns {
     tripPatterns: TripPatternParsed[]
@@ -45,11 +38,15 @@ interface TransitTripPatterns {
     routingErrors?: RoutingError[]
 }
 
+interface FlexibleTransitTripPatterns {
+    tripPatterns: TripPatternParsed[]
+    queries: GraphqlQuery[]
+}
+
 export async function searchTransit(
     searchParams: SearchParams,
     extraHeaders: { [key: string]: string },
 ): Promise<TransitTripPatterns> {
-    const { searchDate, arriveBy } = searchParams
     const getTripPatternsParams = getQueryVariables(searchParams)
 
     // We do two searches in parallel here to speed things up a bit. One is a
@@ -59,7 +56,6 @@ export async function searchTransit(
 
     const comment = 'First regular search'
     const [
-        flexibleResults,
         [
             regularTripPatternsUnfiltered,
             routingErrors,
@@ -67,33 +63,21 @@ export async function searchTransit(
             nextPageCursor,
         ],
     ] = await Promise.all([
-        searchFlexible(getTripPatternsParams, extraHeaders),
         getTripPatterns(getTripPatternsParams, extraHeaders, comment),
     ])
 
-    let queries = [
-        ...(flexibleResults?.queries || []),
-        getTripPatternsQuery(getTripPatternsParams, comment),
-    ]
+    const queries = [getTripPatternsQuery(getTripPatternsParams, comment)]
 
     // If the normal search failed with a hopeless error, indicating we shouldn't
     // continue with normal searches, we may still have a flexible result.
     // If so, return that instead of aborting by throwing an exception
 
     if (hasHopelessRoutingError(routingErrors)) {
-        if (flexibleResults?.tripPatterns?.length) {
-            return {
-                tripPatterns: flexibleResults.tripPatterns,
-                queries,
-            }
-        } else {
-            throw new RoutingErrorsError(routingErrors, queries)
-        }
+        throw new RoutingErrorsError(routingErrors, queries)
     }
 
-    let regularTripPatterns = searchParams.allowFlexible
-        ? regularTripPatternsUnfiltered
-        : regularTripPatternsUnfiltered.filter(isValidTransitAlternative)
+    const regularTripPatterns =
+        regularTripPatternsUnfiltered.filter(isTransitAlternative)
 
     // If we have any noStopsInRange or noTransitConnection errors, we couldn't find a means of
     // transport from where the traveler wants to start or end the trip. Try to
@@ -108,75 +92,9 @@ export async function searchTransit(
     const hasStopsInRange =
         noStopsInRangeErrorsOrNoTransitConnectionErrors.length === 0
 
-    const hasOnlyLongFootLeg = regularTripPatterns.every(({ legs }) => {
-        const isOver30MinWalk = (leg?: Leg) =>
-            leg && leg.mode === Mode.Foot && leg.duration > secondsInMinute * 30
-
-        return isOver30MinWalk(first(legs)) || isOver30MinWalk(last(legs))
-    })
-
-    let taxiTripPatterns: TripPatternParsed[] = []
-
-    if (!hasStopsInRange || hasOnlyLongFootLeg) {
-        const variables = getQueryVariables(searchParams)
-        const [taxiFront, taxiBack] = await Promise.all([
-            searchTaxiFrontBack(
-                variables,
-                { access: true, egress: false },
-                extraHeaders,
-            ),
-            searchTaxiFrontBack(
-                variables,
-                { access: false, egress: true },
-                extraHeaders,
-            ),
-        ])
-
-        const taxiResults: TransitTripPatterns = taxiFront.tripPatterns.length
-            ? taxiFront
-            : taxiBack
-
-        taxiTripPatterns = taxiResults.tripPatterns
-        queries = [...queries, ...taxiResults.queries]
-    }
-
-    // Flexible may return results in the future that are outside the
-    // original search window. There may still exist normal transport in the
-    // time between the search window end and the first suggested flexible
-    // result. For example, if  the search window ends on midnight Friday, and
-    // the first suggested flexible result is on Monday morning, we can probably
-    // still find a normal transport option on Saturday.
-
-    // To find these we do a new search if we found no regular trip patterns
-    // within the original search window.
-    const flexibleTripPattern = flexibleResults?.tripPatterns[0]
-    const hasFlexibleResultsOnly =
-        flexibleTripPattern && !regularTripPatterns.length
-    if (hasFlexibleResultsOnly && hasStopsInRange) {
-        const beforeFlexibleResult = await searchBeforeFlexible(
-            searchDate,
-            arriveBy,
-            flexibleTripPattern,
-            getTripPatternsParams,
-            extraHeaders,
-        )
-        regularTripPatterns = beforeFlexibleResult.tripPatterns
-
-        queries = [...queries, ...beforeFlexibleResult.queries]
-    }
-
-    const tripPatterns: TripPatternParsed[] = [
-        ...taxiTripPatterns,
-        ...combineAndSortFlexibleAndTransitTripPatterns(
-            regularTripPatterns,
-            flexibleTripPattern,
-            arriveBy,
-        ),
-    ]
-
     // Searching for normal transport options again will not suddenly make new
     // stops magically appear, so we abort further searching.
-    if (!hasStopsInRange && tripPatterns.length < 1) {
+    if (!hasStopsInRange && regularTripPatterns.length < 1) {
         return {
             tripPatterns: [],
             queries,
@@ -184,7 +102,7 @@ export async function searchTransit(
     }
 
     return {
-        tripPatterns,
+        tripPatterns: regularTripPatterns,
         queries,
         previousPageCursor,
         nextPageCursor,
@@ -225,7 +143,7 @@ export async function searchNonTransit(
 
             const getTripPatternsParams = {
                 ...searchParams,
-                numTripPatterns: 1,
+                numTripPatterns: 2,
             }
 
             const comment = 'Search non transit'
@@ -294,6 +212,46 @@ export async function searchNonTransit(
     )
 }
 
+export async function searchFlexibleTransit(
+    searchParams: SearchParams,
+    extraHeaders: { [key: string]: string },
+): Promise<FlexibleTransitTripPatterns> {
+    const getTripPatternsParams = getQueryVariables(searchParams)
+
+    const [flexibleResults] = await Promise.all([
+        searchFlexible(getTripPatternsParams, extraHeaders),
+    ])
+
+    let queries = [...(flexibleResults?.queries || [])]
+    let taxiTripPatterns: TripPatternParsed[] = []
+
+    const variables = getQueryVariables(searchParams)
+    const [taxiFront, taxiBack] = await Promise.all([
+        searchTaxiFrontBack(
+            variables,
+            { access: true, egress: false },
+            extraHeaders,
+        ),
+        searchTaxiFrontBack(
+            variables,
+            { access: false, egress: true },
+            extraHeaders,
+        ),
+    ])
+
+    const taxiResults: TransitTripPatterns = taxiFront.tripPatterns.length
+        ? taxiFront
+        : taxiBack
+
+    taxiTripPatterns = taxiResults.tripPatterns
+    queries = [...queries, ...taxiResults.queries]
+
+    return {
+        tripPatterns: [...flexibleResults.tripPatterns, ...taxiTripPatterns],
+        queries,
+    }
+}
+
 async function getAndVerifyTripPatterns(
     params: GetTripPatternsQueryVariables,
     extraHeaders: Record<string, string>,
@@ -350,52 +308,6 @@ async function getTripPatterns(
         previousPageCursor,
         nextPageCursor,
     ]
-}
-
-/**
- * Search for results in the time between the end of a search window and the
- * first available flexible trip. This is necessary as we may get a flexible
- * trip suggestion a few days in the future. Normal transport that would be a
- * better suggestion to the traveler may be available in that time period.
- */
-async function searchBeforeFlexible(
-    searchDate: Date,
-    arriveBy = false,
-    flexibleTripPattern: TripPattern,
-    searchParams: any,
-    extraHeaders: Record<string, string>,
-): Promise<TransitTripPatterns> {
-    const searchWindow = getMinutesBetweenDates(
-        parseISO(
-            arriveBy
-                ? flexibleTripPattern.expectedEndTime
-                : flexibleTripPattern.expectedStartTime,
-        ),
-        searchDate,
-        { min: 60 },
-    )
-
-    const nextSearchParams = {
-        ...searchParams,
-        searchDate,
-        searchWindow,
-    }
-
-    const comment = 'Search before flexible'
-    const [transitResultsBeforeFlexible] = await getAndVerifyTripPatterns(
-        nextSearchParams,
-        extraHeaders,
-        comment,
-    )
-
-    const tripPatterns: TripPatternParsed[] =
-        transitResultsBeforeFlexible.filter(isValidTransitAlternative)
-
-    const queries = [getTripPatternsQuery(nextSearchParams, comment)]
-    return {
-        queries,
-        tripPatterns,
-    }
 }
 
 /**

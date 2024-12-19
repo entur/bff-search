@@ -7,14 +7,8 @@ import { isFlexibleLeg, isTransitLeg } from './leg'
 
 type TripPattern = GetTripPatternsQuery['trip']['tripPatterns'][0]
 
-function isTransitAlternative({ legs }: TripPattern): boolean {
+export function isTransitAlternative({ legs }: TripPattern): boolean {
     return (legs || []).some(isTransitLeg)
-}
-
-export function isValidTransitAlternative(pattern: TripPattern): boolean {
-    return (
-        isTransitAlternative(pattern) && isFlexibleTripsInCombination(pattern)
-    )
 }
 
 export function isValidTaxiAlternative(
