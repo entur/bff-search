@@ -22,6 +22,17 @@ import transitRouter, {
     /* eslint-enable @typescript-eslint/no-unused-vars */
 } from './transit'
 
+import flexibleTransitRouter, {
+    /**
+     * Import types so that `unused-exports` won't complain about these.
+     * They need to be exported to be included in type declarations.
+     */
+    /* eslint-disable @typescript-eslint/no-unused-vars */
+    PostFlexibleTransitRequestBody,
+    PostFlexibleTransitResponse,
+    /* eslint-enable @typescript-eslint/no-unused-vars */
+} from './flexible-transit'
+
 import tripPatternsRouter from './trip-patterns'
 
 import situationRouter from './situation'
@@ -33,6 +44,8 @@ router.use('/transit', transitRouter)
 router.use('/trip-patterns', tripPatternsRouter)
 
 router.use('/non-transit', nonTransitRouter)
+
+router.use('/flexible-transit', flexibleTransitRouter)
 
 router.use('/situation', situationRouter)
 
