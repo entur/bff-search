@@ -1,4 +1,3 @@
-import { differenceInMinutes } from 'date-fns'
 import cleanDeep from 'clean-deep'
 import { v4 as uuid } from 'uuid'
 
@@ -124,43 +123,6 @@ export const cleanQueryVariables = (
         emptyObjects: false,
         emptyStrings: false,
     }) as GetTripPatternsQueryVariables
-
-export function getMinutesBetweenDates(
-    a: Date,
-    b: Date,
-    limits?: { min: number; max?: number },
-): number {
-    const min = limits?.min || 0
-    const max = limits?.max || Infinity
-    const diff = Math.abs(differenceInMinutes(a, b))
-    return Math.max(min, Math.min(max, diff))
-}
-
-function sortTripPatternsByExpectedTime<T extends TripPattern>(
-    tripPatterns: T[],
-    arriveBy: boolean,
-): T[] {
-    // eslint-disable-next-line fp/no-mutating-methods
-    return tripPatterns.sort((a, b) => {
-        if (arriveBy) return a.expectedEndTime > b.expectedEndTime ? -1 : 1
-        return a.expectedStartTime < b.expectedStartTime ? -1 : 1
-    })
-}
-
-export function combineAndSortFlexibleAndTransitTripPatterns(
-    regularTripPatterns: TripPatternParsed[],
-    flexibleTripPattern?: TripPatternParsed,
-    arriveBy = false,
-): TripPatternParsed[] {
-    if (!flexibleTripPattern) return regularTripPatterns
-
-    const sortedTripPatterns = sortTripPatternsByExpectedTime(
-        [flexibleTripPattern, ...regularTripPatterns],
-        arriveBy,
-    )
-
-    return sortedTripPatterns
-}
 
 export function getTripPatternsQuery(
     variables: GetTripPatternsQueryVariables,
